@@ -1,0 +1,1 @@
+export const assingRoles = ["Owner", "Admin", "Project Manager", "Crew", "Accountant", "Viewer"]

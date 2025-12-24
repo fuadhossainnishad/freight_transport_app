@@ -1,0 +1,4 @@
+ <!-- Replace with your desired background color -->
+<resources>
+    <color name="splash_bg">#F2E1C2</color>
+</resources>
