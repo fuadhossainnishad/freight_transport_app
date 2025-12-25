@@ -24,9 +24,9 @@ export type RootStackParamList = {
   VerifyOtp2: undefined;
   Signup: { selectedColor?: string } | undefined;
   ColorPicker: undefined;
-  ForgotPassword: undefined
-  ResetPassword: undefined
-  HomeTab: undefined
+  ForgotPassword: undefined;
+  ResetPassword: undefined;
+  HomeTab: undefined;
 };
 
 export default function AppNavigator() {
@@ -94,7 +94,6 @@ export default function AppNavigator() {
           component={BottomTabs}
           options={{ headerShown: false }}
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
