@@ -55,9 +55,8 @@ function TabIcon({ routeName, focused }: TabIconProps) {
 
   return (
     <View
-      className={`flex-row items-center justify-center rounded-full px-4 py-2 ${
-        focused ? 'bg-[#F8EFE4] w-32 leading-5' : ''
-      }`}
+      className={`flex-row items-center justify-center rounded-full px-4 py-2 ${focused ? 'bg-[#F8EFE4] w-32 leading-5' : ''
+        }`}
     >
       {IconComponent && <IconComponent width={26} height={26} />}
       {focused && (
