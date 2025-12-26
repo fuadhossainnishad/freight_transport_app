@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { copyData } from '../../utils/CopyData.utils';
+import { copyData } from '../../shared/utils/CopyData.utils';
 import { ReportStackParamList } from '../../navigation/ReportNavigator';
 
 import FilterIcon from '../../assets/icons/filter.svg';
@@ -22,7 +22,7 @@ import PhotosIcon from '../../assets/icons/photos.svg';
 import VideosIcon from '../../assets/icons/videos.svg';
 import CopyIcon from '../../assets/icons/copy.svg';
 
-import { DynamicLabeling } from '../../utils/DynamicLabeling.utils';
+import { DynamicLabeling } from '../../shared/utils/DynamicLabeling.utils';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackNavigationProp<ReportStackParamList, 'ReportList'>;

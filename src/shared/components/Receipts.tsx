@@ -1,6 +1,6 @@
 import { View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import CopyIcon from '../assets/icons/copy.svg';
-import { copyData } from '../utils/CopyData.utils';
+import { copyData } from '../shared/utils/CopyData.utils';
 
 export default function Receipts() {
     const receipts = [

@@ -1,18 +1,18 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SettingsScreen from '../screens/settings/settings';
-import MailSettings from '../screens/settings/mailSetting.screen';
-import AddNewMailScreen from '../screens/settings/addNewMail.screen';
-import InfoScreen from '../screens/settings/info/info.screen';
-import CompanyProfileScreen from '../screens/settings/profile/companyProfile.screen';
-import EditProfileScreen from '../screens/settings/profile/editProfile.screen';
-import UserProfileScreen from '../screens/settings/profile/userProfile.screen';
-import EditUserProfileScreen from '../screens/settings/profile/editUserProfile.screen';
-import ColorPickerScreen from '../screens/colorPicker.screen';
+import SettingsScreen from '../domains/settings/settings';
+import MailSettings from '../domains/settings/mailSetting.screen';
+import AddNewMailScreen from '../domains/settings/addNewMail.screen';
+import InfoScreen from '../domains/settings/info/info.screen';
+import CompanyProfileScreen from '../domains/settings/profile/companyProfile.screen';
+import EditProfileScreen from '../domains/settings/profile/editProfile.screen';
+import UserProfileScreen from '../domains/settings/profile/userProfile.screen';
+import EditUserProfileScreen from '../domains/settings/profile/editUserProfile.screen';
+import ColorPickerScreen from '../domains/colorPicker.screen';
 import UsersManagementNavigator from './UsersNavigator';
-import RolePermissionScreen from '../screens/settings/rolePermission.screen copy';
-import AddNewRoleScreen from '../screens/settings/addNewRole.screen';
-import SubscriptionScreen from '../screens/settings/subscription/subscription.screen';
+import RolePermissionScreen from '../domains/settings/rolePermission.screen copy';
+import AddNewRoleScreen from '../domains/settings/addNewRole.screen';
+import SubscriptionScreen from '../domains/settings/subscription/subscription.screen';
 
 export type SettingsStackParamList = {
   Settings: undefined;

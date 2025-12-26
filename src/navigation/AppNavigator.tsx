@@ -1,17 +1,17 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import OnboardingScreen from '../screens/onboarding.screen';
-import OnboardingScreen2 from '../screens/onboarding2.screen';
-import OnboardingScreen3 from '../screens/onboarding3.screen copy';
-import LoginScreen from '../screens/auth/login.screen';
-import VerifyEmailScreen from '../screens/auth/verifyEmail.screen';
-import VerifyOtpScreen from '../screens/auth/verifyOtp.screen';
-import SignupScreen from '../screens/auth/signup.screen';
-import ColorPickerScreen from '../screens/colorPicker.screen';
-import ForgotPasswordScreen from '../screens/auth/forgotPassword.screen';
-import ResetPasswordScreen from '../screens/auth/resetPassword.screen';
-import VerifyOtpScreen2 from '../screens/auth/verifyOtp2.screen';
+import OnboardingScreen from '../domains/onboarding.screen';
+import OnboardingScreen2 from '../domains/onboarding2.screen';
+import OnboardingScreen3 from '../domains/onboarding3.screen copy';
+import LoginScreen from '../domains/auth/login.screen';
+import VerifyEmailScreen from '../domains/auth/verifyEmail.screen';
+import VerifyOtpScreen from '../domains/auth/verifyOtp.screen';
+import SignupScreen from '../domains/auth/signup.screen';
+import ColorPickerScreen from '../domains/colorPicker.screen';
+import ForgotPasswordScreen from '../domains/auth/forgotPassword.screen';
+import ResetPasswordScreen from '../domains/auth/resetPassword.screen';
+import VerifyOtpScreen2 from '../domains/auth/verifyOtp2.screen';
 import BottomTabs from './BottomNavigator';
 
 export type RootStackParamList = {

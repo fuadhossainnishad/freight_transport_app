@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { copyData } from '../utils/CopyData.utils';
+import { copyData } from '../shared/utils/CopyData.utils';
 
 import PhotosIcon from '../assets/icons/photos.svg';
 import VideosIcon from '../assets/icons/videos.svg';

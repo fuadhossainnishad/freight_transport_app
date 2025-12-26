@@ -15,7 +15,7 @@ import PhotoIcon from "../../assets/icons/photos.svg";
 import VideoIcon from "../../assets/icons/videos.svg";
 import EditIcon from "../../assets/icons/edit.svg";
 import DeleteIcon from "../../assets/icons/delete.svg";
-import { copyData } from "../../utils/CopyData.utils";
+import { copyData } from "../../shared/utils/CopyData.utils";
 import { PunchStackParamList } from "../../navigation/PunchListNavigator";
 
 

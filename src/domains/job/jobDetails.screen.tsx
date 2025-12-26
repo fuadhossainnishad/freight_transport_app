@@ -10,7 +10,7 @@ import PdfIcon from '../../assets/icons/pdf.svg';
 import ShareIcon from '../../assets/icons/share.svg';
 import DownloadIcon from '../../assets/icons/download.svg';
 
-import { copyData } from '../../utils/CopyData.utils';
+import { copyData } from '../../shared/utils/CopyData.utils';
 
 export default function JobDetailsScreen() {
   const navigation = useNavigation();

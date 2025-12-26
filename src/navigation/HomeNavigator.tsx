@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import Home from '../screens/home/Home.screen';
-import SwitchCompanyScreen from '../screens/home/SwitchCompany.screen';
+import Home from '../domains/home/Home.screen';
+import SwitchCompanyScreen from '../domains/home/SwitchCompany.screen';
 import JobManagementNavigator from './JobNavigator';
 import ReportManagementNavigator from './ReportNavigator';
 import PunchListNavigator from './PunchListNavigator';

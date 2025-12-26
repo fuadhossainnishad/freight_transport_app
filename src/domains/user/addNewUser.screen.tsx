@@ -15,7 +15,7 @@ import { UsersStackParamList } from "../../navigation/UsersNavigator";
 import { assingRoles } from "../../constants/user.constant";
 import FormInputField from "../../components/FormInputField";
 import SelectField from "../../components/SelectField";
-import RegexUtility from "../../utils/Regex.utility";
+import RegexUtility from "../../shared/utils/Regex.utility";
 
 type Props = NativeStackNavigationProp<UsersStackParamList, "AddNewUser">;
 

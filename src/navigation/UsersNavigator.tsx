@@ -2,8 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
-import UserListScreen from '../screens/user/userList.screen';
-import AddNewUserScreen from '../screens/user/addNewUser.screen';
+import UserListScreen from '../domains/user/userList.screen';
+import AddNewUserScreen from '../domains/user/addNewUser.screen';
 
 export type UsersStackParamList = {
   Users: undefined;

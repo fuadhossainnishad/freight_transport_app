@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import CreateJobScreen from '../screens/job/createJob.screen';
-import JobDetailsScreen from '../screens/job/jobDetails.screen';
-import ReportListScreen from '../screens/reports/reportList.screen';
+import CreateJobScreen from '../domains/job/createJob.screen';
+import JobDetailsScreen from '../domains/job/jobDetails.screen';
+import ReportListScreen from '../domains/reports/reportList.screen';
 
 export type ReportStackParamList = {
   ReportList: undefined;

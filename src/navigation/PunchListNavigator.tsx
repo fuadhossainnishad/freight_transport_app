@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import PunchListScreen from '../screens/punchlist/punchList.screen';
-import PunchlistDetailsScreen from '../screens/punchlist/punchlistDetails.screen';
-import CreatePunchlistScreen from '../screens/punchlist/createPunchlist.screen';
+import PunchListScreen from '../domains/punchlist/punchList.screen';
+import PunchlistDetailsScreen from '../domains/punchlist/punchlistDetails.screen';
+import CreatePunchlistScreen from '../domains/punchlist/createPunchlist.screen';
 
 export type PunchStackParamList = {
   PunchList: undefined;

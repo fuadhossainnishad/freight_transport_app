@@ -1,5 +1,5 @@
 import "./global.css"
+import App from "./src/app/App";
 
-import App from './src/App.tsx';
 
-export default App;
+export default App();
