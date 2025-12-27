@@ -10,7 +10,6 @@ export default function App() {
 
   return (
     <SafeAreaProvider className="">
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView className="bg-white flex-1">
         <AppNavigator />
         <Toast />

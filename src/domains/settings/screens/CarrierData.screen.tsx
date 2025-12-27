@@ -1,13 +1,26 @@
 import AppHeader from '../../../shared/components/AppHeader';
-import { Text, ScrollView, ActivityIndicator, View } from 'react-native';
-import { useEffect, useState } from 'react';
+import { Text, ScrollView, ActivityIndicator, View, StyleSheet, RefreshControl } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CarrierDataScreen() {
   const [data, setData] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {});
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const handleFetchData = async () => {
+    setIsLoading(true)
+    await new Promise(resolve => setTimeout(() => resolve, 1500))
+    setData("This is a settings portion")
+  }
+  useEffect(() => {
+    handleFetchData()
+  }, []);
+  const refreshHandler = useCallback(() => {
+    setIsRefreshing(true)
+    handleFetchData()
+  }, [])
   return (
-    <View>
+    <SafeAreaView edges={['top', 'left', 'right']}>
       <AppHeader title="Your Career Data" />
       <Text>Your carrer data</Text>
       {isLoading ? (
@@ -15,8 +28,21 @@ export default function CarrierDataScreen() {
           <ActivityIndicator size="small" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>{data}</ScrollView>
+        <ScrollView
+          contentContainerStyle={styles.scrollViewStyle}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={refreshHandler} tintColor='#1D3557' />
+          }
+        >{data}</ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
+
+
+const styles = StyleSheet.create({
+  scrollViewStyle: {
+
+  }
+})
