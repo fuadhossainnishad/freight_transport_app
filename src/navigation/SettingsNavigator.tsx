@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SettingsScreen from '../domains/settings/settings';
-import MailSettings from '../domains/settings/mailSetting.screen';
-import AddNewMailScreen from '../domains/settings/addNewMail.screen';
+import SettingsScreen from '../domains/settings/screens/settings';
+import MailSettings from '../domains/settings/screens/mailSetting.screen';
+import AddNewMailScreen from '../domains/settings/screens/addNewMail.screen';
 import InfoScreen from '../domains/settings/info/info.screen';
 import CompanyProfileScreen from '../domains/settings/profile/companyProfile.screen';
 import EditProfileScreen from '../domains/settings/profile/editProfile.screen';
@@ -10,8 +10,8 @@ import UserProfileScreen from '../domains/settings/profile/userProfile.screen';
 import EditUserProfileScreen from '../domains/settings/profile/editUserProfile.screen';
 import ColorPickerScreen from '../domains/colorPicker.screen';
 import UsersManagementNavigator from './UsersNavigator';
-import RolePermissionScreen from '../domains/settings/rolePermission.screen copy';
-import AddNewRoleScreen from '../domains/settings/addNewRole.screen';
+import RolePermissionScreen from '../domains/settings/screens/rolePermission.screen copy';
+import AddNewRoleScreen from '../domains/settings/screens/addNewRole.screen';
 import SubscriptionScreen from '../domains/settings/subscription/subscription.screen';
 
 export type SettingsStackParamList = {

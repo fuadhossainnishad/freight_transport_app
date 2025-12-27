@@ -16,7 +16,7 @@ export type HomeStackParamList = {
   Punchlist: undefined;
 };
 
-export default function HomeNavigator() {
+export default function HomeStack() {
   const Stack = createNativeStackNavigator<HomeStackParamList>();
   return (
     <Stack.Navigator>
