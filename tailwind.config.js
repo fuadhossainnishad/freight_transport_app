@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-const Colors = require('./src/constants/colors.ts').default;
+const Colors = require('./src/shared/constants/colors.ts').default;
 
 module.exports = {
   content: ['./App.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],

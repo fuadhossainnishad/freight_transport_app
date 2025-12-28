@@ -107,8 +107,9 @@ export default function VerifyOtpScreen2() {
           <Text className="mr-2">Didn’t get OTP?</Text>
           <TouchableOpacity disabled={timer > 0}>
             <Text
-              className={`text-[#B09050] font-semibold ${timer > 0 ? 'opacity-50' : ''
-                }`}
+              className={`text-[#B09050] font-semibold ${
+                timer > 0 ? 'opacity-50' : ''
+              }`}
             >
               Resend {timer > 0 ? `in ${timer}s` : ''}
             </Text>

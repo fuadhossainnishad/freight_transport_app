@@ -50,7 +50,7 @@ export type SettingsStackParamList = {
   // };
 };
 
-export default function SettingsManagementNavigator() {
+export default function SettingsStack() {
   const Stack = createNativeStackNavigator<SettingsStackParamList>();
   return (
     <Stack.Navigator>

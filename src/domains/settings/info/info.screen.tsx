@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import AppHeader from '../../../components/AppHeader';
-import { SettingsStackParamList } from '../../../navigation/SettingsNavigator';
+import { SettingsStackParamList } from '../../../navigation/SettingsStack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type Props = NativeStackNavigationProp<SettingsStackParamList, 'InfoScreen'>

@@ -13,3 +13,9 @@ export interface IThemeContext {
 export interface IContextProvider {
     children: React.ReactNode
 }
+
+export interface IUser {
+    _id: string
+    role: 'shipper' | 'transporter'
+    name: string
+}

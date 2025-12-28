@@ -1,27 +1,39 @@
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 // import OnboardingScreen from './screens/onboarding.screen';
 import AppNavigator from './navigation/AppNavigator';
 import Toast from 'react-native-toast-message';
+import { NavigationContainer } from '@react-navigation/native';
+import { ThemeProvider } from './providers/ThemeProvider';
+import { AuthProvider } from './providers/AuthProvider';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { UserProvider } from './providers/UserProvider';
 
 export default function App() {
-  const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider className="">
-      <SafeAreaView className="bg-white flex-1">
-        <AppNavigator />
-        <Toast />
-      </SafeAreaView>
+      <NavigationContainer>
+        <ThemeProvider>
+          <AuthProvider>
+            <UserProvider>
+              <GestureHandlerRootView style={styles.gestureHnadlerStyles}>
+                <SafeAreaView className="flex-1">
+                  <AppNavigator />
+                  <Toast />
+                </SafeAreaView>
+              </GestureHandlerRootView>
+            </UserProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
 
-// function AppContent() {
-//   return (
-//     <View className="">
-//       <OnboardingScreen />
-//     </View>
-//   );
-// }
+const styles = StyleSheet.create({
+  gestureHnadlerStyles: {
+    flex: 1,
+  },
+});

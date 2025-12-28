@@ -1,18 +1,12 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-} from "react-native";
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 
 const USERS = [
-  "Emily Davis",
-  "Anthony Hall",
-  "Brian Walker",
-  "Amanda Robinson",
-  "Lauren Scott",
+  'Emily Davis',
+  'Anthony Hall',
+  'Brian Walker',
+  'Amanda Robinson',
+  'Lauren Scott',
 ];
 
 export default function UserSelectSheet({
@@ -35,7 +29,7 @@ export default function UserSelectSheet({
           <Text className="text-xl font-semibold mb-3">Select User</Text>
 
           <ScrollView>
-            {USERS.map((u) => (
+            {USERS.map(u => (
               <TouchableOpacity
                 key={u}
                 onPress={() => toggle(u)}

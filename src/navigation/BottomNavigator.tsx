@@ -14,12 +14,9 @@ import NotificationIcon from '../assets/icons/notification.svg';
 import NotificationIconOutline from '../assets/icons/notificationOutline.svg';
 import Profile from '../assets/icons/profile.svg';
 import NotificationNavigator from './NotificationNavigator';
-import HomeNavigator from './HomeNavigator';
-import SettingsManagementNavigator from './SettingsNavigator';
+import HomeNavigator from './HomeStack';
+import SettingsManagementNavigator from './SettingsStack';
 
-/* ----------------------------------------------
-   TYPE DEFINITIONS
----------------------------------------------- */
 export type RootTabParamList = {
   Home: undefined;
   Notifications: undefined;
@@ -31,9 +28,6 @@ type TabIconProps = {
   focused: boolean;
 };
 
-/* ----------------------------------------------
-   TAB ICON COMPONENT
----------------------------------------------- */
 function TabIcon({ routeName, focused }: TabIconProps) {
   let IconComponent: React.FC<any> | null = null;
   let label = '';
@@ -55,8 +49,9 @@ function TabIcon({ routeName, focused }: TabIconProps) {
 
   return (
     <View
-      className={`flex-row items-center justify-center rounded-full px-4 py-2 ${focused ? 'bg-[#F8EFE4] w-32 leading-5' : ''
-        }`}
+      className={`flex-row items-center justify-center rounded-full px-4 py-2 ${
+        focused ? 'bg-[#F8EFE4] w-32 leading-5' : ''
+      }`}
     >
       {IconComponent && <IconComponent width={26} height={26} />}
       {focused && (
@@ -66,9 +61,6 @@ function TabIcon({ routeName, focused }: TabIconProps) {
   );
 }
 
-/* ----------------------------------------------
-   STABLE FUNCTION TO AVOID NESTED COMPONENTS
----------------------------------------------- */
 function renderTabIcon(
   route: RouteProp<RootTabParamList, keyof RootTabParamList>,
 ) {
@@ -77,9 +69,6 @@ function renderTabIcon(
   };
 }
 
-/* ----------------------------------------------
-   BOTTOM TAB NAVIGATOR
----------------------------------------------- */
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export default function BottomTabs() {
@@ -100,9 +89,6 @@ export default function BottomTabs() {
   );
 }
 
-/* ----------------------------------------------
-   STYLE SHEET (optional for static styles)
----------------------------------------------- */
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',

@@ -6,7 +6,7 @@ import {
 } from '../../constants/settings.constant';
 import ArrowIcon from '../../assets/icons/arrow.svg';
 import LogoutIcon from '../../assets/icons/logout.svg';
-import { SettingsStackParamList } from '../../../navigation/SettingsNavigator';
+import { SettingsStackParamList } from '../../../navigation/SettingsStack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 
