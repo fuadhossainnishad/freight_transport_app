@@ -1,5 +1,12 @@
-import { Text } from 'react-native';
-
-export default function App() {
-  return <Text className="flex-1">this is text</Text>;
+import { NavigationContainer } from '@react-navigation/native';
+import RootNavigation from '../navigation/RootNavigation';
+import { AuthProvider } from './context/Auth.context';
+export default function RootApp() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <RootNavigation />
+      </NavigationContainer>
+    </AuthProvider>
+  );
 }

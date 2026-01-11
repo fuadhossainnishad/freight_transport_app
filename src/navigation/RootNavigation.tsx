@@ -1,5 +1,8 @@
-import { Text } from 'react-native';
+import { useAuth } from '../app/context/Auth.context';
+import MainTab from './MainTab';
+import AuthStack from './AuthStack';
 
 export default function RootNavigation() {
-  return <Text>this is</Text>;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <MainTab /> : <AuthStack />;
 }
