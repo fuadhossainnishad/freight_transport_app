@@ -1,5 +1,8 @@
-import { Text } from "react-native";
+import { useUser } from '../app/context/User.context';
+import ShipperTab from './ShipperTab';
+import TransporterTab from './TransporterTab';
 
 export default function MainTab() {
-  return <Text>this is MainTab.tsx</Text>;
+  const { user } = useUser();
+  return user?.role === 'shipper' ? <ShipperTab /> : <TransporterTab />;
 }
