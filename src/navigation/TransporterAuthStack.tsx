@@ -1,8 +1,11 @@
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useUser } from '../app/context/User.context';
 import { FormProvider } from 'react-hook-form';
+import { TransporterAuthParamList } from '../presentation/auth/types';
 
-const TransporterAuthParamList = {};
+const Stack = createNativeStackNavigator<TransporterAuthParamList>();
 export default function TransporterAuthStack() {
-  const { user } = useUser();
-  return <FormProvider>{user.role === 'shipper' ? '' : ''}</FormProvider>;
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="UploadDocuments" component={} />
+  </Stack.Navigator>;
 }

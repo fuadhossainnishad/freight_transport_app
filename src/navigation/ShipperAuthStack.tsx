@@ -1,8 +1,14 @@
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useUser } from '../app/context/User.context';
 import { FormProvider } from 'react-hook-form';
+import { ShipperAuthParamList } from '../presentation/auth/types';
+import Screen from '../shared/components/Screen';
 
-const ShipperAuthParamList = {};
+const Stack = createNativeStackNavigator<ShipperAuthParamList>();
 export default function ShipperAuthStack() {
-  const { user } = useUser();
-  return <FormProvider>{user.role === 'shipper'?  }</FormProvider>;
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="" />
+    </Stack.Navigator>
+  );
 }
