@@ -1,5 +1,19 @@
-import { Text } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { PickedFile } from '../../../shared/hooks/useDocPicker';
 
-export default function UploadDocs({}) {
-  return <Text>jhgjhf</Text>;
+export type UploadDocsProps = {
+  label: string
+  name: string
+  file: PickedFile
+}
+
+export default function UploadDocs({ }) {
+  return (
+    <TouchableOpacity>
+      <Text>{label}</Text>
+      <View>
+
+      </View>
+    </TouchableOpacity>
+  )
 }

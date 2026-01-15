@@ -11,8 +11,18 @@ export const useDocPicker = async ({ uri, name, type, size }: PickedFile) => {
     mediaType: 'mixed',
     selectionLimit: 1,
   });
-  if (res.didCancel) {
+  if (res.didCancel && !res.assets?.length) {
     return null;
   }
-  return { uri, name, type, size };
+
+  const file = res.assets?.[0];
+  if (!file?.uri || !file.type || !file.fileName) {
+    return null;
+  }
+  return {
+    uri: file.uri!,
+    name: file.fileName,
+    type: file.type || 'application/octet-stream',
+    size: file.fileSize
+  };
 };
