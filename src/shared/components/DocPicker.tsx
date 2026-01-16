@@ -6,7 +6,7 @@ export type PickedFile = {
   type: string;
   size?: number;
 };
-export const useDocPicker = async ({ uri, name, type, size }: PickedFile) => {
+export const DocPicker = async () => {
   const res = await launchImageLibrary({
     mediaType: 'mixed',
     selectionLimit: 1,

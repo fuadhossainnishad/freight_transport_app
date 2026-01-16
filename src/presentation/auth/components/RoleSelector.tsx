@@ -1,17 +1,21 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import LinearGradient from 'react-native-linear-gradient';
 
 export interface RoleSelectorProps {
     role: string;
-    theme: string
+    title: string
     selected: boolean
     onRoleChange: (role: string) => void;
 }
 
-export default function RoleSelector({ role, theme, selected, onRoleChange }: RoleSelectorProps) {
+export default function RoleSelector({ role, title, selected, onRoleChange }: RoleSelectorProps) {
+
     const Wrapper = (selected ? LinearGradient : View) as React.ElementType;
     return (
-        <View className="">
+        <TouchableOpacity
+            className=""
+            onPress={() => onRoleChange(role)}
+        >
             <Wrapper
                 {...(selected
                     ? {
@@ -25,9 +29,9 @@ export default function RoleSelector({ role, theme, selected, onRoleChange }: Ro
                     !selected && styles.normalCard,
                 ]}
             >
-                <Text>{theme}</Text>
+                <Text className="text-black h-20">{title}</Text>
             </Wrapper>
-        </View >
+        </TouchableOpacity >
     );
 }
 

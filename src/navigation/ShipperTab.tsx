@@ -1,5 +1,15 @@
-import { Text } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ShipperAuthParamList } from '../presentation/auth/types';
+import TransporterUploadDocScreen from '../presentation/auth/screens/TransporterUploadDoc.screen';
+
+
+const Stack = createNativeStackNavigator<ShipperAuthParamList>();
 
 export default function ShipperTab() {
-  return <Text className="flex-1 bg-white">this is ShipperTab.tsx</Text>;
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='UploadDocuments' component={TransporterUploadDocScreen} />
+    </Stack.Navigator>
+  );
+
 }
