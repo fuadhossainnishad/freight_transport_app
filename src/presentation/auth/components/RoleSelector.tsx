@@ -19,9 +19,9 @@ export default function RoleSelector({ role, title, selected, onRoleChange }: Ro
             <Wrapper
                 {...(selected
                     ? {
-                        colors: ['#ff7e5f', '#feb47b'],
-                        start: { x: 0, y: 0 },
-                        end: { x: 1, y: 1 },
+                        colors: ['#E6F0F7','#E6F0F7', '#036BB4'],
+                        start: { y: 0, x: 0, },
+                        end: { x: 0, y: 1 },
                     }
                     : {})}
                 style={[

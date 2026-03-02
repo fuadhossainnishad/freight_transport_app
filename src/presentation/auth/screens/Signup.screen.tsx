@@ -34,7 +34,8 @@ export default function SignupScreen() {
           selected={selectedRole === 'transporter'}
           onRoleChange={handleRoleChange}
         />
-      </View>    </SafeAreaView>
+      </View>
+    </SafeAreaView>
   )
 }
 
