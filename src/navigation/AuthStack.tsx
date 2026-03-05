@@ -5,6 +5,7 @@ import { AuthParamList } from '../presentation/auth/types';
 import AuthFormContext from '../presentation/auth/AuthForm.context';
 import TransporterAuthStack from './TransporterAuthStack';
 import SignupScreen from '../presentation/auth/screens/Signup.screen';
+import LoginScreen from '../presentation/auth/screens/LoginScreen';
 
 const Stack = createNativeStackNavigator<AuthParamList>();
 
@@ -12,10 +13,17 @@ export default function AuthStack() {
   const { user } = useUser();
   return (
     <AuthFormContext>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName='SignIn'
+        screenOptions={{ headerShown: false }}>
         <Stack.Screen
           name='RootAuth'
           component={SignupScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name='SignIn'
+          component={LoginScreen}
           options={{ headerShown: false }}
         />
         {user?.role === 'shipper' ? (

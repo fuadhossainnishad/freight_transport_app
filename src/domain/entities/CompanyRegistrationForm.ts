@@ -5,6 +5,8 @@ export interface CompanyRegistrationForm {
   phone: string;
   country: string;
 
+  role: 'TRANSPORTER' | 'SHIPPER'
+
   numberOfTrucks?: number;
   truckType?: string;
 
@@ -12,4 +14,6 @@ export interface CompanyRegistrationForm {
   confirmPassword: string;
 
   acceptTerms: boolean;
+  service_policy: boolean
+
 }

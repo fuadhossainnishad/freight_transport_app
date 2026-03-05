@@ -29,6 +29,7 @@ export default function RoleSelector({ role, title, selected, onRoleChange }: Ro
                     !selected && styles.normalCard,
                 ]}
             >
+                
                 <Text className="text-black h-20">{title}</Text>
             </Wrapper>
         </TouchableOpacity >

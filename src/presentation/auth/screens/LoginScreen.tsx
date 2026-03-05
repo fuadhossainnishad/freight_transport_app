@@ -18,27 +18,61 @@ import CustomButton from "../../../shared/components/CustomButton"
 
 import { LoginForm } from "../../../domain/entities/LoginForm"
 import { useLogin } from "../hooks/useLogin"
+import { getShipperProfile, getTransporterProfile } from "../../../data/services/profileService"
+import { isTransporterProfileComplete } from "../../../shared/utils/profileChecker"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { AuthParamList } from "../types"
+import { useNavigation } from "@react-navigation/native"
+
+type props = NativeStackNavigationProp<AuthParamList, 'SignIn'>;
+
 
 export default function LoginScreen() {
   const { login, loading } = useLogin()
+  const navigation = useNavigation<props>()
 
   const { control, handleSubmit } = useForm<LoginForm>()
 
   const onSubmit = async (data: LoginForm) => {
     try {
+      console.log("logindata:", data)
+
       const res = await login(data.email, data.password)
+      console.log("login:", res)
 
-      Alert.alert("Success", "Login successful")
+      if (res.role === "TRANSPORTER") {
 
-      console.log("Role:", res.role)
+        const profile = await getTransporterProfile(res.userId)
 
-      // navigate based on role here
+        const isComplete = isTransporterProfileComplete(profile)
+
+        if (!isComplete) {
+          navigation.navigate("CompleteTransporterProfile")
+          return
+        }
+
+        navigation.navigate("TransporterDashboard")
+      }
+
+      if (res.role === "SHIPPER") {
+
+        const profile = await getShipperProfile(res.userId)
+
+        if (!profile) {
+          navigation.navigate("CompleteShipperProfile")
+          return
+        }
+
+        navigation.navigate("ShipperDashboard")
+      }
 
     } catch (error: any) {
+
       Alert.alert(
         "Login Failed",
         error?.response?.data?.message || "Something went wrong"
       )
+
     }
   }
 

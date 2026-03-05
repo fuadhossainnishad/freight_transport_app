@@ -1,9 +1,9 @@
 import { signupApi } from "../../shared/api/auth.api";
+import { getDefaultLogoFile } from "../../shared/utils/defaultLogo";
 import { CompanyRegistrationForm } from "../entities/CompanyRegistrationForm";
 
 export const registerTransporter = async (
   payload: CompanyRegistrationForm,
-  logo?: any
 ) => {
   const formData = new FormData();
 
@@ -11,7 +11,6 @@ export const registerTransporter = async (
     formData.append("company_name", payload.companyName);
   }
 
-  formData.append("owner_name", payload.ownerName);
   formData.append("email", payload.email);
   formData.append("phone", payload.phone);
   formData.append("country", payload.country);
@@ -25,18 +24,24 @@ export const registerTransporter = async (
   }
 
   formData.append("password", payload.password);
-  formData.append("role", "TRANSPORTER");
+  formData.append("role", payload.role);
+  formData.append("service_policy", true);
 
-  formData.append("service_policy", "true");
-  formData.append("terms_and_conditions", "true");
+  // formData.append("service_policy", payload.service_policy);
+  formData.append("terms_and_conditions", true); 
 
-  if (logo) {
-    formData.append("logo", {
-      uri: logo.uri,
-      name: logo.fileName ?? "logo.jpg",
-      type: logo.type ?? "image/jpeg",
-    } as any);
-  }
+  // formData.append("terms_and_conditions", payload.acceptTerms);
+  // formData.append("logo", DEFAULT_COMPANY_LOGO);
+  formData.append("logo", getDefaultLogoFile() as any);
+
+
+  // if (logo) {
+  //   formData.append("logo", {
+  //     uri: logo.uri,
+  //     name: logo.fileName ?? "logo.jpg",
+  //     type: logo.type ?? "image/jpeg",
+  //   } as any);
+  // }
 
   return signupApi(formData);
 };
