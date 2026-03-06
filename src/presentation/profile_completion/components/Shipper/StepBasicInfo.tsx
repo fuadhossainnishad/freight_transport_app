@@ -1,22 +1,24 @@
-import { View, Text, TextInput, Button, ActivityIndicator } from "react-native"
+import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native';
 import { useState } from "react"
 import { useFormContext } from "react-hook-form"
 import { useUser } from "../../../../app/context/User.context"
 import { CompleteShipperProfileUseCase } from "../../../../domain/usecases/complete-shipper.usecase"
+import { useAuth } from '../../../../app/context/Auth.context';
 
 export default function StepBasicInfo({ back, onSuccess }: any) {
 
     const { setValue, getValues } = useFormContext()
-    const { user } = useUser()
+    const { setUser } = useUser()
+    const { user: authUser } = useAuth()
 
     const [loading, setLoading] = useState(false)
 
     const handleSubmit = async () => {
 
         const data = getValues()
-
+        console.log("StepBasicInfo:", data)
         if (!data.company_address) {
-            alert("Company address required")
+            Alert.alert("Company address required")
             return
         }
 
@@ -25,19 +27,28 @@ export default function StepBasicInfo({ back, onSuccess }: any) {
             setLoading(true)
 
             const payload = {
-                shipper_id: user?.id,
+                shipper_id: authUser?.shipper_id!,
                 ...data
             }
+            console.log("StepBasicInfo:", payload)
 
             const res = await CompleteShipperProfileUseCase.execute(payload)
 
             if (res?.success) {
+
+                // ✅ Update Global State
+                setUser(prev => ({
+                    ...prev!,
+                    shipperProfile: res.data
+                }))
+
+                // ✅ Let Wizard Handle Navigation
                 onSuccess?.()
             }
 
         } catch (error) {
             console.error("Profile submit error:", error)
-            alert("Something went wrong")
+            Alert.alert("Something went wrong")
         } finally {
             setLoading(false)
         }

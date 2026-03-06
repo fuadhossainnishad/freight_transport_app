@@ -22,9 +22,11 @@ axiosClient.interceptors.request.use(
       const token = await getAccessToken()
 
       if (token) {
+        config.headers = config.headers || {}
         config.headers.Authorization = token
       }
-
+      console.log("HEADERS SENT:", config.headers)
+      console.log("config:", config)
     } catch (error) {
       console.log("TOKEN LOAD ERROR:", error)
     }

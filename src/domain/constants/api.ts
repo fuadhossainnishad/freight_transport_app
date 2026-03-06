@@ -9,3 +9,6 @@ export const COMPLETE_SHIPPER_PROFILE = '/shipper/complete-shipper-profile'
 
 export const GET_SHIIPER_PROFILE = (id: string) => `/shipper/${id}`
 export const GET_TRANSPORTER_PROFILE = (id: string) => `/transporter/${id}`
+
+export const GET_SHIPPER_STATS = (id: string) => `/stats/shipper/${id}`
+export const GET_TRANSPORTER_STATS = (id: string) => `/stats/transporter/${id}`

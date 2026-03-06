@@ -4,12 +4,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 
 
-import HomeIcon from '../../assets/icons/shipper.svg';
+import HomeIcon from '../../assets/icons/home.svg';
 import HomeIconOutline from '../../assets/icons/shipper.svg';
 import NotificationIcon from '../../assets/icons/shipper.svg';
 import NotificationIconOutline from '../../assets/icons/shipper.svg';
 import Profile from '../../assets/icons/shipper.svg';
 import { ShipperTabParamList } from './types';
+import ShipperHome from '../presentation/shipper/screens/ShipperHome.screen';
 
 /* ----------------------------------------------
    TYPE DEFINITIONS
@@ -82,7 +83,7 @@ export default function ShipperTabs() {
         tabBarIcon: renderTabIcon(route),
       })}
     >
-      <Tab.Screen name="Home" component={() => <Text>Home</Text>} />
+      <Tab.Screen name="Home" component={ShipperHome} />
       {/* <Tab.Screen name="Home" component={() => <Text>Home</Text>} />
       <Tab.Screen name="Home" component={() => <Text>Home</Text>} /> */}
     </Tab.Navigator>

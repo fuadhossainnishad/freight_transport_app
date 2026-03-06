@@ -6,7 +6,7 @@ import { useAuth } from "../../../app/context/Auth.context"
 
 export const useLogin = () => {
     const [loading, setLoading] = useState(false)
-    const { login:setAuthUser } = useAuth();
+    const { login: setAuthUser } = useAuth();
 
 
     const login = async (email: string, password: string) => {

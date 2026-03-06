@@ -7,14 +7,6 @@ export default function StepCompanyInfo({ next }: any) {
 
     return (
         <View>
-
-            <Text>Company Name</Text>
-            <TextInput
-                onChangeText={(text) =>
-                    setValue("company_name", text)
-                }
-            />
-
             <Text>Company Address</Text>
             <TextInput
                 onChangeText={(text) =>

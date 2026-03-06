@@ -4,6 +4,8 @@ export interface JwtPayload {
     _id: string
     email: string
     role: "TRANSPORTER" | "SHIPPER"
+    shipper_id: string
+    transporter_id: string
     isBlocked: boolean
     isDeleted: boolean
     iat: number

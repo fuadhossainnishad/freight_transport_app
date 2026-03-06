@@ -2,12 +2,12 @@ import { View, Text, TouchableOpacity } from "react-native"
 import { useFormContext } from "react-hook-form"
 
 const options = [
-  "Food commodities",
-  "Building Materials",
-  "Various goods",
-  "Mining",
-  "Specialized machines",
-  "Others"
+  { label: "Food commodities", value: "Food_Commodities" },
+  { label: "Building Materials", value: "Building_Materials" },
+  { label: "Various goods", value: "Various_Goods" },
+  { label: "Mining", value: "Mining" },
+  { label: "Specialized machines", value: "Specialized_Machines" },
+  { label: "Others", value: "Others" }
 ]
 
 export default function StepMerchandise({ next, back }: any) {
@@ -21,13 +21,13 @@ export default function StepMerchandise({ next, back }: any) {
 
       {options.map((item) => (
         <TouchableOpacity
-          key={item}
+          key={item.label}
           onPress={() => {
-            setValue("type_of_shipment", item)
+            setValue("type_of_shipment", item.value)
             next()
           }}
         >
-          <Text>{item}</Text>
+          <Text>{item.label}</Text>
         </TouchableOpacity>
       ))}
 

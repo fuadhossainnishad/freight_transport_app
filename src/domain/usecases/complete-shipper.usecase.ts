@@ -1,4 +1,3 @@
-import { ProfileService } from "../../data/services/profileService"
 import { completeShipperProfile } from "../../data/services/shipperService"
 
 export class CompleteShipperProfileUseCase {

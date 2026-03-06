@@ -6,6 +6,6 @@ export const completeShipperProfile = async (body: any) => {
     "/shipper/complete-shipper-profile",
     body
   )
-
+  console.log("completeShipperProfile", res.data)
   return res.data
 }

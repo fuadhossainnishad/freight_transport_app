@@ -2,13 +2,13 @@ import { View, Text, TouchableOpacity } from "react-native"
 import { useFormContext } from "react-hook-form"
 
 const options = [
-  "Logistic Manager",
-  "Purchasing Manager",
-  "Operations Manager",
-  "Buyer",
-  "Freight Forwarder",
-  "Secretariat",
-  "Other"
+  { label: "Logistic Manager", value: "Logistic_Manager" },
+  { label: "Purchasing Manager", value: "Purchasing_Manager" },
+  { label: "Operations Manager", value: "Operations_Manager" },
+  { label: "Buyer", value: "Buyer" },
+  { label: "Freight Forwarder", value: "Freight_Forwarder" },
+  { label: "Secretariat", value: "Secretariat" },
+  { label: "Other", value: "Other" }
 ]
 
 export default function StepRole({ next, back }: any) {
@@ -22,13 +22,13 @@ export default function StepRole({ next, back }: any) {
 
       {options.map((item) => (
         <TouchableOpacity
-          key={item}
+          key={item.label}
           onPress={() => {
-            setValue("shipper_type", item)
+            setValue("shipper_type", item.value)
             next()
           }}
         >
-          <Text>{item}</Text>
+          <Text>{item.label}</Text>
         </TouchableOpacity>
       ))}
 

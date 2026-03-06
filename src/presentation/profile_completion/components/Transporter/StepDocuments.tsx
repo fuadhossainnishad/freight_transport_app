@@ -1,6 +1,7 @@
 import { View, Button, Text } from "react-native"
-import * as DocumentPicker from "expo-document-picker"
 import { useFormContext } from "react-hook-form"
+import { pick } from "@react-native-documents/picker"
+
 
 export default function StepDocuments({ next, back }: any) {
 
@@ -8,17 +9,27 @@ export default function StepDocuments({ next, back }: any) {
 
   const pickFile = async (field: string) => {
 
-    const res = await DocumentPicker.getDocumentAsync({})
+    try {
 
-    if (res.assets) {
+      const result = await pick({
+        allowMultiSelection: false,
+        type: ["*/*"] // accept all files
+      })
 
-      const file = res.assets[0]
+      if (!result || result.length === 0) return
+
+      const file = result[0]
 
       setValue(field, {
         uri: file.uri,
-        type: file.mimeType,
-        name: file.name
+        name: file.name,
+        type: file.type
       })
+
+    } catch (error) {
+
+      console.log("File pick error:", error)
+
 
     }
 
@@ -27,15 +38,21 @@ export default function StepDocuments({ next, back }: any) {
   return (
     <View>
 
-      <Text>Upload Registration Certificate</Text>
+      <Text>Registration Certificate</Text>
       <Button
         title="Upload"
         onPress={() =>
           pickFile("registration_certificate")
         }
       />
-
-      <Text>Upload Insurance</Text>
+      <Text>Transport license</Text>
+      <Button
+        title="Upload"
+        onPress={() =>
+          pickFile("transport_license")
+        }
+      />
+      <Text>Insurance Certificate</Text>
       <Button
         title="Upload"
         onPress={() =>

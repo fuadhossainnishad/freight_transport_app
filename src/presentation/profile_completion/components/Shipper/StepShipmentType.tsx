@@ -2,8 +2,14 @@ import { View, Text, TouchableOpacity } from "react-native"
 import { useFormContext } from "react-hook-form"
 
 const options = [
-  "Partial trucks (LTL)",
-  "Complete trucks (FTL)"
+  {
+    label: "Partial trucks (LTL)",
+    value: "Partial_Trucks"
+  },
+  {
+    label: "Complete trucks (FTL)",
+    value: "Complete_Trucks"
+  }
 ]
 
 export default function StepShipmentType({ next, back }: any) {
@@ -17,13 +23,13 @@ export default function StepShipmentType({ next, back }: any) {
 
       {options.map((item) => (
         <TouchableOpacity
-          key={item}
+          key={item.label}
           onPress={() => {
-            setValue("ship_type", item)
+            setValue("ship_type", item.value)
             next()
           }}
         >
-          <Text>{item}</Text>
+          <Text>{item.label}</Text>
         </TouchableOpacity>
       ))}
 

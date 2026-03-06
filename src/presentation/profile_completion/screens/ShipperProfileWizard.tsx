@@ -9,13 +9,24 @@ import StepShipmentType from "../components/Shipper/StepShipmentType"
 import StepRole from "../components/Shipper/StepRole"
 import StepBasicInfo from "../components/Shipper/StepBasicInfo"
 import StepShipmentPerMonth from "../components/Shipper/StepShipmentPerMonth"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { ShipperRootParamList } from "../../../navigation/types"
+import { useNavigation } from "@react-navigation/native"
 
-
+type props = NativeStackNavigationProp<ShipperRootParamList, 'ProfileWizard'>;
 
 export default function ShipperProfileWizard() {
+  const navigation = useNavigation<props>()
 
   const { form, step, next, back } = useProfileWizard()
+  const handleProfileComplete = () => {
 
+    // 🚀 Reset navigation after profile creation
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Tabs' }]
+    })
+  }
   return (
     <FormProvider {...form}>
       <View style={{ flex: 1 }}>
@@ -27,7 +38,7 @@ export default function ShipperProfileWizard() {
         {step === 5 && <StepRegion next={next} back={back} />}
         {step === 6 && <StepShipmentType next={next} back={back} />}
         {step === 7 && <StepRole next={next} back={back} />}
-        {step === 8 && <StepBasicInfo back={back} />}
+        {step === 8 && <StepBasicInfo back={back} onSuccess={handleProfileComplete} />}
 
       </View>
     </FormProvider>

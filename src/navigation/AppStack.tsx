@@ -1,11 +1,12 @@
 import { ActivityIndicator, View } from "react-native";
-import { useUser } from "../app/context/User.context";
 import ShipperRootStack from "./ShipperRootStack";
 import TransporterRootStack from "./TransporterRootStack";
+import { useAuth } from "../app/context/Auth.context";
 
 
 export default function AppStack() {
-    const { user } = useUser();
+    const { user } = useAuth();
+    console.log("AppStack", user)
     if (!user) {
         // User not loaded yet
         return (
@@ -15,8 +16,8 @@ export default function AppStack() {
         );
     }
     return user?.role === "SHIPPER" ? (
-        <ShipperRootStack userId={user?.id!} />
+        <ShipperRootStack userId={user?.shipper_id!} />
     ) : (
-        <TransporterRootStack userId={user?.id!} />
+        <TransporterRootStack userId={user?.transporter_id!} />
     );
 }

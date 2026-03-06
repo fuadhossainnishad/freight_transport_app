@@ -1,47 +1,97 @@
-import { View, Button, Text, Alert } from "react-native"
+import { View, Button, Text, Alert, ActivityIndicator } from "react-native"
 import { useFormContext } from "react-hook-form"
-import { CompleteTransporterProfileUseCase } from "@/domain/profile_completion/usecases/complete-transporter.usecase"
+import { CompleteTransporterProfileUseCase } from "../../../../domain/usecases/complete-transporter.usecase"
+import { useUser } from "../../../../app/context/User.context"
+import { useState } from "react"
 
-export default function StepReview({ back }: any) {
+export default function StepReview({
+  back,
+  onSuccess
+}: {
+  back: () => void
+  onSuccess?: () => void
+}) {
 
-    const { getValues } = useFormContext()
+  const { getValues } = useFormContext()
+  const { setUser, user } = useUser()
+  const [loading, setLoading] = useState(false)
 
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
 
-        const data = getValues()
+    try {
 
-        const formData = new FormData()
+      setLoading(true)
 
-        Object.keys(data).forEach(key => {
+      const data = getValues()
 
-            const value = data[key]
+      const formData = new FormData()
 
-            if (value?.uri) {
-                formData.append(key, {
-                    uri: value.uri,
-                    type: value.type,
-                    name: value.name
-                } as any)
-            } else {
-                formData.append(key, value)
-            }
+      // ✅ Append form fields dynamically
+      Object.keys(data).forEach((key) => {
 
-        })
+        const value = data[key]
 
-        await CompleteTransporterProfileUseCase.execute(formData)
+        if (!value) return
 
-        Alert(("Profile Completed ✅"))
+        if (value?.uri) {
+          // File
+          formData.append(key, {
+            uri: value.uri,
+            type: value.type,
+            name: value.name
+          } as any)
+        } else {
+          // Text
+          formData.append(key, value)
+        }
 
+      })
+
+      // ✅ Attach transporter ID from context
+      formData.append("transporter_id", user?.id!)
+
+      const res = await CompleteTransporterProfileUseCase.execute(formData)
+
+      if (res?.success) {
+
+        // ✅ Update Global Context
+        setUser(prev => ({
+          ...prev!,
+          transporterProfile: res.data
+        }))
+
+        Alert.alert("Profile Completed ✅")
+
+        // ✅ Let Wizard Handle Navigation
+        onSuccess?.()
+      }
+
+    } catch (error) {
+
+      console.error("Transporter profile error:", error)
+      Alert.alert("Profile submission failed")
+
+    } finally {
+      setLoading(false)
     }
+  }
 
-    return (
-        <View>
+  return (
+    <View>
 
-            <Text>Review & Submit</Text>
+      <Text>Review & Submit</Text>
 
-            <Button title="Back" onPress={back} />
-            <Button title="Create" onPress={handleSubmit} />
+      <Button title="Back" onPress={back} />
 
-        </View>
-    )
+      {loading ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        <Button
+          title="Create"
+          onPress={handleSubmit}
+        />
+      )}
+
+    </View>
+  )
 }

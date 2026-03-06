@@ -2,11 +2,11 @@ import { View, Text, TouchableOpacity } from "react-native"
 import { useFormContext } from "react-hook-form"
 
 const options = [
-  "0-5",
-  "6-10",
-  "11-50",
-  "50-200",
-  "200+"
+  { label: "0 - 5 shipments", value: "0-5" },
+  { label: "6 - 10 shipments", value: "6-10" },
+  { label: "11 - 50 shipments", value: "11-50" },
+  { label: "50 - 200 shipments", value: "50-200" },
+  { label: "200+ shipments", value: "200_plus" }
 ]
 
 export default function StepShipmentPerMonth({ next, back }: any) {
@@ -20,13 +20,13 @@ export default function StepShipmentPerMonth({ next, back }: any) {
 
       {options.map((item) => (
         <TouchableOpacity
-          key={item}
+          key={item.label}
           onPress={() => {
-            setValue("shipments_per_month", item)
+            setValue("shipments_per_month", item.value)
             next()
           }}
         >
-          <Text>{item}</Text>
+          <Text>{item.label}</Text>
         </TouchableOpacity>
       ))}
 

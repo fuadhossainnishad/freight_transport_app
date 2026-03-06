@@ -12,22 +12,21 @@ const Stack = createNativeStackNavigator<ShipperRootParamList>();
 export default function ShipperRootStack({ userId }: { userId: string }) {
 
   const [loading, setLoading] = useState(true);
-  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
-
+  const [profileComplete, setProfileComplete] = useState<boolean>(false);
+  console.log("userid:", userId)
   const checkProfile = useCallback(async () => {
     try {
       const profile = await ProfileService.getShipperProfile(userId);
-
+      console.log("checkProfile:", profile)
       const isComplete = Boolean(
         profile?.company_address &&
         profile?.employee_size &&
         profile?.monthly_budget_for_shipment &&
         profile?.type_of_shipment &&
         profile?.shipping_marchandise_at &&
-        profile?.ship_type &&
-        profile?.shipper_type
+        profile?.ship_type
       );
-
+      console.log("isComplete:", isComplete)
       setProfileComplete(isComplete);
 
     } catch (error) {
@@ -52,19 +51,20 @@ export default function ShipperRootStack({ userId }: { userId: string }) {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={profileComplete ? "Tabs" : "ProfileWizard"}
+      screenOptions={{
+        headerShown: false
+      }}>
 
-      {!profileComplete ? (
-        <Stack.Screen
-          name="ProfileWizard"
-          component={ShipperProfileWizard}
-        />
-      ) : (
-        <Stack.Screen
-          name="Tabs"
-          component={ShipperTab}
-        />
-      )}
+      <Stack.Screen
+        name="ProfileWizard"
+        component={ShipperProfileWizard}
+      />
+      <Stack.Screen
+        name="Tabs"
+        component={ShipperTab}
+      />
 
     </Stack.Navigator>
   );
