@@ -1,4 +1,11 @@
-export interface AuthContextType {
+export type User = {
+  id: string;
+  role: "SHIPPER" | "TRANSPORTER";
+};
+
+export type AuthContextType = {
     isAuthenticated: boolean;
-    setIsAuthenticated: (value: boolean) => void;
-}
+    user: User | null;
+    login: (user: User) => void;
+    logout: () => void;
+};

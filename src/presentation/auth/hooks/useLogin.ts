@@ -2,9 +2,12 @@ import { useState } from "react"
 import { signIn } from "../../../data/services/authService"
 import { saveAuth } from "../../../shared/storage/authStorage"
 import { decodeAccessToken } from "../../../shared/utils/jwt"
+import { useAuth } from "../../../app/context/Auth.context"
 
 export const useLogin = () => {
     const [loading, setLoading] = useState(false)
+    const { login: setAuthUser } = useAuth();
+
 
     const login = async (email: string, password: string) => {
         try {
@@ -14,14 +17,16 @@ export const useLogin = () => {
 
             const decoded = decodeAccessToken(data.accessToken)
 
-            const userId = decoded._id
+            const user = {
+                id: decoded._id,
+                role: decoded.role,
+            };
 
             await saveAuth(data.accessToken, data.refreshToken)
+            setAuthUser(user);
 
-            return {
-                ...data,
-                userId,
-            }
+            return user;
+
 
         } finally {
             setLoading(false)

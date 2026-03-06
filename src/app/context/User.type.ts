@@ -1,6 +1,6 @@
 export interface UserType {
     id?: string
-    role: 'shipper' | 'transporter';
+    role: 'SHIPPER' | 'TRANSPORTER';
 }
 
 export interface UserContextType {

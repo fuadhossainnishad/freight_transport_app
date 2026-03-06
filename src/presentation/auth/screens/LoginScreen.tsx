@@ -18,8 +18,6 @@ import CustomButton from "../../../shared/components/CustomButton"
 
 import { LoginForm } from "../../../domain/entities/LoginForm"
 import { useLogin } from "../hooks/useLogin"
-import { getShipperProfile, getTransporterProfile } from "../../../data/services/profileService"
-import { isTransporterProfileComplete } from "../../../shared/utils/profileChecker"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { AuthParamList } from "../types"
 import { useNavigation } from "@react-navigation/native"
@@ -31,40 +29,40 @@ export default function LoginScreen() {
   const { login, loading } = useLogin()
   const navigation = useNavigation<props>()
 
+
   const { control, handleSubmit } = useForm<LoginForm>()
 
   const onSubmit = async (data: LoginForm) => {
     try {
       console.log("logindata:", data)
 
-      const res = await login(data.email, data.password)
-      console.log("login:", res)
+      await login(data.email, data.password)
 
-      if (res.role === "TRANSPORTER") {
+      // if (res.role === "TRANSPORTER") {
 
-        const profile = await getTransporterProfile(res.userId)
+      //   const profile = await getTransporterProfile(res.id)
 
-        const isComplete = isTransporterProfileComplete(profile)
+      //   const isComplete = isTransporterProfileComplete(profile)
 
-        if (!isComplete) {
-          navigation.navigate("CompleteTransporterProfile")
-          return
-        }
+      //   if (!isComplete) {
+      //     navigation.navigate("CompleteTransporterProfile")
+      //     return
+      //   }
 
-        navigation.navigate("TransporterDashboard")
-      }
+      //   navigation.navigate("TransporterDashboard")
+      // }
 
-      if (res.role === "SHIPPER") {
+      // if (res.role === "SHIPPER") {
 
-        const profile = await getShipperProfile(res.userId)
+      //   const profile = await getShipperProfile(res.userId)
 
-        if (!profile) {
-          navigation.navigate("CompleteShipperProfile")
-          return
-        }
+      //   if (!profile) {
+      //     navigation.navigate("CompleteShipperProfile")
+      //     return
+      //   }
 
-        navigation.navigate("ShipperDashboard")
-      }
+      //   navigation.navigate("ShipperDashboard")
+      // }
 
     } catch (error: any) {
 
@@ -141,7 +139,10 @@ export default function LoginScreen() {
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ForgotPassword')}
+
+                >
                   <Text className="text-black font-medium">
                     Forgot Password?
                   </Text>
@@ -162,7 +163,9 @@ export default function LoginScreen() {
                   Don't have an account?
                 </Text>
 
-                <TouchableOpacity className="ml-2">
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('RootAuth')}
+                  className="ml-2">
                   <Text className="font-semibold text-black">
                     Sign Up
                   </Text>

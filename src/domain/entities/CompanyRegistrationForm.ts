@@ -1,6 +1,5 @@
 export interface CompanyRegistrationForm {
   companyName?: string;
-  ownerName: string;
   email: string;
   phone: string;
   country: string;
