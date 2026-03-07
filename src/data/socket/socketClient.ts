@@ -4,7 +4,7 @@ import { getAccessToken } from "../../shared/storage/authStorage"
 
 let socket: Socket | null = null
 
-export const connectBidSocket = async () => {
+export const connectSocket = async () => {
 
     const token = await getAccessToken()
 
@@ -12,10 +12,13 @@ export const connectBidSocket = async () => {
         auth: {
             token
         },
-        transports: ["websocket"]
+        transports: ["websocket"],
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000
     })
 
     return socket
 }
 
-export const getBidSocket = () => socket
+export const getSocket = () => socket

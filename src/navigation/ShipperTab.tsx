@@ -4,13 +4,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 
 
-import HomeIcon from '../../assets/icons/home.svg';
-import HomeIconOutline from '../../assets/icons/shipper.svg';
-import NotificationIcon from '../../assets/icons/shipper.svg';
-import NotificationIconOutline from '../../assets/icons/shipper.svg';
-import Profile from '../../assets/icons/shipper.svg';
+import Home from '../../assets/icons/home.svg';
+import HomeInline from '../../assets/icons/home_inactive.svg';
+import Shipments from '../../assets/icons/shipments.svg';
+import ShipmentsInline from '../../assets/icons/shipments_inactive.svg';
+import Invoice from '../../assets/icons/invoice.svg';
+import InvoiceInline from '../../assets/icons/invoice_inactive.svg';
+import Settings from '../../assets/icons/settings.svg';
+import SettingsInline from '../../assets/icons/settings_inactive.svg';
 import { ShipperTabParamList } from './types';
 import ShipperHome from '../presentation/shipper/screens/ShipperHome.screen';
+import ShipperHomeStack from './ShipperHomeStack';
 
 /* ----------------------------------------------
    TYPE DEFINITIONS
@@ -29,29 +33,30 @@ function TabIcon({ routeName, focused }: TabIconProps) {
   let label = '';
 
   switch (routeName) {
-    case 'Home':
-      IconComponent = focused ? HomeIcon : HomeIconOutline;
-      label = 'Dashboard';
+    case 'HomeStack':
+      IconComponent = focused ? Home : HomeInline;
+      label = 'Home';
       break;
-    case 'Home':
-      IconComponent = focused ? NotificationIcon : NotificationIconOutline;
-      label = 'Notifications';
+    case 'Shipments':
+      IconComponent = focused ? Shipments : ShipmentsInline;
+      label = 'Shipments';
       break;
-    case 'Home':
-      IconComponent = focused ? Profile : Profile;
-      label = 'Account';
+    case 'Invoices':
+      IconComponent = focused ? Invoice : InvoiceInline;
+      label = 'Invoices';
+      break;
+    case 'Settings':
+      IconComponent = focused ? Settings : SettingsInline;
+      label = 'Settings';
       break;
   }
 
   return (
     <View
-      className={`flex-row items-center justify-center rounded-full px-4 py-2 ${focused ? 'bg-[#F8EFE4] w-32 leading-5' : ''
-        }`}
+      className={` items-center justify-center rounded-full px-4 w-32 leading-5`}
     >
-      {IconComponent && <IconComponent width={26} height={26} />}
-      {focused && (
-        <Text className="text-black text-sm font-medium">{label}</Text>
-      )}
+      {IconComponent && <IconComponent width={24} height={24} />}
+      <Text className={`${focused ? "text-[#036BB4]" : "text-black"} text-sm font-medium`}>{label}</Text>
     </View>
   );
 }
@@ -75,7 +80,7 @@ const Tab = createBottomTabNavigator<ShipperTabParamList>();
 export default function ShipperTabs() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="HomeStack"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
@@ -83,7 +88,10 @@ export default function ShipperTabs() {
         tabBarIcon: renderTabIcon(route),
       })}
     >
-      <Tab.Screen name="Home" component={ShipperHome} />
+      <Tab.Screen name="HomeStack" component={ShipperHomeStack} />
+      <Tab.Screen name="Shipments" component={ShipperHome} />
+      <Tab.Screen name="Invoices" component={ShipperHome} />
+      <Tab.Screen name="Settings" component={ShipperHome} />
       {/* <Tab.Screen name="Home" component={() => <Text>Home</Text>} />
       <Tab.Screen name="Home" component={() => <Text>Home</Text>} /> */}
     </Tab.Navigator>
@@ -98,11 +106,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 50,
     borderTopWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#fff',
-    height: 80,
+    height: 100,
   },
 });

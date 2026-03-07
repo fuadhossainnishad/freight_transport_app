@@ -4,8 +4,10 @@ export type TransporterTabParamList = {
 }
 
 export type ShipperTabParamList = {
-    Home: undefined
-    Shippments: undefined
+    HomeStack: undefined
+    Shipments: undefined
+    Settings: undefined
+    Invoices: undefined
 }
 
 export type AuthParamList = {
@@ -32,6 +34,16 @@ export type TransporterRootParamList = {
 };
 
 export type ShipperRootParamList = {
+    ProfileWizard: undefined;
+    Tabs: undefined
+};
+
+export type ShipperHomeStackParamList = {
+    Home: undefined;
+    CreateShipment: undefined
+};
+
+export type TransporterHomeStackParamList = {
     ProfileWizard: undefined;
     Tabs: undefined
 };

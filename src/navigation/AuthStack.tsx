@@ -6,6 +6,7 @@ import ForgetPasswordScreen from '../presentation/auth/screens/ForgetPassword.sc
 import VerifyOtpScreen from '../presentation/auth/screens/VerifyOtp.screen';
 import { AuthParamList } from './types';
 import ResetPasswordScreen from '../presentation/auth/screens/ResetPassword.screen';
+import CreateShipmentScreen from '../presentation/shipper/screens/CreateShipmentScreen';
 
 const Stack = createNativeStackNavigator<AuthParamList>();
 
@@ -22,7 +23,7 @@ export default function AuthStack() {
         />
         <Stack.Screen
           name='SignIn'
-          component={LoginScreen}
+          component={CreateShipmentScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
