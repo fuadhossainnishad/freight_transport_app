@@ -14,13 +14,15 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Controller, useForm } from "react-hook-form"
 
 import CustomInput from "../../../shared/components/CustomInput"
-import CustomButton from "../../../shared/components/CustomButton"
+
+import Logo from "../../../../assets/icons/logo.svg"
 
 import { LoginForm } from "../../../domain/entities/LoginForm"
 import { useLogin } from "../hooks/useLogin"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { AuthParamList } from "../types"
 import { useNavigation } from "@react-navigation/native"
+import SubmitButton from "../../../shared/components/SubmitButton"
 
 type props = NativeStackNavigationProp<AuthParamList, 'SignIn'>;
 
@@ -86,19 +88,22 @@ export default function LoginScreen() {
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
           >
-            <View className="flex-1 px-6 pt-16">
-
+            <View className="flex-1 px-6 gap-1">
+              <View className="flex-row justify-center">
+                <Logo height={120} width={120} />
+              </View>
               {/* HEADER */}
-              <View className="mb-10">
-                <Text className="text-3xl font-bold text-black">
+              <View className="">
+                <Text className="text-3xl text-center font-bold text-[#036BB4]">
                   Login to Account
                 </Text>
 
-                <Text className="text-gray-500 mt-2 text-base">
+                <Text className="text-gray-500 mt-2 text-base m-4 text-center">
                   Please enter your email and password to continue
                 </Text>
               </View>
 
+              <Text className="text-[#5C5C5C]">Email address</Text>
               {/* EMAIL */}
               <Controller
                 control={control}
@@ -115,7 +120,7 @@ export default function LoginScreen() {
                 )}
               />
 
-              {/* PASSWORD */}
+              <Text className="text-[#5C5C5C]">Password</Text>
               <Controller
                 control={control}
                 name="password"
@@ -131,10 +136,10 @@ export default function LoginScreen() {
               />
 
               {/* REMEMBER + FORGOT */}
-              <View className="flex-row justify-between items-center mt-2 mb-6">
+              <View className="flex-row justify-between items-center mb-6">
 
                 <TouchableOpacity>
-                  <Text className="text-gray-500">
+                  <Text className="text-[#5C5C5C]">
                     Remember Password
                   </Text>
                 </TouchableOpacity>
@@ -143,7 +148,7 @@ export default function LoginScreen() {
                   onPress={() => navigation.navigate('ForgotPassword')}
 
                 >
-                  <Text className="text-black font-medium">
+                  <Text className="text-[#036BB4] font-medium">
                     Forgot Password?
                   </Text>
                 </TouchableOpacity>
@@ -151,14 +156,14 @@ export default function LoginScreen() {
               </View>
 
               {/* LOGIN BUTTON */}
-              <CustomButton
-                title="Sign In"
+              <SubmitButton
+                text="Sign In"
                 loading={loading}
-                onPress={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(onSubmit)}
               />
 
               {/* SIGNUP */}
-              <View className="flex-row justify-center mt-8">
+              <View className="flex-row justify-center">
                 <Text className="text-gray-500">
                   Don't have an account?
                 </Text>
@@ -166,7 +171,7 @@ export default function LoginScreen() {
                 <TouchableOpacity
                   onPress={() => navigation.navigate('RootAuth')}
                   className="ml-2">
-                  <Text className="font-semibold text-black">
+                  <Text className="font-semibold text-[#036BB4]">
                     Sign Up
                   </Text>
                 </TouchableOpacity>

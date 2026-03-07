@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
@@ -23,9 +24,16 @@ import CustomButton from "../../../shared/components/CustomButton";
 import PasswordInput from "../../../shared/components/PasswordInout";
 import Checkbox from "../../../shared/components/Checkbox";
 import RoleSelector from '../components/RoleSelector';
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthParamList } from "../types";
 import { useNavigation } from "@react-navigation/native";
+import Logo from "../../../../assets/icons/logo.svg"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+
+import Truck2 from "../../../../assets/icons/truck2.svg"
+import Truck from "../../../../assets/icons/transporter.svg"
+import Box2 from "../../../../assets/icons/box.svg"
+import Box from "../../../../assets/icons/box2.svg"
+import SubmitButton from "../../../shared/components/SubmitButton";
 
 type props = NativeStackNavigationProp<AuthParamList, 'RootAuth'>;
 
@@ -90,176 +98,205 @@ export default function SignupScreen() {
             contentContainerStyle={styles.container}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>
-              Join thousands of businesses and transporters
-            </Text>
-            <View className="flex-row w-full flex-1 ">
-              <RoleSelector
-                role="SHIPPER"
-                title='I need to ship goods'
-                selected={selectedRole === "SHIPPER"}
-                onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
-              />
-              <RoleSelector
-                role="TRANSPORTER"
-                title='I have trucks to offer'
-                selected={selectedRole === "TRANSPORTER"}
-                onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
-              />
+            <View className="border-b border-b-black/10 pb-6">
 
+              <View className="flex-row justify-center">
+                <Logo height={120} width={120} />
+              </View>
+              <View className="">
+                <Text className="text-3xl text-center font-bold text-[#036BB4]">
+                  Create Account
+                </Text>
+
+                <Text className="text-gray-500 mt-2 text-base m-4 text-center">
+                  Join thousands of businesses and transporters
+                </Text>
+              </View>
+              <View className="flex-row w-full flex-1 gap-2 mb-6">
+                <RoleSelector
+                  role="SHIPPER"
+                  theme='I need to ship goods'
+                  selected={selectedRole === "SHIPPER"}
+                  onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
+                  Icon={[Box, Box2]}
+                />
+                <RoleSelector
+                  role="TRANSPORTER"
+                  theme='I have trucks to offer'
+                  selected={selectedRole === "TRANSPORTER"}
+                  onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
+                  Icon={[Truck, Truck2]}
+                />
+
+              </View>
             </View>
-            {/* Company Name */}
-            <Controller
-              control={control}
-              name="companyName"
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  placeholder="Company name"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
-            />
+            <View>
+              <Text className="text-xl  font-normal text-black/80 mb-4">
+                {selectedRole === 'TRANSPORTER' ? "Company Details" : "Basic information"}
+              </Text>
+              <Text className="text-base  font-normal text-black/10 mb-1">
+                Company name</Text>
+              <Controller
+                control={control}
+                name="companyName"
+                render={({ field: { onChange, value } }) => (
+                  <CustomInput
+                    placeholder="Enter company name"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
 
-            {/* Email */}
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  placeholder="Email address"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
-            />
+              {/* Email */}
+              <Text className="text-base  font-normal text-black/10 mb-1">
+                Company name</Text>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <CustomInput
+                    placeholder="Email address"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
 
-            {/* Phone */}
-            <Controller
-              control={control}
-              name="phone"
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  placeholder="Phone number"
-                  keyboardType="phone-pad"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
-            />
+              {/* Phone */}
+              <Text className="text-base  font-normal text-black/10 mb-1">
+                Company name</Text>
+              <Controller
+                control={control}
+                name="phone"
+                render={({ field: { onChange, value } }) => (
+                  <CustomInput
+                    placeholder="Phone number"
+                    keyboardType="phone-pad"
+                    value={value}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
 
-            {/*
+              {/*
               Country picker — flag + dial code dropdown
               react-native-dropdown-country-picker:
               - zero dependencies, React 19 compatible
               - shows flag emoji + calling code
               - built-in search
             */}
-            <View style={styles.countryPickerWrapper}>
-              <Text style={styles.countryPickerLabel}>Country</Text>
-              <CountryCodeDropdownPicker
-                selected={dialCode}
-                setSelected={setDialCode as any}
-                setCountryDetails={setCountryDetails}
-                countryCodeContainerStyles={styles.countryCodeContainer}
-                countryCodeTextStyles={styles.countryCodeText}
-              />
-            </View>
+              <View style={styles.countryPickerWrapper}>
+                <Text style={styles.countryPickerLabel}>Country</Text>
+                <CountryCodeDropdownPicker
+                  selected={dialCode}
+                  setSelected={setDialCode as any}
+                  setCountryDetails={setCountryDetails}
+                  countryCodeContainerStyles={styles.countryCodeContainer}
+                  countryCodeTextStyles={styles.countryCodeText}
+                />
+              </View>
 
-            {selectedRole === 'TRANSPORTER' &&
-              <View>
-                {/* Number of Trucks */}
-                < Controller
+              {selectedRole === 'TRANSPORTER' &&
+                <View>
+                  {/* Number of Trucks */}
+                  < Controller
+                    control={control}
+                    name="numberOfTrucks"
+                    render={({ field: { onChange, value } }) => (
+                      <CustomInput
+                        placeholder="Number of trucks"
+                        keyboardType="numeric"
+                        value={value?.toString()}
+                        onChangeText={onChange}
+                      />
+                    )}
+                  />
+
+                  {/* Truck Type */}
+                  <Text className="text-base  font-normal text-black/10 mb-1">
+                    Company name</Text>
+                  <Controller
+                    control={control}
+                    name="truckType"
+                    render={({ field: { onChange, value } }) => (
+                      <Dropdown
+                        placeholder="Select truck type"
+                        value={value}
+                        data={TRUCK_TYPES}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                </View>
+
+              }
+              {/* Password */}
+              <Text className="text-base  font-normal text-black/10 mb-1">
+                Company name</Text>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <PasswordInput
+                    placeholder="Password"
+                    value={value ?? ""}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
+
+              {/* Confirm Password */}
+              <Text className="text-base  font-normal text-black/10 mb-1">
+                Company name</Text>
+              <Controller
+                control={control}
+                name="confirmPassword"
+                render={({ field: { onChange, value } }) => (
+                  <PasswordInput
+                    placeholder="Confirm password"
+                    value={value ?? ""}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
+
+              {/* Agreement Checkboxes */}
+              <View style={styles.agreements}>
+                <Controller
                   control={control}
-                  name="numberOfTrucks"
+                  name="acceptTerms"
                   render={({ field: { onChange, value } }) => (
-                    <CustomInput
-                      placeholder="Number of trucks"
-                      keyboardType="numeric"
-                      value={value?.toString()}
-                      onChangeText={onChange}
+                    <Checkbox
+                      checked={!!value}
+                      onToggle={() => onChange(!value)}
+                      label="I have read and I accept the general terms and conditions"
                     />
                   )}
                 />
 
-                {/* Truck Type */}
                 <Controller
                   control={control}
-                  name="truckType"
+                  name="service_policy"
                   render={({ field: { onChange, value } }) => (
-                    <Dropdown
-                      placeholder="Select truck type"
-                      value={value}
-                      data={TRUCK_TYPES}
-                      onChange={onChange}
+                    <Checkbox
+                      checked={!!value}
+                      onToggle={() => onChange(!value)}
+                      label="I understood that Lawapan Truck is a service dedicated to professionals"
                     />
                   )}
                 />
               </View>
-
-            }
-            {/* Password */}
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value } }) => (
-                <PasswordInput
-                  placeholder="Password"
-                  value={value ?? ""}
-                  onChangeText={onChange}
-                />
-              )}
-            />
-
-            {/* Confirm Password */}
-            <Controller
-              control={control}
-              name="confirmPassword"
-              render={({ field: { onChange, value } }) => (
-                <PasswordInput
-                  placeholder="Confirm password"
-                  value={value ?? ""}
-                  onChangeText={onChange}
-                />
-              )}
-            />
-
-            {/* Agreement Checkboxes */}
-            <View style={styles.agreements}>
-              <Controller
-                control={control}
-                name="acceptTerms"
-                render={({ field: { onChange, value } }) => (
-                  <Checkbox
-                    checked={!!value}
-                    onToggle={() => onChange(!value)}
-                    label="I have read and I accept the general terms and conditions"
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="service_policy"
-                render={({ field: { onChange, value } }) => (
-                  <Checkbox
-                    checked={!!value}
-                    onToggle={() => onChange(!value)}
-                    label="I understood that Lawapan Truck is a service dedicated to professionals"
-                  />
-                )}
-              />
             </View>
-
+           
             <View style={styles.buttonWrapper}>
-              <CustomButton
-                title="Create Account"
-                loading={loading}
-                onPress={handleSubmit(onSubmit)}
-              />
+              <SubmitButton
+              text="Create Account"
+              loading={loading}
+              onSubmit={handleSubmit(onSubmit)}
+            />
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -281,6 +318,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 48,
+    gap: 16
   },
   title: {
     fontSize: 28,
@@ -297,6 +335,7 @@ const styles = StyleSheet.create({
   // ── Country Picker ──
   countryPickerWrapper: {
     marginBottom: 12,
+
   },
   countryPickerLabel: {
     fontSize: 12,
@@ -412,6 +451,6 @@ const styles = StyleSheet.create({
 
   // ── Button ──
   buttonWrapper: {
-    marginTop: 24,
+    marginTop: 12,
   },
 });

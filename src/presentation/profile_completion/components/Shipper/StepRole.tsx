@@ -16,9 +16,10 @@ export default function StepRole({ next, back }: any) {
   const { setValue } = useFormContext()
 
   return (
-    <View>
+    <View className="">
 
-      <Text>What role fits you?</Text>
+      <Text className="font-semibold text-xl mb-4">
+        What role fits you?</Text>
 
       {options.map((item) => (
         <TouchableOpacity
@@ -27,13 +28,21 @@ export default function StepRole({ next, back }: any) {
             setValue("shipper_type", item.value)
             next()
           }}
+          className="border border-black/10 p-4 flex-col font-semibold bg-black/10 rounded-lg mb-4"
+
         >
           <Text>{item.label}</Text>
         </TouchableOpacity>
       ))}
 
-      <Text onPress={back}>Back</Text>
-
+      <TouchableOpacity
+        className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
+        onPress={back}>
+        <Text className="text-white text-center font-semibold">
+          Back
+        </Text>
+        {/* <Arrow height={16} width={16} /> */}
+      </TouchableOpacity>
     </View>
   )
 }

@@ -21,7 +21,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="pickup_address"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Pickup Address"
             value={value}
             onChangeText={onChange}
@@ -34,7 +34,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="time_window"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Time Window"
             value={value}
             onChangeText={onChange}
@@ -47,7 +47,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="delivery_address"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Delivery Address"
             value={value}
             onChangeText={onChange}
@@ -60,7 +60,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="contact_person"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Contact Person Number"
             value={value}
             onChangeText={onChange}
@@ -73,7 +73,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="date_preference"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Date Preference"
             value={value}
             onChangeText={onChange}
@@ -86,7 +86,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         name="price"
         render={({ field: { onChange, value } }) => (
           <TextInput
-            className="border p-3 rounded-lg mb-4"
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
             placeholder="Budget Price"
             value={value}
             onChangeText={onChange}
@@ -96,7 +96,7 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
 
       <TouchableOpacity
         onPress={onSubmit}
-        className="bg-black p-4 rounded-lg"
+        className="bg-[#036BB4] p-4 rounded-full"
       >
         <Text className="text-white text-center font-semibold">
           Publish Shipment

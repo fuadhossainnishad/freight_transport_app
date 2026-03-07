@@ -23,7 +23,7 @@ export default function AuthStack() {
         />
         <Stack.Screen
           name='SignIn'
-          component={CreateShipmentScreen}
+          component={LoginScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

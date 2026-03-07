@@ -12,7 +12,7 @@ export default function PasswordInput({ placeholder, value, onChangeText }: Pass
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <View className="">
+        <View className="flex-row items-center justify-between">
             <TextInput
                 className=""
                 placeholder={placeholder}
@@ -24,16 +24,16 @@ export default function PasswordInput({ placeholder, value, onChangeText }: Pass
                 autoCorrect={false}
             />
             <TouchableOpacity
-                // style={styles.eyeButton}
+                className="pr-4"
                 onPress={() => setIsVisible((prev) => !prev)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
             >
                 {
                     isVisible ?
-                        <NotView height={12} width={12} />
+                        <NotView height={20} width={20} />
                         :
-                        <NotView height={12} width={12} />
+                        <NotView height={20} width={20} />
                 }
             </TouchableOpacity>
         </View>

@@ -1,9 +1,11 @@
-import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useState } from "react"
 import { useFormContext } from "react-hook-form"
 import { useUser } from "../../../../app/context/User.context"
 import { CompleteShipperProfileUseCase } from "../../../../domain/usecases/complete-shipper.usecase"
 import { useAuth } from '../../../../app/context/Auth.context';
+
+import Location from '../../../../../assets/icons/location.svg'
 
 export default function StepBasicInfo({ back, onSuccess }: any) {
 
@@ -55,31 +57,40 @@ export default function StepBasicInfo({ back, onSuccess }: any) {
     }
 
     return (
-        <View>
+        <View className="gap-4">
 
-            <Text>Company Address</Text>
-
-            <TextInput
-                placeholder="Enter company address"
-                style={{ borderWidth: 1, padding: 10 }}
-                onChangeText={(text) =>
-                    setValue("company_address", text)
-                }
-            />
-
-            <Text style={{ marginTop: 20 }}>
-                I accept terms & conditions
-            </Text>
-
-            <Button title="Back" onPress={back} />
-
+            <Text className="font-semibold text-xl">
+                Company Address</Text>
+            <View
+                className="flex-row justify-between items-center gap-2 border border-black/10 px-4 py-2 font-semibold rounded-lg mb-4"
+            >
+                <TextInput
+                    placeholder="Enter company address"
+                    onChangeText={(text) =>
+                        setValue("company_address", text)
+                    }
+                />
+                <Location height={36} width={36} />
+            </View>
+            <TouchableOpacity
+                className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
+                onPress={back}>
+                <Text className="text-white text-center font-semibold">
+                    Back
+                </Text>
+                {/* <Arrow height={16} width={16} /> */}
+            </TouchableOpacity>
             {loading ? (
                 <ActivityIndicator size="small" />
             ) : (
-                <Button
-                    title="Create"
-                    onPress={handleSubmit}
-                />
+                <TouchableOpacity
+                    className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
+                    onPress={handleSubmit}>
+                    <Text className="text-white text-center font-semibold">
+                        Create
+                    </Text>
+                    {/* <Arrow height={16} width={16} /> */}
+                </TouchableOpacity>
             )}
 
         </View>

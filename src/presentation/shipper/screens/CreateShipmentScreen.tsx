@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { ScrollView, Alert } from "react-native"
+import { ScrollView, Alert, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useForm } from "react-hook-form"
 
@@ -14,6 +14,7 @@ import { useAuth } from "../../../app/context/Auth.context"
 import { ShipperHomeStackParamList } from "../../../navigation/types"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useNavigation } from "@react-navigation/native"
+import { Asset } from "react-native-image-picker"
 
 type props = NativeStackNavigationProp<ShipperHomeStackParamList, 'Home'>;
 
@@ -24,13 +25,18 @@ export default function CreateShipmentScreen() {
     const { user } = useAuth()
 
     const [step, setStep] = useState(0)
-    const [images, setImages] = useState<any[]>([])
-
-    const { control, handleSubmit } = useForm()
+    const [images, setImages] = useState<Asset[]>([])
+    const { control, handleSubmit, setValue } = useForm()
 
     const handlePickImages = async () => {
-        const selected = await pickShipmentImages()
-        setImages(selected)
+        const selectedImages = await pickShipmentImages()
+
+        if (selectedImages.length > 0) {
+            setImages(prev => [...prev, ...selectedImages])
+        }
+    }
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index))
     }
 
     const onSubmit = async (data: any) => {
@@ -72,26 +78,34 @@ export default function CreateShipmentScreen() {
             <AppHeader text="Create Shipment" onpress={() => navigation.goBack()} />
 
             <StepIndicator step={step} />
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+            >
+                <ScrollView
+                    keyboardShouldPersistTaps="handled"
+                >
 
-            <ScrollView>
+                    {step === 0 && (
+                        <BasicShipmentInfo
+                            control={control}
+                            setValue={setValue}
+                            onNext={() => setStep(1)}
+                            onPickImages={handlePickImages}
+                            images={images}
+                            onRemoveImage={removeImage}
+                        />
+                    )}
 
-                {step === 0 && (
-                    <BasicShipmentInfo
-                        control={control}
-                        onNext={() => setStep(1)}
-                        onPickImages={handlePickImages}
-                    />
-                )}
+                    {step === 1 && (
+                        <DeliveryDetails
+                            control={control}
+                            onSubmit={handleSubmit(onSubmit)}
+                        />
+                    )}
 
-                {step === 1 && (
-                    <DeliveryDetails
-                        control={control}
-                        onSubmit={handleSubmit(onSubmit)}
-                    />
-                )}
-
-            </ScrollView>
-
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     )
 }

@@ -9,14 +9,20 @@ interface CheckboxProps {
 export default function Checkbox({ checked, onToggle, label }: CheckboxProps) {
     return (
         <TouchableOpacity
-            className=""
+            className="flex-row items-center gap-2"
             onPress={onToggle}
             activeOpacity={0.7}
         >
             <View
-                className={``}            >
-                {checked && <Text className="">✓</Text>}
+                className={`w-5 h-5 rounded border-2 ${checked ? "bg-[#036BB4] border-[#036BB4]" : "border-gray-400"
+                    }`}
+            >
+                <View
+                    className={``}            >
+                    {checked && <Text className="">✓</Text>}
+                </View>
             </View>
+
             <Text className="">{label}</Text>
         </TouchableOpacity>
     );
