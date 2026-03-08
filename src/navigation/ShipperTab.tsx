@@ -15,6 +15,7 @@ import SettingsInline from '../../assets/icons/settings_inactive.svg';
 import { ShipperTabParamList } from './types';
 import ShipperHome from '../presentation/shipper/screens/ShipperHome.screen';
 import ShipperHomeStack from './ShipperHomeStack';
+import SettingsStack from './SettingsStack';
 
 /* ----------------------------------------------
    TYPE DEFINITIONS
@@ -91,7 +92,7 @@ export default function ShipperTabs() {
       <Tab.Screen name="HomeStack" component={ShipperHomeStack} />
       <Tab.Screen name="Shipments" component={ShipperHome} />
       <Tab.Screen name="Invoices" component={ShipperHome} />
-      <Tab.Screen name="Settings" component={ShipperHome} />
+      <Tab.Screen name="Settings" component={SettingsStack} />
       {/* <Tab.Screen name="Home" component={() => <Text>Home</Text>} />
       <Tab.Screen name="Home" component={() => <Text>Home</Text>} /> */}
     </Tab.Navigator>

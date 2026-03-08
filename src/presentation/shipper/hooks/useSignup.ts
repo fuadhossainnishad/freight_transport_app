@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CompanyRegistrationForm } from "../../../domain/entities/CompanyRegistrationForm";
+import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
 import { registerTransporter } from "../../../domain/usecases/registerTransporter";
 import { registerShipper } from "../../../domain/usecases/registerShipper";
 

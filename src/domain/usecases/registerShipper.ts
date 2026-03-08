@@ -1,5 +1,5 @@
 import { signupApi } from "../../shared/api/auth.api";
-import { CompanyRegistrationForm } from "../entities/CompanyRegistrationForm";
+import { CompanyRegistrationForm } from "../entities/companyRegistrationForm";
 
 export const registerShipper = async (
     payload: CompanyRegistrationForm

@@ -1,3 +1,5 @@
+import { FAQ } from "../domain/entities/faq"
+
 export type TransporterTabParamList = {
     Home: undefined
     AvailableBids: undefined
@@ -46,4 +48,24 @@ export type ShipperHomeStackParamList = {
 export type TransporterHomeStackParamList = {
     ProfileWizard: undefined;
     Tabs: undefined
+};
+
+export type SettingsStackParamList = {
+    Settings: undefined
+    EditProfile: undefined;
+    ChangePassword: undefined
+    BankDetails: undefined;
+    IssueReported: undefined;
+    About: undefined;
+    // VerifyOtp: {
+    //     email: string,
+    //     verificationToken: string
+    // }
+    // ResetPassword: { verificationToken: string };
+    Privacy: undefined
+    Terms: undefined
+    Hiring: undefined
+    Carrier: undefined
+    Faq: undefined
+
 };

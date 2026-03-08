@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
 import CountryCodeDropdownPicker from "react-native-dropdown-country-picker";
 
-import { CompanyRegistrationForm } from "../../../domain/entities/CompanyRegistrationForm";
+import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
 import { TRUCK_TYPES } from "../../../domain/constants/truckTypes";
 import { useSignup } from "../hooks/useSignup";
 import CustomInput from "../../../shared/components/CustomInput";
