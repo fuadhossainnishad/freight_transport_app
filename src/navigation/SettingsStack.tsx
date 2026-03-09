@@ -3,6 +3,10 @@ import AuthFormContext from '../presentation/auth/AuthForm.context';
 import { SettingsStackParamList } from './types';
 import FaqScreen from '../presentation/settings/screens/FaqScreen';
 import SettingsScreen from '../presentation/settings/screens/SettingsScreen';
+import EditProfileScreen from '../presentation/settings/screens/EditProfileScreen';
+import ChangePasswordScreen from '../presentation/settings/screens/ChangePassword.screen';
+import BankDetailsScreen from '../presentation/settings/screens/BankDetailsScreen';
+import IssuesScreen from '../presentation/settings/screens/IssuesScreen';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
@@ -19,19 +23,26 @@ export default function SettingsStack() {
         />
         <Stack.Screen
           name='EditProfile'
-          component={FaqScreen}
+          component={EditProfileScreen}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
+        <Stack.Screen
           name='ChangePassword'
-          component={LoginScreen}
+          component={ChangePasswordScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
           name='BankDetails'
-          component={ForgetPasswordScreen}
+          component={BankDetailsScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name='IssueReported'
+          component={IssuesScreen}
+          options={{ headerShown: false }}
+        />
+        {/* 
+
         <Stack.Screen
           name='IssueReported'
           component={VerifyOtpScreen}
