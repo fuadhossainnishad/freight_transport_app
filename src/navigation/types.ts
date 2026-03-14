@@ -1,8 +1,11 @@
-import { FAQ } from "../domain/entities/faq"
+import { InfoType } from "../domain/entities/info.entity"
 
 export type TransporterTabParamList = {
-    Home: undefined
+    HomeStack: undefined
     AvailableBids: undefined
+    Shipments: undefined
+    Settings: undefined
+    Earning: undefined
 }
 
 export type ShipperTabParamList = {
@@ -62,10 +65,15 @@ export type SettingsStackParamList = {
     //     verificationToken: string
     // }
     // ResetPassword: { verificationToken: string };
+    MyVehicles: undefined
+    DriverProfiles: undefined
+    EarningOverview: undefined
     Privacy: undefined
     Terms: undefined
     Hiring: undefined
     Carrier: undefined
     Faq: undefined
+    Info: { type: InfoType; title: string }; // type-safe
+
 
 };

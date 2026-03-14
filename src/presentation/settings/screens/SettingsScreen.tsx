@@ -8,12 +8,45 @@ import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileImagePicker from "../../../shared/components/ProfileImagePicker";
 import { PickedFile } from "../../../shared/components/DocPicker";
+import { useAuth } from "../../../app/context/Auth.context";
 
 type props = NativeStackNavigationProp<SettingsStackParamList, 'Settings'>;
 export default function SettingsScreen() {
 
   const navigation = useNavigation<props>()
   const [avatar, setAvatar] = useState<PickedFile | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { user, logout } = useAuth()
+
+  // const performLogout = useCallback(async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     await logout();
+
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: "SignIn" as never }],
+  //     });
+  //   } catch (error) {
+  //     console.error("Logout failed:", error);
+
+  //     Alert.alert(
+  //       "Logout Failed",
+  //       "Something went wrong while logging out. Please try again."
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [navigation]);
+
+  // const confirmLogout = useCallback(() => {
+  //   Alert.alert("Logout", "Are you sure you want to log out?", [
+  //     { text: "Cancel", style: "cancel" },
+  //     { text: "Logout", style: "destructive", onPress: performLogout },
+  //   ]);
+  // }, [performLogout]);
+
 
   const handlePress = async (id: string) => {
 
@@ -35,39 +68,56 @@ export default function SettingsScreen() {
         navigation.navigate('IssueReported');
         break;
 
+      case "my_vehicles":
+        navigation.navigate('MyVehicles');
+        break;
+
+      case "driver_profiles":
+        navigation.navigate('DriverProfiles');
+        break;
+
+      case "earning_overview":
+        navigation.navigate('EarningOverview');
+        break;
+
       case "about":
-        navigation.navigate("About");
+        navigation.navigate("Info", { type: "about", title: "About Us" });
         break;
 
       case "privacy":
-        navigation.navigate("Privacy");
+        navigation.navigate("Info", { type: "privacy", title: "Privacy and security" });
         break;
 
       case "terms":
-        navigation.navigate("Terms");
+        navigation.navigate("Info", { type: "terms", title: "Terms & Conditions" });
         break;
 
       case "hiring":
-        navigation.navigate("Hiring");
+        navigation.navigate("Info", { type: "hiring", title: "Lawpantruck is hiring" });
         break;
 
       case "carrier_data":
-        navigation.navigate('Carrier');
+        navigation.navigate("Info", { type: "carrier", title: "Your Carrier Data" });
         break;
 
       case "faq":
         navigation.navigate('Faq');
         break;
-
-      case "logout":
-        Alert.alert("Logout", "Are you sure?", [
-          { text: "Cancel" },
-          { text: "Logout", onPress: () => console.log("logout") },
-        ]);
-        break;
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          logout();
+        },
+      },
+    ]);
+  };
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white ">
       <View className='bg-white flex-row w-full p-4  items-center px-4'>
@@ -83,7 +133,10 @@ export default function SettingsScreen() {
           onChange={(file) => setAvatar(file)}
         />
 
-        {SETTINGS_MENU.map((item) => (
+        {SETTINGS_MENU.filter((item) => {
+          if (!item.roles) return true;
+          return item.roles.includes(user?.role as "SHIPPER" | "TRANSPORTER");
+        }).map((item) => (
           <SettingsItem
             key={item.id}
             title={item.label}
@@ -92,19 +145,20 @@ export default function SettingsScreen() {
           />
         ))}
         <TouchableOpacity
-          onPress={onSubmit}
-          className="bg-[#036BB4] p-4 rounded-full"
+          onPress={handleLogout}
+          className="bg-[#FF0000]/10 p-4 rounded-full my-5"
           disabled={loading}
         >
           {loading ?
             <ActivityIndicator color="#fff" />
             :
-            <Text className="text-white text-center font-semibold">
+            <Text className="text-[#FF0702] text-center font-semibold">
               Log Out
             </Text>
           }
 
-        </TouchableOpacity>      </ScrollView>
+        </TouchableOpacity>
+      </ScrollView>
 
     </SafeAreaView>
   );

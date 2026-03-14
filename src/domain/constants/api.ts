@@ -20,3 +20,5 @@ export const BANK_API_ENDPOINT = "/bank-details";
 export const GET_SHIPPER_ISSUE = (shipperId: string) => `/issues/${shipperId}`
 export const GET_SHIPMENT_ISSUE = (shipmentId: string) => `/issues/${shipmentId}`
 export const SINGLE_ISSUE = (id: string) => `/issues/${id}`
+
+export const GET_INFO = (type: string) => `/setting/${type}`

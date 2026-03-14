@@ -1,6 +1,6 @@
 import {
   getFaqs,
-  getAbout,
+  getInfo,
   reportShipmentIssue,
 } from "../../data/services/settingsService";
 
@@ -8,8 +8,8 @@ export const fetchFaqsUseCase = async () => {
   return await getFaqs();
 };
 
-export const fetchAboutUseCase = async () => {
-  return await getAbout();
+export const fetchAboutUseCase = async (infoType: string) => {
+  return await getInfo(infoType);
 };
 
 export const reportShipmentIssueUseCase = async (

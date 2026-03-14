@@ -7,6 +7,7 @@ import EditProfileScreen from '../presentation/settings/screens/EditProfileScree
 import ChangePasswordScreen from '../presentation/settings/screens/ChangePassword.screen';
 import BankDetailsScreen from '../presentation/settings/screens/BankDetailsScreen';
 import IssuesScreen from '../presentation/settings/screens/IssuesScreen';
+import InfoScreen from '../presentation/settings/screens/Info.screen';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
@@ -41,18 +42,25 @@ export default function SettingsStack() {
           component={IssuesScreen}
           options={{ headerShown: false }}
         />
-        {/* 
+        <Stack.Screen
+          name='Info'
+          component={InfoScreen}
+          options={{ headerShown: false }}
+        />
 
+        {/* 
+        
+        <Stack.Screen
+          name='Privacy'
+          component={PrivacyScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name='IssueReported'
           component={VerifyOtpScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name='About'
-          component={ResetPasswordScreen}
-          options={{ headerShown: false }}
-        />
+ 
         <Stack.Screen
           name='Terms'
           component={SignupScreen}

@@ -40,7 +40,7 @@ export default function ProfileImagePicker({ image, onChange }: Props) {
                     source={{
                         uri: image?.uri || "https://i.pravatar.cc/300",
                     }}
-                    className="w-32 h-32 rounded-full"
+                    className="w-24 h-24 rounded-full"
                 />
 
                 <TouchableOpacity
