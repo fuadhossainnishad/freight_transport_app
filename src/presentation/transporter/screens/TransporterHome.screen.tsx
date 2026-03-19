@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react"
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { useUser } from "../../../app/context/User.context"
-import { getShipperStats } from "../../../data/services/dashboardService"
+import { getShipperStats, getTransporterStats } from "../../../data/services/dashboardService"
 import { useAuth } from "../../../app/context/Auth.context"
 import { SafeAreaView } from "react-native-safe-area-context"
 import HomeHeader from '../../../shared/components/HomeHeader';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { ShipperHomeStackParamList, ShipperTabParamList } from "../../../navigation/types"
+import { ShipperHomeStackParamList, ShipperTabParamList, TransporterHomeStackParamList } from "../../../navigation/types"
 import { useNavigation } from "@react-navigation/native"
 import Create from '../../../../assets/icons/create.svg'
 import { connectSocket, getSocket } from "../../../data/socket/socketClient";
+import StatCard from "../../../shared/components/StatCard";
 
-type props = NativeStackNavigationProp<ShipperHomeStackParamList, 'Home'>;
+type props = NativeStackNavigationProp<TransporterHomeStackParamList, 'Home'>;
 
-export default function ShipperHome() {
+export default function TransporterHomeScreen() {
   const navigation = useNavigation<props>()
   const { user } = useUser()
   const { user: authUser } = useAuth()
@@ -26,9 +27,9 @@ export default function ShipperHome() {
 
   const fetchStats = async () => {
     try {
-      console.log("shipperId:", authUser?.id!)
+      console.log("transporter_id:", authUser?.transporter_id!)
 
-      const res = await getShipperStats(authUser?.id!)
+      const res = await getTransporterStats(authUser?.transporter_id!)
       setStats(res.data)
     } catch (error) {
       console.log("Stats error:", error)
@@ -64,7 +65,7 @@ export default function ShipperHome() {
 
   useEffect(() => {
 
-    if (!authUser?.shipper_id!) return console.log("error on user.id")
+    if (!authUser?.transporter_id!) return console.log("error on user.id")
 
     const load = async () => {
       await fetchStats()
@@ -88,24 +89,31 @@ export default function ShipperHome() {
         onpressNotification={() => navigation.navigate('Home')}
       />
 
-      <View className="px-5 ">
-        <View className="grid grid-cols-2">
-          <TouchableOpacity
-            className="border border-[#036BB4] rounded-xl gap-3 flex-col items-center p-4 "
-            onPress={() => navigation.navigate('CreateShipment')}
-          >
-            <Create height={30} width={30} />
-            <Text className="text-[#7A7A7A] text-lg font-bold text-center">Create Shipment</Text>
-          </TouchableOpacity>
-          <View>
-            <Text>Shipments In Progress: {stats?.shipmentsInProgress}</Text>
+      <View className="px-5 mt-4">
+
+        {/* Stats Cards */}
+        <View className="gap-4">
+
+          {/* Row 1 */}
+          <View className="flex-row gap-4">
+            <StatCard
+              title="Shipments In Progress"
+              value={stats?.shipmentsInProgress ?? 0}
+            />
+
+            <StatCard
+              title="Completed Shipments"
+              value={stats?.completedShipments ?? 0}
+            />
           </View>
-          <View>
-            <Text>Completed: {stats?.completedShipments}</Text>
-          </View>
-          <View>
-            <Text>Total Spent: €{stats?.totalMoneySpent}</Text>
-          </View>
+
+          {/* Row 2 */}
+          <StatCard
+            title="Total Earnings"
+            value={`€${stats?.totalEarnings ?? 0}`}
+            fullWidth
+          />
+
         </View>
 
         <Text style={{ marginTop: 20, fontWeight: "bold" }}>

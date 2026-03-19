@@ -49,8 +49,20 @@ export type ShipperHomeStackParamList = {
 };
 
 export type TransporterHomeStackParamList = {
-    ProfileWizard: undefined;
-    Tabs: undefined
+    Home: undefined;
+
+};
+export type AvailableBidsStackParamList = {
+    AvailableBids: undefined;
+    ShipmentDetails: { shipmentId: string }
+    AssignVehicleDriver: { shipmentId: string }
+};
+
+export type ActiveShipmentsStackParamList = {
+    ActiveShipments: undefined;
+    CreateShipment: undefined
+    ShipmentDetails: { shipmentId: string }
+    ShipmentTracking: { shipmentId: string }
 };
 
 export type SettingsStackParamList = {

@@ -9,6 +9,7 @@ import IssuesTable from "../components/IssuesTable";
 import { SettingsStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = NativeStackNavigationProp<
     SettingsStackParamList,
@@ -114,7 +115,7 @@ Status: ${issue.status ? "Resolved" : "Pending"}`
     }
 
     return (
-        <View className="flex-1 bg-white p-4">
+        <SafeAreaView edges={['top']} className="flex-1 bg-white p-4">
 
             <AppHeader
                 text="Issue Reported"
@@ -133,7 +134,7 @@ Status: ${issue.status ? "Resolved" : "Pending"}`
                 onDelete={handleDelete}
             />
 
-        </View>
+        </SafeAreaView>
     );
 };
 

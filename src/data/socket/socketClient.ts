@@ -5,7 +5,7 @@ import { getAccessToken } from "../../shared/storage/authStorage"
 let socket: Socket | null = null
 
 export const connectSocket = async () => {
-
+    if (socket) return socket;
     const token = await getAccessToken()
 
     socket = io(appConfig.socket_url, {
