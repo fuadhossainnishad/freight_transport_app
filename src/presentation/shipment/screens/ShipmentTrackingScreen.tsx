@@ -9,13 +9,12 @@ import {
     StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MapView, { Marker } from "react-native-maps";
-
 import AppHeader from "../../../shared/components/AppHeader";
 import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.usecase";
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import MapRoute from '../components/MapRoute';
 
 type RoutePropType = RouteProp<ActiveShipmentsStackParamList, 'ShipmentTracking'>;
 type NavigationPropType = NativeStackNavigationProp<ActiveShipmentsStackParamList, 'ShipmentTracking'>;
@@ -28,6 +27,7 @@ const ShipmentTrackingScreen: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
+
 
     useEffect(() => {
         const loadShipment = async () => {
@@ -73,23 +73,7 @@ const ShipmentTrackingScreen: React.FC = () => {
 
             <ScrollView contentContainerStyle={{ padding: 16 }}>
                 {/* Map */}
-                <View style={{ height: 250, borderRadius: 12, overflow: "hidden" }}>
-                    {formattedCoords.length > 0 && (
-                        <MapView
-                            style={{ flex: 1 }}
-                            initialRegion={{
-                                latitude: formattedCoords[0].latitude,
-                                longitude: formattedCoords[0].longitude,
-                                latitudeDelta: 0.05,
-                                longitudeDelta: 0.05,
-                            }}
-                        >
-                            {formattedCoords.map((c, index) => (
-                                <Marker key={index} coordinate={c} title={data.title} />
-                            ))}
-                        </MapView>
-                    )}
-                </View>
+                <MapRoute />
 
                 {/* Basic Shipment Info */}
                 <View style={styles.section}>
