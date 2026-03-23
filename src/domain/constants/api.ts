@@ -24,3 +24,9 @@ export const SINGLE_ISSUE = (id: string) => `/issues/${id}`
 export const GET_INFO = (type: string) => `/setting/${type}`
 
 export const GET_BIDS = "/bid/"
+
+export const GET_VEHICLES = (transporterId: string) => `/vehicle/transporter/${transporterId}`
+export const GET_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
+export const POST_VEHICLE = '/vehicle/'
+export const UPDATE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
+export const DELETE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`

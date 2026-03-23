@@ -58,6 +58,7 @@ export type AvailableBidsStackParamList = {
     AssignVehicleDriver: { shipmentId: string }
 };
 
+
 export type ActiveShipmentsStackParamList = {
     ActiveShipments: undefined;
     CreateShipment: undefined
@@ -87,5 +88,13 @@ export type SettingsStackParamList = {
     Faq: undefined
     Info: { type: InfoType; title: string }; // type-safe
 
+
+};
+
+export type VehicleStackParamList = {
+    Vehicle: undefined;
+    VehicleDetails: { vehicleId: string }
+    UpdateVehicle: { vehicleId: string }
+    AddVehicle: undefined
 
 };

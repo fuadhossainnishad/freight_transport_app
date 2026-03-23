@@ -1,5 +1,7 @@
 // data/dummy/dummyShipments.ts
 
+import { Vehicle } from "../../domain/entities/vehicle";
+
 export const DUMMY_SHIPMENTS = {
   "success": true,
   "message": "Shipments fetched successfully.",
@@ -45,3 +47,73 @@ export const DUMMY_SHIPMENTS = {
     }
   }
 }
+
+
+
+export const mockVehicles: Vehicle[] = [
+  {
+    id: "mock-1",
+    name: "Benz Actros – 20T",
+    plateNumber: "AB-345-CD",
+    type: "Closed Truck",
+    capacity: "20 Tons",
+    modelYear: "2018",
+
+    images: [
+      "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7"
+    ],
+
+    documents: [
+      {
+        id: "doc-1",
+        type: "plateId",
+        url: "https://dummyimage.com/600x400/000/fff&text=Plate+ID",
+      },
+      {
+        id: "doc-2",
+        type: "insurance",
+        url: "https://dummyimage.com/600x400/000/fff&text=Insurance",
+      },
+      {
+        id: "doc-3",
+        type: "technicalVisit",
+        url: "https://dummyimage.com/600x400/000/fff&text=Technical+Visit",
+      },
+    ],
+
+    createdAt: new Date().toISOString(),
+  },
+
+  {
+    id: "mock-2",
+    name: "Volvo FH – 40T",
+    plateNumber: "XY-987-ZT",
+    type: "Trailer",
+    capacity: "40 Tons",
+    modelYear: "2022",
+
+    images: [
+      "https://images.unsplash.com/photo-1591768793355-74d04bb6608f"
+    ],
+
+    documents: [
+      {
+        id: "doc-4",
+        type: "plateId",
+        url: "https://dummyimage.com/600x400/000/fff&text=Plate+ID",
+      },
+      {
+        id: "doc-5",
+        type: "insurance",
+        url: "https://dummyimage.com/600x400/000/fff&text=Insurance",
+      },
+      {
+        id: "doc-6",
+        type: "technicalVisit",
+        url: "https://dummyimage.com/600x400/000/fff&text=Technical+Visit",
+      },
+    ],
+
+    createdAt: new Date().toISOString(),
+  },
+];

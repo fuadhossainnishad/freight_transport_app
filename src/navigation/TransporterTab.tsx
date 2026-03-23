@@ -114,10 +114,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 0,
-    paddingBottom: 50,
+    paddingBottom: 30,
     borderTopWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#fff',
-    height: 100,
+    height: 70,
   },
 });
