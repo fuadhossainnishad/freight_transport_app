@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform } from "react-native";
 import VehicleForm from "../components/VehicleForm";
 import { addVehicle } from "../../../data/services/vehicleService";
 import { VehicleFormValues } from "../types";
@@ -63,16 +63,17 @@ const AddVehicleScreen = () => {
     return (
         <SafeAreaView
             edges={['top']}
-            className="flex-1 p-4 bg-gray-50">
+            className="flex-1  bg-white">
+
+            <AppHeader text="Add Vehicle Details" onpress={() => navigation.goBack()} />
             <KeyboardAvoidingView
                 className="flex-1"
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-            >
-                <AppHeader text="Add Vehicle Details" onpress={() => navigation.goBack()} />
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
 
-                    <VehicleForm values={form} onChange={handleChange} onSubmit={handleSubmit} />
-                </TouchableWithoutFeedback>
+            >
+
+                <VehicleForm values={form} onChange={handleChange} onSubmit={handleSubmit} />
             </KeyboardAvoidingView>
         </SafeAreaView>
     );

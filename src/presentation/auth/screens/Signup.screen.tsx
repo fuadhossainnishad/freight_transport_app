@@ -290,13 +290,13 @@ export default function SignupScreen() {
                 />
               </View>
             </View>
-           
+
             <View style={styles.buttonWrapper}>
               <SubmitButton
-              text="Create Account"
-              loading={loading}
-              onSubmit={handleSubmit(onSubmit)}
-            />
+                text="Create Account"
+                loading={loading}
+                onSubmit={handleSubmit(onSubmit)}
+              />
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>

@@ -6,6 +6,9 @@ import { useAuth } from "../../../app/context/Auth.context";
 import VehicleCard from "../components/VehicleCard";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { VehicleStackParamList } from "../../../navigation/types";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AppHeader from "../../../shared/components/AppHeader";
+import AddIcon from "../../../../assets/icons/add.svg"
 
 type props = NativeStackNavigationProp<VehicleStackParamList, 'Vehicle'>;
 
@@ -40,29 +43,40 @@ const VehiclesScreen = () => {
     if (loading) return <ActivityIndicator size="large" />;
 
     return (
-        <View className="flex-1 p-4">
+        <SafeAreaView
+            edges={["top"]}
+            className="flex-1 px-4 bg-white">
+
+            <AppHeader text="My Vehicles" onpress={() => navigation.goBack()} />
+
             <FlatList
                 data={vehicles}
                 keyExtractor={(item) => item.id}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: "space-between" }}
+                contentContainerStyle={{ paddingBottom: 20 }}
                 renderItem={({ item }) => (
-                    <VehicleCard
-                        vehicle={item}
-                        onView={() => navigation.navigate("VehicleDetails", { vehicleId: item.id })}
-                        onEdit={() => navigation.navigate('UpdateVehicle', { vehicleId: item.id })}
-                        onDelete={() => handleDelete(item.id)}
-                    />
+                    <View style={{ width: "48%" }}>
+                        <VehicleCard
+                            vehicle={item}
+                            onView={() => navigation.navigate("VehicleDetails", { vehicleId: item.id })}
+                            onEdit={() => navigation.navigate('UpdateVehicle', { vehicleId: item.id })}
+                            onDelete={() => handleDelete(item.id)}
+                        />
+                    </View>
                 )}
             />
 
             <TouchableOpacity
-                className="bg-black p-4 rounded-xl mt-4"
+                className="w-full p-3 rounded-xl my-4 flex-row gap-3 items-center justify-center border border-[#036BB4]"
                 onPress={() => navigation.navigate('AddVehicle')}
             >
-                <Text className="text-white text-center font-semibold">
+                <AddIcon height={24} width={24} />
+                <Text className="text-[#036BB4] text-center font-semibold">
                     Add Vehicle
                 </Text>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     );
 };
 
