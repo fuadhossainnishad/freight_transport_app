@@ -15,7 +15,7 @@ const InputField: React.FC<Props> = ({ label, onChangeText, ...rest }) => {
             </Text>
 
             <TextInput
-                onChangeText={() => onChangeText}
+                onChangeText={onChangeText}
                 placeholderTextColor="#9CA3AF"
                 className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-base"
                 {...rest}

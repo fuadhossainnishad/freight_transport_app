@@ -2,7 +2,7 @@ import { DELETE_VEHICLE, GET_VEHICLE, GET_VEHICLES, POST_VEHICLE, UPDATE_VEHICLE
 import { Vehicle } from "../../domain/entities/vehicle";
 import { mockVehicles } from "../../presentation/shipment/dummy";
 import axiosClient from "../../shared/config/axios.config";
-import { mapVehicleFromApi } from "../../shared/utils/vehicle.utils";
+import { mapVehicleFromApi } from '../../shared/utils/vehicle.utils';
 
 export const searchVehicles = async (
     transporterId: string,
@@ -33,7 +33,8 @@ export const getVehicles = async (transporterId: string): Promise<Vehicle[]> => 
 
 export const getVehicleById = async (vehicleId: string): Promise<Vehicle> => {
     const res = await axiosClient.get(GET_VEHICLE(vehicleId));
-    return res.data.data;
+    console.log("getVehicleById:", res.data.data)
+    return mapVehicleFromApi(res.data.data);
 };
 
 export const addVehicle = async (formData: FormData) => {

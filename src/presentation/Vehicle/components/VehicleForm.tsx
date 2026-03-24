@@ -27,12 +27,12 @@ const VehicleForm: React.FC<Props> = ({
     onChange,
     onSubmit,
     onCancel,
-    loading = false,
+    loading,
 }) => {
     const [vehicleTypeModal, setVehicleTypeModal] = useState(false);
 
     const handleSelectVehicleType = (value: string) => {
-        onChange("type", value);
+        onChange("vehicle_type", value);
         setVehicleTypeModal(false);
     };
     return (
@@ -52,22 +52,22 @@ const VehicleForm: React.FC<Props> = ({
                 <InputField
                     label="Vehicle Name"
                     placeholder="Enter your vehicle name"
-                    value={values.name || ""}
-                    onChangeText={(v) => onChange("name", v)}
+                    value={values.vehicle_number || ""}
+                    onChangeText={(v) => onChange("vehicle_number", v)}
                 />
 
                 <InputField
                     label="Plate Number"
                     placeholder="Enter plate number"
-                    value={values.plateNumber || ""}
-                    onChangeText={(v) => onChange("plateNumber", v)}
+                    value={values.plate_number || ""}
+                    onChangeText={(v) => onChange("plate_number", v)}
                     keyboardType="default"
                     autoCapitalize="characters"
 
                 />
                 <SelectField2
                     label="Vehicle Type"
-                    value={values.type}
+                    value={values.vehicle_type}
                     placeholder="Select vehicle type"
                     onPress={() => {
                         setVehicleTypeModal(true);
@@ -96,7 +96,7 @@ const VehicleForm: React.FC<Props> = ({
                                 </Text>
 
                                 {VEHICLE_TYPES.map((type) => {
-                                    const isSelected = values.type === type;
+                                    const isSelected = values.vehicle_type === type;
 
                                     return (
                                         <TouchableOpacity
@@ -135,16 +135,16 @@ const VehicleForm: React.FC<Props> = ({
                 <InputField
                     label="Capacity"
                     placeholder="e.g. 20 Tons"
-                    value={values.capacity || ""}
-                    onChangeText={(v) => onChange("capacity", v)}
+                    value={values.capicity || ""}
+                    onChangeText={(v) => onChange("capicity", v)}
                     keyboardType="numeric"
                 />
 
                 <InputField
                     label="Year / Model"
                     placeholder="e.g. 2022"
-                    value={values.modelYear || ""}
-                    onChangeText={(v) => onChange("modelYear", v)}
+                    value={values.year_model || ""}
+                    onChangeText={(v) => onChange("year_model", v)}
                     keyboardType="number-pad"
                     maxLength={4}
                 />
@@ -154,8 +154,8 @@ const VehicleForm: React.FC<Props> = ({
             <View className="bg-white rounded-2xl px-4 flex-row gap-2 w-full">
                 <UploadField
                     label="Registration"
-                    files={values.registration || []}
-                    onPress={(files) => onChange("registration", files)}
+                    files={values.technical_visit || []}
+                    onPress={(files) => onChange("technical_visit", files)}
                 />
                 <UploadField
                     label="Insurance"
@@ -164,8 +164,8 @@ const VehicleForm: React.FC<Props> = ({
                 />
                 <UploadField
                     label="Plate ID"
-                    files={values.plateId || []}
-                    onPress={(files) => onChange("plateId", files)}
+                    files={values.plate_id || []}
+                    onPress={(files) => onChange("plate_id", files)}
                 />
             </View>
 
@@ -174,8 +174,8 @@ const VehicleForm: React.FC<Props> = ({
                 <UploadField
                     multiple
                     label="Vehicle Image"
-                    files={values.vehicleImages || []}
-                    onPress={(files) => onChange("vehicleImages", files)}
+                    files={values.vehicle_images || []}
+                    onPress={(files) => onChange("vehicle_images", files)}
                 />
             </View>
 

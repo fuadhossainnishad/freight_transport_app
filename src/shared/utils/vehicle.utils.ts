@@ -12,8 +12,9 @@ export const mapVehicleFromApi = (item: any): Vehicle => {
     type: item.vehicle_type,
     capacity: item.capicity, // ⚠️ backend typo handled here
     modelYear: item.year_model,
+    images: ["https://images.unsplash.com/photo-1601584115197-04ecc0da31d7"],
 
-    images: item.vehicle_images || [],
+    // images: item.vehicle_images || [],
 
     documents: [
       ...(item.plate_id || []).map((url: string, i: number) => ({

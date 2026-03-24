@@ -15,14 +15,14 @@ type props = NativeStackNavigationProp<VehicleStackParamList, 'Vehicle'>;
 
 const VehiclesScreen = () => {
     const navigation = useNavigation<props>();
-    const [vehicles, setVehicles] = useState<any[]>([]);
+    const [vehicles, setVehicles] = useState<any>([]);
     const [loading, setLoading] = useState(true);
     const { user } = useAuth()
 
     const fetchVehicles = async () => {
         try {
             const data = await getVehicles(user?.transporter_id!);
-            console.log("getVehicles:", data)
+            console.log("getVehicles from vehiclescreen:", data)
             setVehicles(data);
         } catch (err) {
             console.log(err);
@@ -45,7 +45,7 @@ const VehiclesScreen = () => {
     return (
         <SafeAreaView
             edges={["top"]}
-            className="flex-1 px-4 bg-white">
+            className="flex-1  bg-white">
 
             <AppHeader text="My Vehicles" onpress={() => navigation.goBack()} />
 
@@ -54,7 +54,7 @@ const VehiclesScreen = () => {
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 columnWrapperStyle={{ justifyContent: "space-between" }}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }}
                 renderItem={({ item }) => (
                     <View style={{ width: "48%" }}>
                         <VehicleCard
