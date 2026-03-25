@@ -14,9 +14,8 @@ export default function VehicleDetailsDataCard({
 }: VehicleDetailsDataCardProps) {
   return (
     <View
-      className={`${
-        fullWidth ? 'w-full' : 'flex-1'
-      } border border-gray-200 rounded-xl p-4 bg-white`}
+      className={`${fullWidth ? "w-full" : "w-[48%]"
+        } border border-gray-200 rounded-xl p-4 bg-white`}
     >
       <Text className="text-gray-500 text-sm mb-1">{label}</Text>
       <Text className="text-black text-base font-medium">{data}</Text>

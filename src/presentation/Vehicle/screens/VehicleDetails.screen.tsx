@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Image, ScrollView, FlatList, Dimensions, TouchableOpacity, Linking } from "react-native";
-import { getVehicleById } from "../../../data/services/vehicleService";
+import { View, Text, Image, ScrollView, FlatList, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { deleteVehicle, getVehicleById } from "../../../data/services/vehicleService";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { VehicleStackParamList } from "../../../navigation/types";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
@@ -8,6 +8,11 @@ import AppHeader from "../../../shared/components/AppHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import VehicleDetailsDataCard from "../components/VehicleDetailsDataCard";
 import { Vehicle, VehicleDocument } from "../../../domain/entities/vehicle";
+import DocumentGrid from "../components/DocumentGrid";
+import DocsPreviewModal from "../components/DocsPreviewModal";
+import EditIcon from "../../../../assets/icons/edit3.svg"
+import DeleteIcon from "../../../../assets/icons/delete.svg"
+
 
 const { width } = Dimensions.get("window");
 
@@ -19,14 +24,58 @@ const VehicleDetailsScreen = () => {
     const route = useRoute<RoutePropType>();
     const { vehicleId } = route.params;
     const [vehicle, setVehicle] = useState<Vehicle>();
+    const [previewUri, setPreviewUri] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
-        getVehicleById(vehicleId!).then(setVehicle);
-    }, [vehicleId]);
+        fetchVehicle();
+    }, []);
 
-    if (!vehicle) return null;
+    const fetchVehicle = async () => {
+        try {
+            setLoading(true);
+            const res = await getVehicleById(vehicleId);
+            setVehicle(res);
+        } catch (err) {
+            Alert.alert("Error", "Failed to load vehicle");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEdit = () => {
+        navigation.navigate("UpdateVehicle", { vehicleId });
+    };
+
+    const handleDelete = () => {
+        Alert.alert("Confirm", "Are you sure you want to delete this vehicle?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Delete",
+                style: "destructive",
+                onPress: confirmDelete,
+            },
+        ]);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            setDeleting(true);
+            await deleteVehicle(vehicleId);
+
+            Alert.alert("Success", "Vehicle removed successfully");
+            navigation.goBack(); // 🔥 important
+        } catch (err) {
+            Alert.alert("Error", "Failed to delete vehicle");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     const documentSections = useMemo(() => {
+        if (!vehicle) return null;
+
         const groups: Record<string, VehicleDocument[]> = {
             plateId: [],
             insurance: [],
@@ -44,7 +93,15 @@ const VehicleDetailsScreen = () => {
             { label: "Technical Visit", files: groups.technicalVisit },
             { label: "Registration", files: groups.registration },
         ];
-    }, [vehicle.documents]);
+    }, [vehicle]);
+
+    if (loading) {
+        return (
+            <SafeAreaView className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#036BB4" />
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
@@ -53,9 +110,9 @@ const VehicleDetailsScreen = () => {
             <ScrollView className="px-4 py-4 space-y-4">
 
                 {/* Vehicle Image Carousel */}
-                {vehicle.images?.length > 0 && (
+                {vehicle?.images?.length! > 0 && (
                     <FlatList
-                        data={vehicle.images}
+                        data={vehicle?.images}
                         horizontal
                         pagingEnabled
                         keyExtractor={(_, index) => `vehicle-image-${index}`}
@@ -74,40 +131,60 @@ const VehicleDetailsScreen = () => {
 
                 {/* Vehicle Details Grid */}
                 <View className="flex-row flex-wrap justify-between gap-2">
-                    <VehicleDetailsDataCard label="Vehicle Name" data={vehicle.name} />
-                    <VehicleDetailsDataCard label="Plate Number" data={vehicle.plateNumber} />
-                    <VehicleDetailsDataCard label="Vehicle Type" data={vehicle.type} />
-                    <VehicleDetailsDataCard label="Capacity" data={vehicle.capacity} />
-                    <VehicleDetailsDataCard label="Year / Model" data={vehicle.modelYear} fullWidth />
+                    <VehicleDetailsDataCard label="Vehicle Name" data={vehicle?.name!} />
+                    <VehicleDetailsDataCard label="Plate Number" data={vehicle?.plateNumber!} />
+                    <VehicleDetailsDataCard label="Vehicle Type" data={vehicle?.type!} />
+                    <VehicleDetailsDataCard label="Capacity" data={vehicle?.capacity!} />
+                    <VehicleDetailsDataCard label="Year / Model" data={vehicle?.modelYear!} fullWidth />
                 </View>
 
                 {/* Documents Section */}
-                {documentSections.map((section) =>
-                    section.files.length > 0 ? (
-                        <View key={section.label} className="mt-4 space-y-2">
-                            <Text className="text-black text-lg font-semibold mb-2">{section.label}</Text>
-                            <FlatList
-                                data={section.files}
-                                horizontal
-                                keyExtractor={(item) => item.id}
-                                showsHorizontalScrollIndicator={false}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        onPress={() => Linking.openURL(item.url)}
-                                        className="mr-2 border border-gray-200 rounded-xl overflow-hidden"
-                                    >
-                                        <Image
-                                            source={{ uri: item.url }}
-                                            style={{ width: 100, height: 100 }}
-                                            resizeMode="cover"
-                                        />
-                                    </TouchableOpacity>
-                                )}
+                <View className="flex-row flex-wrap justify-between mt-4">
+                    {documentSections?.map((section, index) => {
+                        const isLast = index === documentSections.length - 1;
+
+                        return section.files.length > 0 ? (
+                            <DocumentGrid
+                                key={section.label}
+                                title={section.label}
+                                documents={section.files}
+                                onPreview={setPreviewUri}
+                                fullWidth={isLast}
                             />
-                        </View>
-                    ) : null
-                )}
+                        ) : null;
+                    })}
+                </View>
+
+                <View className="flex-row gap-3 mb-6">
+                    <TouchableOpacity
+                        onPress={handleEdit}
+                        className="flex-1 border border-[#036BB4] py-3 rounded-full flex-row justify-center items-center gap-2"
+                    >
+                        <EditIcon height={18} width={18} />
+                        <Text className="font-medium  text-[#036BB4]">Edit</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={handleDelete}
+                        disabled={deleting}
+                        className="flex-1 border border-[#FF0000] py-3 rounded-full flex-row justify-center items-center gap-2 text-[#FF0000]"
+                    >
+                        {deleting ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <DeleteIcon height={18} width={18} />
+                                <Text className="font-semibold text-[#FF0000]">Remove</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
+            <DocsPreviewModal
+                visible={!!previewUri}
+                imageUri={previewUri!}
+                onClose={() => setPreviewUri(null)}
+            />
         </SafeAreaView>
     );
 };

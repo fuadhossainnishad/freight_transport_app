@@ -68,7 +68,7 @@ const VehiclesScreen = () => {
             />
 
             <TouchableOpacity
-                className="w-full p-3 rounded-xl my-4 flex-row gap-3 items-center justify-center border border-[#036BB4]"
+                className="w-full p-3 rounded-xl m-4 flex-row gap-3 items-center justify-center border border-[#036BB4]"
                 onPress={() => navigation.navigate('AddVehicle')}
             >
                 <AddIcon height={24} width={24} />

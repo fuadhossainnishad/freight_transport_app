@@ -73,7 +73,8 @@ const VehicleForm: React.FC<Props> = ({
                         setVehicleTypeModal(true);
                     }}
                 />
-                {vehicleTypeModal &&
+                {
+                    vehicleTypeModal &&
                     <Modal
                         visible={vehicleTypeModal}
                         transparent
@@ -130,7 +131,8 @@ const VehicleForm: React.FC<Props> = ({
                                 </TouchableOpacity>
                             </TouchableOpacity>
                         </TouchableOpacity>
-                    </Modal>}
+                    </Modal>
+                }
 
                 <InputField
                     label="Capacity"

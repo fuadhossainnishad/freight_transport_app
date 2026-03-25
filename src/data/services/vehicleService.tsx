@@ -45,7 +45,7 @@ export const addVehicle = async (formData: FormData) => {
 };
 
 export const updateVehicle = async (vehicleId: string, formData: FormData) => {
-    const res = await axiosClient.put(UPDATE_VEHICLE(vehicleId), formData, {
+    const res = await axiosClient.patch(UPDATE_VEHICLE(vehicleId), formData, {
         headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;

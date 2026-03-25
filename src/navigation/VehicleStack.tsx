@@ -4,6 +4,7 @@ import { VehicleStackParamList } from "./types";
 import VehicleDetailsScreen from "../presentation/Vehicle/screens/VehicleDetails.screen";
 import VehiclesScreen from "../presentation/Vehicle/screens/Vehicles.screen";
 import AddVehicleScreen from "../presentation/Vehicle/screens/AddVehicle.screen";
+import UpdateVehicleScreen from "../presentation/Vehicle/screens/UpdateVehicle.screen";
 
 const Stack = createNativeStackNavigator<VehicleStackParamList>();
 export default function VehicleStack() {
@@ -25,6 +26,10 @@ export default function VehicleStack() {
       <Stack.Screen
         name='AddVehicle'
         component={AddVehicleScreen}
+      />
+      <Stack.Screen
+        name='UpdateVehicle'
+        component={UpdateVehicleScreen}
       />
     </Stack.Navigator>
   );
