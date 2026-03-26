@@ -79,7 +79,7 @@ export type SettingsStackParamList = {
     // }
     // ResetPassword: { verificationToken: string };
     MyVehicles: undefined
-    DriverProfiles: undefined
+    Driver: undefined
     EarningOverview: undefined
     Privacy: undefined
     Terms: undefined
@@ -96,5 +96,13 @@ export type VehicleStackParamList = {
     VehicleDetails: { vehicleId: string }
     UpdateVehicle: { vehicleId: string }
     AddVehicle: undefined
+
+};
+
+export type DriverStackParamList = {
+    DriverProfile: undefined;
+    DriverProfileDetails: { driverId: string }
+    UpdateDriverProfile: { driverId: string }
+    AddDriver: undefined
 
 };

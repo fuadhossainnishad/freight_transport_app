@@ -9,6 +9,7 @@ import BankDetailsScreen from '../presentation/settings/screens/BankDetailsScree
 import IssuesScreen from '../presentation/settings/screens/IssuesScreen';
 import InfoScreen from '../presentation/settings/screens/Info.screen';
 import VehicleStack from './VehicleStack';
+import DriverStackStack from './DriverStack';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
@@ -53,41 +54,12 @@ export default function SettingsStack() {
           component={VehicleStack}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name='Driver'
+          component={DriverStackStack}
+          options={{ headerShown: false }}
+        />
 
-        {/* 
-        
-        <Stack.Screen
-          name='Privacy'
-          component={PrivacyScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name='IssueReported'
-          component={VerifyOtpScreen}
-          options={{ headerShown: false }}
-        />
- 
-        <Stack.Screen
-          name='Terms'
-          component={SignupScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name='Privacy'
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name='Hiring'
-          component={ForgetPasswordScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name='Carrier'
-          component={VerifyOtpScreen}
-          options={{ headerShown: false }}
-        />
-        */}
         <Stack.Screen
           name='Faq'
           component={FaqScreen}

@@ -73,7 +73,7 @@ export default function SettingsScreen() {
         break;
 
       case "driver_profiles":
-        navigation.navigate('DriverProfiles');
+        navigation.navigate('Driver');
         break;
 
       case "earning_overview":
