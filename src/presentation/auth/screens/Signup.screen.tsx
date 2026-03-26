@@ -9,7 +9,6 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
@@ -20,7 +19,6 @@ import { TRUCK_TYPES } from "../../../domain/constants/truckTypes";
 import { useSignup } from "../hooks/useSignup";
 import CustomInput from "../../../shared/components/CustomInput";
 import Dropdown from "../../../shared/components/Dropdown";
-import CustomButton from "../../../shared/components/CustomButton";
 import PasswordInput from "../../../shared/components/PasswordInout";
 import Checkbox from "../../../shared/components/Checkbox";
 import RoleSelector from '../components/RoleSelector';
