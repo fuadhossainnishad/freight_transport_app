@@ -52,27 +52,68 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
     // =============================
     // Socket Setup (Live Updates)
     // =============================
+    // useEffect(() => {
+    //     let socket: any;
+
+    //     const init = async () => {
+    //         socket = await connectSocket();
+
+    //         socket.emit("join_shipment_room", shipmentId);
+    //         console.log("Bid join_shipment_room:");
+
+
+    //         socket.on("new_bid", (bid: any) => {
+    //             setBids((prev) => {
+    //                 // prevent duplicate
+    //                 if (prev.some((b) => b.id === bid.id)) return prev;
+
+    //                 return [bid, ...prev];
+    //             });
+    //         });
+
+    //         socket.on("bid_accepted", (data: any) => {
+    //             console.log("Bid accepted:", data);
+    //         });
+    //     };
+
+    //     init();
+    //     fetchBids();
+
+    //     return () => {
+    //         const socketInstance = getSocket();
+
+    //         if (socketInstance) {
+    //             socketInstance.emit("leave_shipment_room", shipmentId);
+    //             socketInstance.off("new_bid");
+    //             socketInstance.off("bid_accepted");
+    //         }
+    //     };
+    // }, [shipmentId, fetchBids]);
+
     useEffect(() => {
         let socket: any;
 
         const init = async () => {
             socket = await connectSocket();
 
-            socket.emit("join_shipment_room", shipmentId);
-            console.log("Bid join_shipment_room:");
-
-
-            socket.on("new_bid", (bid: any) => {
-                setBids((prev) => {
-                    // prevent duplicate
-                    if (prev.some((b) => b.id === bid.id)) return prev;
-
-                    return [bid, ...prev];
-                });
+            socket.on("connect", () => {
+                console.log("✅ Connected:", socket.id);
             });
 
-            socket.on("bid_accepted", (data: any) => {
-                console.log("Bid accepted:", data);
+            socket.onAny((event: string, ...args: any[]) => {
+                console.log("📡 Event:", event, args);
+            });
+
+            console.log("📡 Joining room:", shipmentId);
+            socket.emit("join_shipment_room", shipmentId);
+
+            socket.on("new_bid", (bid: any) => {
+                console.log("🔥 New bid received:", bid);
+
+                setBids((prev) => {
+                    if (prev.some((b) => b.id === bid.id)) return prev;
+                    return [bid, ...prev];
+                });
             });
         };
 
@@ -80,12 +121,9 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
         fetchBids();
 
         return () => {
-            const socketInstance = getSocket();
-
-            if (socketInstance) {
-                socketInstance.emit("leave_shipment_room", shipmentId);
-                socketInstance.off("new_bid");
-                socketInstance.off("bid_accepted");
+            if (socket) {
+                socket.emit("leave_shipment_room", shipmentId);
+                socket.off("new_bid");
             }
         };
     }, [shipmentId, fetchBids]);
@@ -98,11 +136,11 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
     }
 
     return (
-        <View>
+        <View className="gap-4">
             <View className="flex-row items-center justify-between">
                 <View>
-                    <Text>Bids: {bidCount}</Text>
-                    <Text>Time Remaining: {timeRemaining}</Text>
+                    <Text className="font-semibold text-base">Bids: {bidCount}</Text>
+                    <Text className="font-semibold text-base">Time Remaining: {timeRemaining}</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => { navigation.navigate('AssignVehicleDriver', { shipmentId }) }}

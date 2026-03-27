@@ -93,9 +93,9 @@ const ActiveShipmentsScreen = () => {
         // ]);
     };
 
-    const handleCreateShipment = () => {
-        navigation.navigate("CreateShipment");
-    };
+    // const handleCreateShipment = () => {
+    //     navigation.navigate("CreateShipment");
+    // };
 
     if (loading) {
         return (
@@ -131,14 +131,14 @@ const ActiveShipmentsScreen = () => {
                 onView={handleView}
                 onMap={handleMap}
             />
-            <View className="absolute bottom-4 left-0 right-0 px-4">
+            {/* <View className="absolute bottom-4 left-0 right-0 px-4">
                 <TouchableOpacity
                     onPress={handleCreateShipment}
                     className="bg-[#036BB4] py-4 rounded-full items-center justify-center shadow-lg"
                 >
                     <Text className="text-white font-semibold text-lg">Create Shipment</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </SafeAreaView>
     );
 };

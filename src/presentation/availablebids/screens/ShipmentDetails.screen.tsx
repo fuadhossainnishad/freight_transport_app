@@ -7,6 +7,7 @@ import {
     Dimensions,
     ActivityIndicator,
     TouchableOpacity,
+    ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InfoSection from "../components/InfoSection";
@@ -18,6 +19,8 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AppHeader from "../../../shared/components/AppHeader";
 import { getShipmentBids } from "../../../data/services/shipmentService";
 import ShipmentBidsList from "../components/ShipmentBidsList";
+
+import ArrowIcon from "../../../../assets/icons/arrow4.svg"
 
 const { width } = Dimensions.get("window");
 
@@ -106,99 +109,122 @@ export default function ShipmentDetailsScreen() {
         <SafeAreaView className="flex-1 bg-white">
             <AppHeader text="Shipment Detail" onpress={() => navigation.goBack()} />
             {/* 🔹 Image Carousel */}
-            <FlatList
-                data={carosoul}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(_, i) => i.toString()}
-                renderItem={({ item }) => (
-                    <Image
-                        source={{ uri: item }}
-                        style={{ width, height: 500 }}
-                        resizeMode="cover"
-                    />
-                )}
-            />
-
-            {/* 🔹 Content */}
-            {viewMode === "details" && (
-                <View className="px-4 py-4">
-                    {/* Header */}
-                    <View className="flex-row justify-between items-start mb-5">
-                        <View className="flex-1 pr-3">
-                            <Text className="text-xl font-bold">{title}</Text>
-                            <Text className="text-gray-600 mt-1">{description}</Text>
-                        </View>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                className="px-4 ">
+                <FlatList
+                    data={carosoul}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(_, i) => i.toString()}
+                    renderItem={({ item }) => (
+                        <Image
+                            source={{ uri: item }}
+                            style={{ width: width - 32, height: 200 }}
+                            className="rounded-xl"
+                            resizeMode="cover"
+                        />
+                    )}
+                />
+                <View className="flex-row justify-between items-start my-5">
+                    <View className="flex-1 pr-3">
+                        <Text className="text-xl font-bold">{title}</Text>
+                        <Text className="text-gray-600 mt-1">{description}</Text>
+                    </View>
+                    {viewMode === "details" ? (
                         <TouchableOpacity
                             onPress={() => setViewMode("bids")}
-                            className="bg-blue-50 px-3 py-2 rounded-xl items-center"
+                            className="bg-white px-5 py-2 rounded-xl items-center justify-center border border-black/10  flex-row gap-2"
                         >
-                            <Text className="text-lg font-bold text-[#036BB4]">
+                            <Text className="text-base font-semibold text-white bg-[#036BB4] p-1 px-2 rounded-full">
                                 {bidCount}
                             </Text>
-                            <Text className="text-xs text-gray-500">Bids</Text>
+
+                            <Text className="text-base text-[#036BB4]">Bids</Text>
+                            <ArrowIcon height={20} width={20} />
+
                         </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            onPress={() => setViewMode("details")}
+                            className="bg-white px-5 py-2 rounded-xl items-center justify-center border border-black/10  flex-row gap-2"
+                        >
+                            <View style={{ transform: [{ rotate: "180deg" }] }}>
+                                <ArrowIcon height={20} width={20} />
+                            </View>
+
+
+                            <Text className="text-blue-500 font-medium">
+                                Back to Details
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+                {/* 🔹 Content */}
+                {viewMode === "details" && (
+                    <View
+                        className="py-4">
+                        {/* Header */}
+
+
+                        {/* Basic Info */}
+                        <InfoSection title="Basic Information">
+                            <View className="flex-row flex-1">
+                                <InfoRow label="Category" value={category} />
+                                <InfoRow label="Weight" value={weight} />
+                            </View>
+                            <View className="flex-row flex-1">
+                                <InfoRow label="Dimensions" value={dimensions} />
+                                <InfoRow label="Packaging" value={packaging} />
+                            </View>
+
+                        </InfoSection>
+
+                        {/* Pickup & Delivery */}
+                        <InfoSection title="Pickup & Delivery Details">
+                            <View className="flex-row flex-1">
+                                <InfoRow label="Pickup" value={pickup} />
+                                <InfoRow label="Delivery" value={delivery} />
+                            </View>
+                            <View className="flex-row flex-1">
+                                <InfoRow label="Time Window" value={timeWindow} />
+                                <InfoRow label="Date Preference" value={datePreference} />
+                            </View>
+
+
+                        </InfoSection>
+
+                        {/* Amount */}
+                        <InfoSection title="Amount">
+                            <InfoRow label="Price" value={`€${price}`} />
+                        </InfoSection>
+
+                        {/* Driver Info */}
+                        {driver && (
+                            <InfoSection title="Driver Info">
+                                <InfoRow label="Name" value={driver.name} />
+                                <InfoRow label="Phone" value={driver.phone} />
+                                <InfoRow label="Email" value={driver.email} />
+                            </InfoSection>
+                        )}
+
+                        {/* Vehicle Info */}
+                        {vehicle && (
+                            <InfoSection title="Vehicle Info">
+                                <InfoRow label="Type" value={vehicle.type} />
+                                <InfoRow label="Number" value={vehicle.number} />
+                                <InfoRow label="Plate" value={vehicle.plate} />
+                            </InfoSection>
+                        )}
                     </View>
-
-                    {/* Basic Info */}
-                    <InfoSection title="Basic Information">
-                        <InfoRow label="Category" value={category} />
-                        <InfoRow label="Weight" value={weight} />
-                        <InfoRow label="Dimensions" value={dimensions} />
-                        <InfoRow label="Packaging" value={packaging} />
-                    </InfoSection>
-
-                    {/* Pickup & Delivery */}
-                    <InfoSection title="Pickup & Delivery Details">
-                        <InfoRow label="Pickup" value={pickup} />
-                        <InfoRow label="Delivery" value={delivery} />
-                        <InfoRow label="Time Window" value={timeWindow} />
-                        <InfoRow label="Date Preference" value={datePreference} />
-                    </InfoSection>
-
-                    {/* Amount */}
-                    <InfoSection title="Amount">
-                        <InfoRow label="Price" value={`€${price}`} />
-                    </InfoSection>
-
-                    {/* Driver Info */}
-                    {driver && (
-                        <InfoSection title="Driver Info">
-                            <InfoRow label="Name" value={driver.name} />
-                            <InfoRow label="Phone" value={driver.phone} />
-                            <InfoRow label="Email" value={driver.email} />
-                        </InfoSection>
-                    )}
-
-                    {/* Vehicle Info */}
-                    {vehicle && (
-                        <InfoSection title="Vehicle Info">
-                            <InfoRow label="Type" value={vehicle.type} />
-                            <InfoRow label="Number" value={vehicle.number} />
-                            <InfoRow label="Plate" value={vehicle.plate} />
-                        </InfoSection>
-                    )}
-                </View>
-            )}
-            {viewMode === "bids" && (
-                <View className="flex-1">
-
-                    {/* Back Button */}
-                    <TouchableOpacity
-                        onPress={() => setViewMode("details")}
-                        className="mb-4"
-                    >
-                        <Text className="text-blue-500 font-medium">
-                            ← Back to Details
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* 🔥 Reusable Component */}
-                    <ShipmentBidsList shipmentId={shipmentId} />
-
-                </View>
-            )}
+                )}
+                {viewMode === "bids" && (
+                    <View className="flex-1">
+                        <ShipmentBidsList shipmentId={shipmentId} />
+                    </View>
+                )}
+            </ScrollView>
         </SafeAreaView>
     );
 }

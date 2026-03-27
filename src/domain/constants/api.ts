@@ -30,3 +30,9 @@ export const GET_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
 export const POST_VEHICLE = '/vehicle/'
 export const UPDATE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
 export const DELETE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
+
+export const GET_DRIVERS = (transporterId: string) => `/driver/transporter/${transporterId}`
+export const GET_DRIVER = (driverId: string) => `/driver/${driverId}`
+export const POST_DRIVER = '/driver/'
+export const UPDATE_DRIVER = (driverId: string) => `/driver/${driverId}`
+export const DELETE_DRIVER = (driverId: string) => `/driver/${driverId}`

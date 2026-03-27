@@ -17,12 +17,12 @@ type CreateBidPayload = {
     shipment_id: string;
     driver_id: string;
     vehicle_id: string;
-    bid_amount: string;
+    bid_amount: number;
 };
 
 export const createBid = async (payload: CreateBidPayload) => {
     try {
-        const res = await axiosClient.post("/bid/api", payload);
+        const res = await axiosClient.post("/bid/", payload);
         console.log("createBid:", res.data);
 
         return res.data;

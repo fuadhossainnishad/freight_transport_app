@@ -29,3 +29,12 @@ export interface Shipment {
   driverId?: string;
   transporterId?: string;
 }
+
+export interface DriverEntity {
+  transporter_id: string
+  name: string;
+  phone: string;
+  email: string;
+  idFront: string[];
+  idBack: string[];
+}

@@ -29,7 +29,7 @@ export default function AssignVehicleDriverScreen() {
     const { shipmentId } = route.params;
 
     const { user } = useAuth()
-    const transporterId = user?.transporter_id
+    const transporterId = user?.transporter_id!
 
     const [driverQuery, setDriverQuery] = useState("");
     const [vehicleQuery, setVehicleQuery] = useState("");
@@ -104,38 +104,41 @@ export default function AssignVehicleDriverScreen() {
         try {
             setSubmitting(true);
 
-            const payload = {
-                transporter_id: transporterId!,
-                shipment_id: shipmentId, // ⚠️ make sure you pass this prop
-                driver_id: selectedDriver._id,
-                vehicle_id: selectedVehicle._id,
-                bid_amount: price
+            const buildBidPayload = () => {
+                if (!transporterId) throw new Error("Missing transporter_id");
+                if (!shipmentId) throw new Error("Missing shipment_id");
+                if (!selectedDriver?._id) throw new Error("Driver not selected");
+                if (!selectedVehicle?._id) throw new Error("Vehicle not selected");
+                if (!price || isNaN(Number(price))) throw new Error("Invalid bid amount");
+
+                return {
+                    transporter_id: transporterId,
+                    shipment_id: shipmentId,
+                    driver_id: selectedDriver._id,
+                    vehicle_id: selectedVehicle._id,
+                    bid_amount: Number(price),
+                };
             };
 
-            console.log("📦 Creating bid:", payload);
+            const payload = buildBidPayload(); // ✅ IMPORTANT FIX
+
+            console.log("📦 Final Payload:", payload);
 
             const res = await createBid(payload);
 
             console.log("✅ Bid created:", res);
 
-            // =============================
-            // 🔌 Emit socket (REAL-TIME)
-            // =============================
             const socket = getSocket();
+            socket?.emit("new_bid", res?.data);
 
-            if (socket) {
-                socket.emit("new_bid", res.data);
-            }
-
-            // =============================
-            // 🧹 Reset UI (clean UX)
-            // =============================
             setSelectedDriver(null);
             setSelectedVehicle(null);
             setPrice("");
 
-        } catch (error) {
-            console.log("❌ Submit bid error:", error);
+            navigation.goBack();
+
+        } catch (error: any) {
+            console.log("❌ Submit bid error:", error.message || error);
         } finally {
             setSubmitting(false);
         }

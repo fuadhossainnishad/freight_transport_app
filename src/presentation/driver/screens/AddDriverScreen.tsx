@@ -1,41 +1,63 @@
 // screens/driver/AddDriverScreen.tsx
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import DriverForm from "../components/DriverForm";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { DriverStackParamList } from "../../../navigation/types";
 
-type Props = NativeStackNavigationProp<DriverStackParamList, 'AddDriver'>;
+import React from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useForm } from "react-hook-form";
+
+import DriverForm from "../components/DriverForm";
+import AppHeader from "../../../shared/components/AppHeader";
+import { DriverEntity } from "../types";
+import { CreateDriverUseCase } from "../../../domain/usecases/driver.usecase";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../../app/context/Auth.context";
 
 
 export default function AddDriverScreen() {
-  const navigation = useNavigation<Props>();
+  const navigation = useNavigation();
+  const { user } = useAuth()
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
+
+  const { control, watch, setValue, handleSubmit } =
+    useForm<DriverEntity>({
+      defaultValues: {
+        transporter_id: user?.transporter_id!,
+        name: "",
+        phone: "",
+        email: "",
+        idFront: [],
+        idBack: [],
+      },
+    });
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+
+      await CreateDriverUseCase(data);
+
+      console.log("Driver Created Successfully");
+
+      navigation.goBack();
+    } catch (error) {
+      console.log("Error creating driver:", error);
+    }
   });
 
-  const handleSave = () => {
-    // validation + API call
-  };
-
   return (
-    <View className="flex-1 bg-white p-4">
+    <SafeAreaView
+      edges={['top']}
+      className="flex-1 bg-white p-4">
 
-      <Text className="text-xl font-bold mb-4">Add Vehicle Details</Text>
+      <AppHeader
+        text="Add Driver"
+        onpress={() => navigation.goBack()}
+      />
 
-      <DriverForm form={form} setForm={setForm} />
-
-      <TouchableOpacity
-        onPress={handleSave}
-        className="bg-black p-4 rounded-xl mt-4"
-      >
-        <Text className="text-white text-center">Save</Text>
-      </TouchableOpacity>
-
-    </View>
+      <DriverForm
+        control={control}
+        watch={watch}
+        setValue={setValue}
+        onSubmit={onSubmit}
+      />
+    </SafeAreaView>
   );
 }

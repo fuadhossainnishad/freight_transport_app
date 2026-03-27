@@ -1,24 +1,54 @@
-import { io, Socket } from "socket.io-client"
-import appConfig from "../../shared/config/app.config"
-import { getAccessToken } from "../../shared/storage/authStorage"
+import { io, Socket } from "socket.io-client";
+import appConfig from "../../shared/config/app.config";
+import { getAccessToken } from "../../shared/storage/authStorage";
 
-let socket: Socket | null = null
+let socket: Socket | null = null;
+let isConnecting = false;
 
-export const connectSocket = async () => {
-    if (socket) return socket;
-    const token = await getAccessToken()
+export const connectSocket = async (): Promise<Socket> => {
+    if (socket && socket.connected) {
+        return socket;
+    }
+
+    if (isConnecting) {
+        // wait until connection is established
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (socket && socket.connected) {
+                    clearInterval(interval);
+                    resolve(socket);
+                }
+            }, 100);
+        });
+    }
+
+    isConnecting = true;
+
+    const token = await getAccessToken();
 
     socket = io(appConfig.socket_url, {
-        auth: {
-            token
-        },
+        auth: { token },
         transports: ["websocket"],
         reconnection: true,
-        reconnectionAttempts: 10,
-        reconnectionDelay: 2000
-    })
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1500,
+    });
 
-    return socket
-}
+    socket.on("connect", () => {
+        console.log("✅ Socket connected:", socket?.id);
+        isConnecting = false;
+    });
 
-export const getSocket = () => socket
+    socket.on("disconnect", (reason) => {
+        console.log("⚠️ Socket disconnected:", reason);
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("❌ Socket error:", err.message);
+        isConnecting = false;
+    });
+
+    return socket;
+};
+
+export const getSocket = (): Socket | null => socket;

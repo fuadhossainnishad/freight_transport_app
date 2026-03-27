@@ -8,7 +8,7 @@ const InfoSection = ({ title, children }: any) => {
                 {title}
             </Text>
 
-            <View className="bg-gray-50 rounded-xl p-3">
+            <View className="bg-gray-50 rounded-2xl border border-black/10">
                 {children}
             </View>
         </View>
