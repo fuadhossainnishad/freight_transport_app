@@ -4,7 +4,8 @@ import {
     Text,
     FlatList,
     ActivityIndicator,
-    TouchableOpacity
+    TouchableOpacity,
+    Image
 } from "react-native";
 
 import {
@@ -106,6 +107,7 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
 
             console.log("📡 Joining room:", shipmentId);
             socket.emit("join_shipment_room", shipmentId);
+            console.log("📡 Joined room:", shipmentId);
 
             socket.on("new_bid", (bid: any) => {
                 console.log("🔥 New bid received:", bid);
@@ -140,7 +142,6 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
             <View className="flex-row items-center justify-between">
                 <View>
                     <Text className="font-semibold text-base">Bids: {bidCount}</Text>
-                    <Text className="font-semibold text-base">Time Remaining: {timeRemaining}</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => { navigation.navigate('AssignVehicleDriver', { shipmentId }) }}
@@ -152,12 +153,30 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
 
             <FlatList
                 data={bids}
-                keyExtractor={(item) => item.id}
-                ListEmptyComponent={<Text className="text-gray-500 text-center">No bids found</Text>}
+                keyExtractor={(item) => item._id}
+                ListEmptyComponent={
+                    <Text className="text-center text-gray-400 mt-5">
+                        No bids found
+                    </Text>
+                }
                 renderItem={({ item }) => (
-                    <View className="border border-gray-200 rounded-lg p-3 mb-2">
-                        <Text>Transporter: {item.transporter_id}</Text>
-                        <Text className="text-[#036BB4] font-bold mt-1">
+                    <View className="flex-row items-center border-b border-gray-200 px-3 py-3">
+
+                        {/* Driver */}
+                        <View className="flex-[1.2] flex-row items-center gap-2">
+                            <Image
+                                source={{
+                                    uri: "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg"
+                                }}
+                                style={{ width: 28, height: 28, borderRadius: 14 }}
+                            />
+                            <Text className="text-sm font-semibold">
+                                Truck Lagbe
+                            </Text>
+                        </View>
+
+                        {/* Amount */}
+                        <Text className="flex-[1] text-sm text-right text-[#036BB4] font-bold">
                             €{item.bid_amount}
                         </Text>
                     </View>
