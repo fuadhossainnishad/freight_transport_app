@@ -39,14 +39,14 @@ const UploadField: React.FC<Props> = ({ label, files, onPress, multiple = false 
     };
 
     return (
-        <View className="mb-5 flex-1">
+        <View className="mb-5 w-full">
             <Text className="text-sm font-semibold text-gray-700 mb-2">{label}</Text>
 
             {/* Upload button — only when no files selected */}
             {files.length === 0 && (
                 <TouchableOpacity
                     onPress={handlePickFiles}
-                    className="border-2 border-dashed border-gray-300 rounded-xl px-3 py-5 gap-2 items-center"
+                    className="border-2 border-dashed border-gray-300 h-40 rounded-xl px-3 py-3 gap-2 items-center flex-col justify-center"
                 >
                     <Upload height={20} width={20} />
                     <Text className="text-gray-400 text-xs">Upload Image</Text>

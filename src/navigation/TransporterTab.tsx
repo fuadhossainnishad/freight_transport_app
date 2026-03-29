@@ -16,9 +16,9 @@ import Earning from '../../assets/icons/earning_inactive.svg';
 import EarningInline from '../../assets/icons/earning2.svg';
 import { TransporterTabParamList } from './types';
 import SettingsStack from './SettingsStack';
-import TransporterHome from '../presentation/transporter/screens/TransporterHome.screen';
 import AvailableBidsStack from './AvailableBidsStack';
 import ActiveShipmentsStack from './ActiveShipmentsStack';
+import TransporterHomeStack from './TransporterHomeStack';
 
 /* ----------------------------------------------
    TYPE DEFINITIONS
@@ -96,7 +96,7 @@ export default function TransporterTabs() {
         tabBarIcon: renderTabIcon(route),
       })}
     >
-      <Tab.Screen name="HomeStack" component={TransporterHome} />
+      <Tab.Screen name="HomeStack" component={TransporterHomeStack} />
       <Tab.Screen name="AvailableBids" component={AvailableBidsStack} />
       <Tab.Screen name="Shipments" component={ActiveShipmentsStack} />
       <Tab.Screen name="Earning" component={() => <Text>Earning</Text>} />

@@ -5,64 +5,65 @@ import { getTransporterDrivers } from "../entities/driver.entity";
 
 
 export const getTransporterDriversUseCase = async (
-    transporterId: string,
-    searchTerm?: string
+  transporterId: string,
+  searchTerm?: string
 ): Promise<Driver[]> => {
-    if (!transporterId) throw new Error("Transporter ID is required");
+  if (!transporterId) throw new Error("Transporter ID is required");
 
-    return await getTransporterDrivers(transporterId, searchTerm);
+  return await getTransporterDrivers(transporterId, searchTerm);
 };
 
 export const getDriverByIdsUseCase = async (
-    driverId: string,
+  driverId: string,
 ): Promise<Driver> => {
-    if (!driverId) throw new Error("Driver ID is required");
+  if (!driverId) throw new Error("Driver ID is required");
 
-    const driver = await fetchDriverById(driverId);
-    return mapDriverApiToEntity(driver)
+  const driver = await fetchDriverById(driverId);
+  console.log("fetchDriverById:", driver)
+  return mapDriverApiToEntity(driver)
 };
 
 export const CreateDriverUseCase = async (
-    data: DriverEntity
+  data: DriverEntity
 ) => {
-    const formData = new FormData();
+  const formData = new FormData();
 
-    // static backend requirement
-    formData.append(
-        "transporter_id",
-        data.transporter_id!
-    );
+  // static backend requirement
+  formData.append(
+    "transporter_id",
+    data.transporter_id!
+  );
 
-    // mapping fields
-    formData.append("driver_name", data.name);
-    formData.append("phone", data.phone);
-    formData.append("email", data.email);
-    formData.append("country", "BD");
+  // mapping fields
+  formData.append("driver_name", data.name);
+  formData.append("phone", data.phone);
+  formData.append("email", data.email);
+  formData.append("country", "BD");
 
 
-    // profile image
-    if (data.idFront?.length > 0) {
-        formData.append("profile_picture", {
-            uri: data.idFront[0],
-            name: "profile.jpg",
-            type: "image/jpeg",
-        } as any);
-    }
+  // profile image
+  if (data.idFront?.length > 0) {
+    formData.append("profile_picture", {
+      uri: data.idFront[0],
+      name: "profile.jpg",
+      type: "image/jpeg",
+    } as any);
+  }
 
-    // documents
-    if (data.idBack?.length > 0) {
-        data.idBack.forEach((uri, index) => {
-            formData.append("driver_license", {
-                uri,
-                name: `license_${index}.jpg`,
-                type: "image/jpeg",
-            } as any);
-        });
-    }
+  // documents
+  if (data.idBack?.length > 0) {
+    data.idBack.forEach((uri, index) => {
+      formData.append("driver_license", {
+        uri,
+        name: `license_${index}.jpg`,
+        type: "image/jpeg",
+      } as any);
+    });
+  }
 
-    console.log("createDriver formData:", formData)
+  console.log("createDriver formData:", formData)
 
-    return await createDriver(formData);
+  return await createDriver(formData);
 };
 
 

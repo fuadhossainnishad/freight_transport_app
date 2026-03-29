@@ -10,7 +10,7 @@ import {
 
 import {
     connectSocket,
-    getSocket
+    // getSocket
 } from "../../../data/socket/socketClient";
 import { getShipmentBids } from "../../../data/services/shipmentService";
 import Arrow from "../../../../assets/icons/arrow3.svg"
@@ -32,7 +32,7 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
     const bidCount = useMemo(() => bids.length, [bids]);
 
     // Optional: replace with real backend time later
-    const timeRemaining = "02h 15m";
+    // const timeRemaining = "02h 15m";
 
     // =============================
     // Initial Fetch (Source of Truth)
@@ -139,18 +139,35 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
 
     return (
         <View className="gap-4">
+
+            {/* Header */}
             <View className="flex-row items-center justify-between">
-                <View>
-                    <Text className="font-semibold text-base">Bids: {bidCount}</Text>
-                </View>
+                <Text className="font-semibold text-base">
+                    Bids: {bidCount}
+                </Text>
+
                 <TouchableOpacity
-                    onPress={() => { navigation.navigate('AssignVehicleDriver', { shipmentId }) }}
-                    className="items-center flex-row gap-1 p-2 rounded-lg bg-[#036BB4]">
+                    onPress={() => {
+                        navigation.navigate('AssignVehicleDriver', { shipmentId })
+                    }}
+                    className="items-center flex-row gap-1 px-3 py-2 rounded-lg bg-[#036BB4]"
+                >
                     <Text className="text-white">Place your bid</Text>
                     <Arrow height={20} width={20} />
                 </TouchableOpacity>
             </View>
 
+            {/* Table Header */}
+            <View className="flex-row bg-[#036BB4] px-3 py-3 rounded-md">
+                <Text className="flex-[2] text-sm font-semibold text-white px-8">
+                    Bidders
+                </Text>
+                <Text className="flex-[1] text-sm font-semibold text-white  text-center">
+                    Price
+                </Text>
+            </View>
+
+            {/* Table Body */}
             <FlatList
                 data={bids}
                 keyExtractor={(item) => item._id}
@@ -162,21 +179,22 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
                 renderItem={({ item }) => (
                     <View className="flex-row items-center border-b border-gray-200 px-3 py-3">
 
-                        {/* Driver */}
-                        <View className="flex-[1.2] flex-row items-center gap-2">
+                        {/* Bidder Column */}
+                        <View className="flex-[2] flex-row items-center gap-2">
                             <Image
                                 source={{
-                                    uri: "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg"
+                                    uri: item?.driver?.avatar || "https://i.pravatar.cc/100"
                                 }}
-                                style={{ width: 28, height: 28, borderRadius: 14 }}
+                                style={{ width: 32, height: 32, borderRadius: 16 }}
                             />
-                            <Text className="text-sm font-semibold">
-                                Truck Lagbe
+
+                            <Text className="text-sm font-medium">
+                                {item?.driver?.name || "Unknown Driver"}
                             </Text>
                         </View>
 
-                        {/* Amount */}
-                        <Text className="flex-[1] text-sm text-right text-[#036BB4] font-bold">
+                        {/* Price Column */}
+                        <Text className="flex-[1] text-sm text-center text-[#036BB4] font-bold">
                             €{item.bid_amount}
                         </Text>
                     </View>

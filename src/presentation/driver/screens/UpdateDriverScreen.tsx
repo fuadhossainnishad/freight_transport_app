@@ -52,10 +52,11 @@ export default function UpdateDriverScreen() {
         setLoading(true);
 
         const res = await getDriverByIdsUseCase(driverId);
+        console.log("fetchDriverById:", res)
 
         reset({
           name: res.name,
-          phone: res.phone,
+          phone: res.phone!,
           email: res.email,
           idFront: res.licenseFront ? [res.licenseFront] : [],
           idBack: res.licenseBack ? [res.licenseBack] : [],

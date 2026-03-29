@@ -50,7 +50,8 @@ export type ShipperHomeStackParamList = {
 
 export type TransporterHomeStackParamList = {
     Home: undefined;
-
+    ShipmentDetails: { shipmentId: string }
+    ActiveShipments: undefined
 };
 export type AvailableBidsStackParamList = {
     AvailableBids: undefined;

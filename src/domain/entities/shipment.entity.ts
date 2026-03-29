@@ -1,3 +1,5 @@
+import { normalizeImageUrl } from "../../shared/utils/normalizeImageUrl";
+
 export const mapShipmentDetails = (res: any) => {
   const { shipment, vehicle, driver } = res;
 
@@ -9,12 +11,16 @@ export const mapShipmentDetails = (res: any) => {
     weight: shipment.weight,
     dimensions: shipment.dimensions,
     packaging: shipment.type_of_packaging,
-    images: shipment.shipment_images,
+    images: (shipment.shipment_images || []).map((img: string) =>
+      normalizeImageUrl(img)
+    ),
     pickup: shipment.pickup_address,
     delivery: shipment.delivery_address,
     timeWindow: shipment.time_window,
     datePreference: shipment.date_preference,
+    contactPerson: shipment.contact_person,
     price: shipment.price,
+    status: shipment.status,
 
     locationHistory: shipment.location_history || {
       coordinates: [],
@@ -34,7 +40,7 @@ export const mapShipmentDetails = (res: any) => {
         type: vehicle.vehicle_type,
         number: vehicle.vehicle_number,
         plate: vehicle.plate_number,
-        images: vehicle.vehicle_images,
+        images: (vehicle.vehicle_images || []).map((img: string) => normalizeImageUrl(img)),
       }
       : null,
   };
@@ -58,6 +64,7 @@ export interface Shipment {
   driverId?: string;
   vehicleId?: string;
   status: string
+  contactPerson?: string;
 }
 
 export const mapShipments = (res: any): Shipment[] => {

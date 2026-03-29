@@ -53,7 +53,7 @@ export default function AvailableBidsScreen() {
     return (
         <SafeAreaView className="flex-1 bg-white">
 
-            <View className="px-5 pt-4 mb-20">
+            <View className="px-5 pt-4 mb-28">
 
                 {/* Header */}
                 <Text className="text-xl font-bold mb-4">

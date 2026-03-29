@@ -34,6 +34,7 @@ const ShipmentTrackingScreen: React.FC = () => {
             try {
                 setLoading(true);
                 const res = await getShipmentDetailsUseCase(shipmentId);
+                console.log("getShipmentDetailsUseCase for tracking:", res)
                 setData(res);
             } catch (err) {
                 console.error(err);
@@ -78,9 +79,9 @@ const ShipmentTrackingScreen: React.FC = () => {
                 {/* Basic Shipment Info */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Basic Information</Text>
-                    <Text>Shipment ID: {data._id}</Text>
-                    <Text>Title: {data.data_title}</Text>
-                    <Text>Estimated Delivery: {data.date_preference}</Text>
+                    <Text>Shipment ID: {data.id}</Text>
+                    <Text>Title: {data.title}</Text>
+                    <Text>Estimated Delivery: {data.datePreference!}</Text>
                 </View>
 
                 {/* Vehicle Details */}
@@ -89,13 +90,20 @@ const ShipmentTrackingScreen: React.FC = () => {
                         <Text style={styles.sectionTitle}>Vehicle Details</Text>
                         <Text>Type: {vehicle.type}</Text>
                         <Text>Plate Number: {vehicle.plate}</Text>
-                        <Text>Capacity: {vehicle.capacity} Tons</Text>
+                        <Text>Capacity: {vehicle.capacity || "-"} Tons</Text>
 
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {vehicle.images.map((img: string, idx: number) => (
-                                <Image key={idx} source={{ uri: img }} style={styles.vehicleImage} />
-                            ))}
-                        </ScrollView>
+                        <View className="mt-4 text-bg-gray-100 gap-2">
+                            <Text className="">Vehicle Images:</Text>
+
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={{}}>
+                                {vehicle.images.map((img: string, idx: number) => (
+                                    <Image key={idx} source={{ uri: img }} style={styles.vehicleImage} />
+                                ))}
+                            </ScrollView>
+                        </View>
                     </View>
                 )}
 
@@ -104,8 +112,8 @@ const ShipmentTrackingScreen: React.FC = () => {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Driver Details</Text>
                         <Text>Name: {driver.name}</Text>
-                        <Text>Phone: {driver.phone}</Text>
-                        <Text>Email: {driver.email}</Text>
+                        <Text>Phone: {driver.phone || "-"}</Text>
+                        <Text>Email: {driver.email || "-"}</Text>
                     </View>
                 )}
             </ScrollView>
