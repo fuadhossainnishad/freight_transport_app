@@ -5,6 +5,8 @@ export const getAvailableBids = async (searchTerm?: string) => {
     const params: any = {};
 
     if (searchTerm) params.searchTerm = searchTerm;
+    console.log("getAvailableBids searchTerm:", searchTerm)
+    console.log("getAvailableBids params:", params)
 
     const res = await axiosClient.get(GET_BIDS, { params });
     console.log("getAvailableBids:", res.data)

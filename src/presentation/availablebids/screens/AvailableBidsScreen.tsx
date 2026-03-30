@@ -56,9 +56,11 @@ export default function AvailableBidsScreen() {
             <View className="px-5 pt-4 mb-28">
 
                 {/* Header */}
-                <Text className="text-xl font-bold mb-4">
-                    Available Bids
-                </Text>
+                <View className='bg-white flex-row w-full p-4  items-center px-4'>
+                    <Text className='text-center text-lg font-semibold text-black w-full'>
+                        Available Bids
+                    </Text>
+                </View>
 
                 {/* Search */}
                 <TextInput

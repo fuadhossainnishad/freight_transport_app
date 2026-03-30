@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, ActivityIndicator, TouchableOpacity,
-  Image, Dimensions, ScrollView, FlatList,
-  NativeScrollEvent, NativeSyntheticEvent, StyleSheet,
+  Dimensions, ScrollView, FlatList,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -15,222 +15,12 @@ import { getTransporterShipmentsUseCase } from "../../../domain/usecases/shipmen
 import { Shipment } from "../../../domain/entities/shipment.entity";
 import HomeHeader from "../../../shared/components/HomeHeader";
 import StatCard from "../../../shared/components/StatCard";
-import MapRoute from "../../shipment/components/MapRoute";
+import ActiveShipmentCard from "../components/ActiveShipmentCard";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 40;
 
 type NavigationProp = NativeStackNavigationProp<TransporterHomeStackParamList, "Home">;
-
-// ─── Image Carousel ───────────────────────────────────────────────────────────
-
-function ShipmentImageCarousel({ images }: { images: string[] }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-    timerRef.current = setInterval(() => {
-      setActiveIndex((prev) => {
-        const next = (prev + 1) % images.length;
-        flatListRef.current?.scrollToIndex({ index: next, animated: true });
-        return next;
-      });
-    }, 3000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [images.length]);
-
-  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH));
-  };
-
-  if (!images?.length) {
-    return (
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.imagePlaceholderText}>No images</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View>
-      <FlatList
-        ref={flatListRef}
-        data={images}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, i) => i.toString()}
-        onMomentumScrollEnd={handleScrollEnd}
-        getItemLayout={(_, index) => ({
-          length: CARD_WIDTH,
-          offset: CARD_WIDTH * index,
-          index,
-        })}
-        renderItem={({ item }) => (
-          <Image
-            source={{ uri: item }}
-            style={{ width: CARD_WIDTH, height: 200 }}
-            resizeMode="cover"
-          />
-        )}
-      />
-      {images.length > 1 && (
-        <View style={styles.dotsRow}>
-          {images.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  width: activeIndex === i ? 20 : 7,
-                  backgroundColor: activeIndex === i ? "#f97316" : "#d1d5db",
-                },
-              ]}
-            />
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ─── Detail Cell ──────────────────────────────────────────────────────────────
-
-function DetailCell({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <View style={styles.detailCell}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text
-        style={[styles.detailValue, highlight && styles.detailHighlight]}
-        numberOfLines={1}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-// ─── Shipment Card ────────────────────────────────────────────────────────────
-
-function ActiveShipmentCard({
-  item,
-  onPress,
-}: {
-  item: Shipment;
-  onPress: () => void;
-}) {
-  return (
-    <View style={styles.card}>
-
-      {/* ① Images */}
-      <ShipmentImageCarousel images={item.images} />
-
-      {/* ② Title + Status */}
-      <View style={styles.cardTitleRow}>
-        <View style={{ flex: 1, marginRight: 10 }}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.cardCategory}>{item.category}</Text>
-        </View>
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: item.status === "IN_PROGRESS" ? "#fff7ed" : "#f0fdf4" },
-        ]}>
-          <View style={[
-            styles.statusDot,
-            { backgroundColor: item.status === "IN_PROGRESS" ? "#f97316" : "#22c55e" },
-          ]} />
-          <Text style={[
-            styles.statusText,
-            { color: item.status === "IN_PROGRESS" ? "#ea580c" : "#16a34a" },
-          ]}>
-            {item.status === "IN_PROGRESS" ? "In Progress" : "Delivered"}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* ③ Driver */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>DRIVER</Text>
-        <View style={styles.driverRow}>
-          <View style={styles.driverAvatar}>
-            <Text style={{ fontSize: 20 }}>🧑‍✈️</Text>
-          </View>
-          <View>
-            <Text style={styles.driverName}>
-              {item.driverId ? "Assigned Driver" : "Not yet assigned"}
-            </Text>
-            <Text style={styles.driverSub}>
-              {item.driverId
-                ? `ID: ${item.driverId.slice(-6).toUpperCase()}`
-                : "Pending assignment"}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* ④ Map */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>ROUTE</Text>
-        {/* {item.pickupCoords && item.deliveryCoords ? ( */}
-        <MapRoute />
-        {/* // ) : (
-        //   <View style={styles.mapFallback}>
-        //     <Text style={styles.mapFallbackText}>📍 Map loading when route is active</Text>
-        //   </View>
-        // )} */}
-        <View style={styles.addressRow}>
-          <View style={styles.addressItem}>
-            <View style={[styles.addressDot, { backgroundColor: "#22c55e" }]} />
-            <Text style={styles.addressText} numberOfLines={2}>{item.pickup}</Text>
-          </View>
-          <View style={styles.addressDividerV} />
-          <View style={styles.addressItem}>
-            <View style={[styles.addressDot, { backgroundColor: "#ef4444" }]} />
-            <Text style={styles.addressText} numberOfLines={2}>{item.delivery}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* ⑤ Shipment Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>SHIPMENT DETAILS</Text>
-        <View style={styles.detailsGrid}>
-          <DetailCell label="Weight" value={item.weight} />
-          <DetailCell label="Packaging" value={item.packaging} />
-          <DetailCell label="Dimensions" value={item.dimensions} />
-          <DetailCell label="Time Window" value={item.timeWindow} />
-          <DetailCell label="Date" value={item.datePreference} />
-          <DetailCell label="Price" value={`€${item.price}`} highlight />
-        </View>
-      </View>
-
-      {/* ⑥ CTA */}
-      <TouchableOpacity onPress={onPress} style={styles.ctaButton} activeOpacity={0.85}>
-        <Text style={styles.ctaText}>See Full Details</Text>
-        <Text style={styles.ctaArrow}>→</Text>
-      </TouchableOpacity>
-
-    </View>
-  );
-}
-
-// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function TransporterHomeScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -564,7 +354,7 @@ const styles = StyleSheet.create({
   sectionHeaderLink: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#f97316",
+    color: "#000000",
   },
   emptyState: {
     alignItems: "center",

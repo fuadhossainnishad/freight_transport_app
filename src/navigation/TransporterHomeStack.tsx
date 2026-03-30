@@ -4,6 +4,7 @@ import { TransporterHomeStackParamList, } from "./types";
 import TransporterHomeScreen from "../presentation/transporter/screens/TransporterHome.screen";
 import ShipmentDetailsScreen from "../presentation/availablebids/screens/ShipmentDetails.screen";
 import ActiveShipmentsScreen from "../presentation/shipment/screens/ActiveShipments.screen";
+import ShipmentTrackingScreen from "../presentation/shipment/screens/ShipmentTrackingScreen";
 
 const Stack = createNativeStackNavigator<TransporterHomeStackParamList>();
 
@@ -26,6 +27,10 @@ export default function TransporterHomeStack() {
       <Stack.Screen
         name='ActiveShipments'
         component={ActiveShipmentsScreen}
+      />
+      <Stack.Screen
+        name='ShipmentTracking'
+        component={ShipmentTrackingScreen}
       />
     </Stack.Navigator>
   );

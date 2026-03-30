@@ -19,6 +19,7 @@ import SettingsStack from './SettingsStack';
 import AvailableBidsStack from './AvailableBidsStack';
 import ActiveShipmentsStack from './ActiveShipmentsStack';
 import TransporterHomeStack from './TransporterHomeStack';
+import EarningsStack from './EarningsStack';
 
 /* ----------------------------------------------
    TYPE DEFINITIONS
@@ -99,7 +100,7 @@ export default function TransporterTabs() {
       <Tab.Screen name="HomeStack" component={TransporterHomeStack} />
       <Tab.Screen name="AvailableBids" component={AvailableBidsStack} />
       <Tab.Screen name="Shipments" component={ActiveShipmentsStack} />
-      <Tab.Screen name="Earning" component={() => <Text>Earning</Text>} />
+      <Tab.Screen name="Earning" component={EarningsStack} />
       <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );

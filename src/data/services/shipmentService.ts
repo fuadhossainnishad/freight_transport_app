@@ -51,8 +51,20 @@ export const fetchTransporterShipments = async (transporterId: string, page = 1,
     }
 };
 
+export const fetchShipments = async (role: string, id: string, page = 1, limit = 10) => {
+    try {
+        const res = await axiosClient.get(`/shipment/${role}/${id}`);
+        console.log("fetchShipments:", res.data);
+        return res.data;
+    } catch (err) {
+        console.error("Error fetching shipments:", err);
+        throw err;
+    }
+};
+
 export const getShipmentBids = async (shipmentId: string) => {
     const res = await axiosClient.get(`/bid/${shipmentId}`);
     console.log("getShipmentBids:", res.data.data);
     return res.data?.data || [];
 };
+

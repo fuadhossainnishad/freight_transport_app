@@ -10,6 +10,7 @@ import { ShipperHomeStackParamList, ShipperTabParamList } from "../../../navigat
 import { useNavigation } from "@react-navigation/native"
 import Create from '../../../../assets/icons/create.svg'
 import { connectSocket, getSocket } from "../../../data/socket/socketClient";
+import StatCard from "../../../shared/components/StatCard";
 
 type props = NativeStackNavigationProp<ShipperHomeStackParamList, 'Home'>;
 
@@ -89,23 +90,34 @@ export default function ShipperHome() {
       />
 
       <View className="px-5 ">
-        <View className="grid grid-cols-2">
-          <TouchableOpacity
-            className="border border-[#036BB4] rounded-xl gap-3 flex-col items-center p-4 "
-            onPress={() => navigation.navigate('CreateShipment')}
-          >
-            <Create height={30} width={30} />
-            <Text className="text-[#7A7A7A] text-lg font-bold text-center">Create Shipment</Text>
-          </TouchableOpacity>
-          <View>
-            <Text>Shipments In Progress: {stats?.shipmentsInProgress}</Text>
+        <View className="gap-2">
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className=" border border-[#036BB4] rounded-xl gap-3 flex-col items-center p-4 "
+              onPress={() => navigation.navigate('CreateShipment')}
+            >
+              <Create height={30} width={30} />
+              <Text className="text-[#7A7A7A] text-lg font-bold text-center">Create Shipment</Text>
+            </TouchableOpacity>
+            <StatCard
+              title="Shipments In Progress"
+              value={stats?.shipmentsInProgress ?? 0}
+            />
           </View>
-          <View>
-            <Text>Completed: {stats?.completedShipments}</Text>
+          <View className="flex-row gap-2">
+
+            <StatCard
+              title="Completed Shipments"
+              value={stats?.completedShipments ?? 0}
+            />
+
+            {/* Row 2 */}
+            <StatCard
+              title="Total Money spent"
+              value={`${stats?.totalEarnings ?? 0}`}
+            />
           </View>
-          <View>
-            <Text>Total Spent: €{stats?.totalMoneySpent}</Text>
-          </View>
+
         </View>
 
         <Text style={{ marginTop: 20, fontWeight: "bold" }}>

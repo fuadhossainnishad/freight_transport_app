@@ -9,6 +9,7 @@ import {
     Alert,
     View
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { searchDrivers } from "../../../data/services/driverService";
 import { searchVehicles } from "../../../data/services/vehicleService";
@@ -197,18 +198,26 @@ export default function AssignVehicleDriverScreen() {
                 text="Assign Vehicle & Driver"
                 onpress={() => navigation.goBack()}
             />
-
-            <KeyboardAvoidingView
+            <KeyboardAwareScrollView
+                style={{ flex: 1 }}
+                // contentContainerStyle={{  paddingBottom: 120 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                enableOnAndroid
+                extraScrollHeight={120}      // extra space above keyboard
+                enableAutomaticScroll
+            >
+                {/* <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 keyboardVerticalOffset={80}
-            >
+            > */}
                 <FlatList
                     data={vehicles}
                     keyExtractor={(item) => item._id}
-                    keyboardShouldPersistTaps="handled"
+                    // keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+                    contentContainerStyle={{ padding: 16 }}
 
                     ListHeaderComponent={
                         <View>
@@ -229,6 +238,8 @@ export default function AssignVehicleDriverScreen() {
                                 data={drivers}
                                 keyExtractor={(item) => item._id}
                                 scrollEnabled={false}
+                                // keyboardShouldPersistTaps="handled"
+
                                 renderItem={({ item }) => (
                                     <DriverItem
                                         item={item}
@@ -313,17 +324,17 @@ export default function AssignVehicleDriverScreen() {
                 <TouchableOpacity
                     onPress={handleSubmit}
                     disabled={!isFormValid || submitting}
-                    className={`m-4 p-4 rounded-xl items-center ${
-                        !isFormValid || submitting
-                            ? "bg-gray-400"
-                            : "bg-[#036BB4]"
-                    }`}
+                    className={`m-4 p-4 rounded-xl items-center ${!isFormValid || submitting
+                        ? "bg-gray-400"
+                        : "bg-[#036BB4]"
+                        }`}
                 >
                     <Text className="text-white font-bold">
                         {submitting ? "Submitting..." : "Submit Bid"}
                     </Text>
                 </TouchableOpacity>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+            </KeyboardAwareScrollView>
+            {/* </KeyboardAvoidingView> */}
+        </SafeAreaView >
     );
 }
