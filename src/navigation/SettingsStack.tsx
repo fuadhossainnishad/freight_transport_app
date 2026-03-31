@@ -10,6 +10,7 @@ import IssuesScreen from '../presentation/settings/screens/IssuesScreen';
 import InfoScreen from '../presentation/settings/screens/Info.screen';
 import VehicleStack from './VehicleStack';
 import DriverStackStack from './DriverStack';
+import IssueSummaryScreen from '../presentation/settings/screens/IssueDetailsScreen';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
@@ -42,6 +43,11 @@ export default function SettingsStack() {
         <Stack.Screen
           name='IssueReported'
           component={IssuesScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name='IssueSummary'
+          component={IssueSummaryScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

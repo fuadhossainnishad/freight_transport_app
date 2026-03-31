@@ -6,7 +6,12 @@ export interface Issue {
     reported_on: string;
     issue_description: string;
     status: boolean;
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
+    createdAt?: string;
+    updatedAt?: string;
+    __v?: number;
 }
+
+export type IssueStatusUI = "Pending" | "Resolved";
+
+export const mapIssueStatus = (status: boolean): IssueStatusUI =>
+    status ? "Resolved" : "Pending";

@@ -25,6 +25,7 @@ export const fetchShipmentIssues = async (shipmentId: string): Promise<Issue[]> 
 export const fetchIssueById = async (issueId: string): Promise<Issue | null> => {
     try {
         return await getSingleIssueAPI(issueId);
+
     } catch (error) {
         console.error(`Error fetching issue ${issueId}:`, error);
         return null;

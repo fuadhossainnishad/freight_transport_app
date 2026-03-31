@@ -86,6 +86,7 @@ export type SettingsStackParamList = {
     ChangePassword: undefined
     BankDetails: undefined;
     IssueReported: undefined;
+    IssueSummary: { issueId: string };
     About: undefined;
     // VerifyOtp: {
     //     email: string,

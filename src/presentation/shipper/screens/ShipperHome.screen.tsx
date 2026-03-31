@@ -36,8 +36,6 @@ export default function ShipperHome() {
     }
   }
 
-
-
   useEffect(() => {
 
     const initSocket = async () => {
@@ -61,7 +59,6 @@ export default function ShipperHome() {
     }
 
   }, [])
-
 
   useEffect(() => {
 
@@ -89,7 +86,7 @@ export default function ShipperHome() {
         onpressNotification={() => navigation.navigate('Home')}
       />
 
-      <View className="px-5 ">
+      <View className="px-5 py-4">
         <View className="gap-2">
           <View className="flex-row gap-2">
             <TouchableOpacity
