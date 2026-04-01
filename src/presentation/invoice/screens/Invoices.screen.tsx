@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Alert, TouchableOpacity, Text } from "react-native";
+import { View, ActivityIndicator, Alert, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import AppHeader from "../../../shared/components/AppHeader";
-
-import { ActiveShipmentsStackParamList } from "../../../navigation/types";
+import { InvoiceStackParamList } from "../../../navigation/types";
 import { mapShipments, Shipment } from "../../../domain/entities/shipment.entity";
 import { useAuth } from "../../../app/context/Auth.context";
-import { getShipmentsUseCase, getTransporterShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
-import ShipmentTable from "../components/ShipmentTable";
+import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+import ShipmentTable from "../components/InvoiceTable";
 import { SearchInput } from "../../settings/components/SearchInput";
 import { DUMMY_SHIPMENTS } from "../dummy";
 
 type Props = NativeStackNavigationProp<
-    ActiveShipmentsStackParamList,
-    "ActiveShipments"
+    InvoiceStackParamList,
+    "Invoices"
 >;
 
-const ActiveShipmentsScreen = () => {
+const InvoicesScreen = () => {
     const navigation = useNavigation<Props>();
     const { user } = useAuth();
 
@@ -70,7 +68,7 @@ const ActiveShipmentsScreen = () => {
     }, [search, shipments]);
 
     const handleView = (shipment: Shipment) => {
-        navigation.navigate("ShipmentDetails", { shipmentId: shipment.id! });
+        navigation.navigate("InvoiceDetails");
 
         // Alert.alert(
         //     "Shipment Details",
@@ -146,4 +144,4 @@ const ActiveShipmentsScreen = () => {
     );
 };
 
-export default ActiveShipmentsScreen;
+export default InvoicesScreen;

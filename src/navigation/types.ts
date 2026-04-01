@@ -69,9 +69,10 @@ export type ActiveShipmentsStackParamList = {
 };
 
 export type InvoiceStackParamList = {
-    ActiveShipments: undefined;
+    Invoices: undefined;
     CreateShipment: undefined
-    ShipmentDetails: { shipmentId: string }
+    InvoiceDetails: undefined
+    // InvoiceDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
 };
 

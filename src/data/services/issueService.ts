@@ -1,10 +1,11 @@
-import { GET_SHIPMENT_ISSUE, GET_SHIPPER_ISSUE, SINGLE_ISSUE } from "../../domain/constants/api";
+import { GET_SHIPMENT_ISSUE, GET_SHIPPER_ISSUES, SINGLE_ISSUE } from "../../domain/constants/api";
 import { Issue } from "../../domain/entities/Issue.entity";
 import axiosClient from "../../shared/config/axios.config";
 
-// GET all issues
+// GET all shipper issues
 export const getAllIssuesAPI = async (shipperId: string): Promise<Issue[]> => {
-    const { data } = await axiosClient.get(GET_SHIPPER_ISSUE(shipperId));
+    console.log("shipperId:", shipperId)
+    const { data } = await axiosClient.get(GET_SHIPPER_ISSUES(shipperId));
     console.log("getAllIssuesAPI:", data)
     return data || [];
 };

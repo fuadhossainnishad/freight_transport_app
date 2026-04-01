@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, FlatList } from "react-native";
 import { Shipment } from "../../../domain/entities/shipment.entity";
-import ShipmentItem from "./ShipmentItem";
+import ShipmentItem from "./InvoiceItem";
 
 interface Props {
   shipments: Shipment[];
@@ -9,7 +9,7 @@ interface Props {
   onMap: (shipment: Shipment) => void;
 }
 
-const ShipmentTable: React.FC<Props> = ({ shipments, onView, onMap }) => {
+const InvoiceTable: React.FC<Props> = ({ shipments, onView, onMap }) => {
   return (
     <View className="border border-gray-200 rounded-lg overflow-hidden mt-4">
 
@@ -47,4 +47,4 @@ const ShipmentTable: React.FC<Props> = ({ shipments, onView, onMap }) => {
   );
 };
 
-export default ShipmentTable;
+export default InvoiceTable;

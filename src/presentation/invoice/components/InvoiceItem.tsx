@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import Map from "../../../../assets/icons/map.svg";
+
+import Download from "../../../../assets/icons/download2.svg";
 import ViewIcon from "../../../../assets/icons/view2.svg";
 import { Shipment } from "../../../domain/entities/shipment.entity";
 
@@ -10,7 +11,7 @@ interface Props {
     onMapPress: (shipment: Shipment) => void;
 }
 
-const ShipmentItem: React.FC<Props> = ({ shipment, onViewPress, onMapPress }) => {
+const InvoiceItem: React.FC<Props> = ({ shipment, onViewPress, onMapPress }) => {
     return (
         <View className="flex-row border-t border-gray-200 bg-white">
 
@@ -42,11 +43,11 @@ const ShipmentItem: React.FC<Props> = ({ shipment, onViewPress, onMapPress }) =>
                     className="bg-[#FF0000]/10 p-2 rounded-full"
                     onPress={() => onMapPress(shipment)}
                 >
-                    <Map width={16} height={16} />
+                    <Download width={16} height={16} />
                 </TouchableOpacity>
             </View>
         </View>
     );
 };
 
-export default ShipmentItem;
+export default InvoiceItem;

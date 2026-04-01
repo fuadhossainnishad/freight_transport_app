@@ -4,12 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import AppHeader from "../../../shared/components/AppHeader";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { mapShipments, Shipment } from "../../../domain/entities/shipment.entity";
 import { useAuth } from "../../../app/context/Auth.context";
-import { getShipmentsUseCase, getTransporterShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
 import ShipmentTable from "../components/ShipmentTable";
 import { SearchInput } from "../../settings/components/SearchInput";
 import { DUMMY_SHIPMENTS } from "../dummy";

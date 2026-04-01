@@ -1,32 +1,32 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { InvoiceStackParamList } from "./types";
-import ActiveShipmentsScreen from "../presentation/shipment/screens/ActiveShipments.screen";
 import CreateShipmentScreen from "../presentation/transporter/screens/CreateShipmentScreen";
-import ShipmentDetailsScreen from "../presentation/shipment/screens/ShipmentDetails.screen";
 import ShipmentTrackingScreen from "../presentation/shipment/screens/ShipmentTrackingScreen";
+import InvoicesScreen from "../presentation/invoice/screens/Invoices.screen";
+import InvoiceDetailsScreen from "../presentation/invoice/screens/InvoiceDetails.screen";
 
 const Stack = createNativeStackNavigator<InvoiceStackParamList>();
 
 export default function InvoiceStack() {
   return (
     <Stack.Navigator
-      initialRouteName='ActiveShipments'
+      initialRouteName='Invoices'
       screenOptions={{
         headerShown: false
       }}>
 
       <Stack.Screen
-        name='ActiveShipments'
-        component={ActiveShipmentsScreen}
+        name='Invoices'
+        component={InvoicesScreen}
       />
       <Stack.Screen
         name='CreateShipment'
         component={CreateShipmentScreen}
       />
       <Stack.Screen
-        name='ShipmentDetails'
-        component={ShipmentDetailsScreen}
+        name='InvoiceDetails'
+        component={InvoiceDetailsScreen}
       />
       <Stack.Screen
         name='ShipmentTracking'
