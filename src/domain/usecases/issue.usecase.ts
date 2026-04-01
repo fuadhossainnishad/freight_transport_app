@@ -4,7 +4,13 @@ import { Issue } from "../entities/Issue.entity";
 // Fetch all issues
 export const fetchAllIssues = async (shipperId: string): Promise<Issue[]> => {
     try {
-        return await getAllIssuesAPI(shipperId);
+        const apiResponse = response.data;
+
+        if (!apiResponse?.success) {
+            throw new Error(apiResponse?.message || "Failed to fetch issues");
+        }
+
+        return apiResponse.data ?? [];
     } catch (error) {
         console.error("Error fetching all issues:", error);
         return [];
