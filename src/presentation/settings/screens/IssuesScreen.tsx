@@ -12,6 +12,7 @@ import { SettingsStackParamList } from "../../../navigation/types";
 import { useIssues } from "../hooks/useIssues";
 import { Issue } from "../../../domain/entities/Issue.entity";
 import { useAuth } from "../../../app/context/Auth.context";
+import { deleteIssueStatus } from "../../../domain/usecases/issue.usecase";
 type Props = NativeStackNavigationProp<
     SettingsStackParamList,
     "IssueReported"
@@ -39,7 +40,7 @@ const IssuesScreen = () => {
     }, [search, issues]);
 
     const handleView = (issue: Issue) => {
-        navigation.navigate("IssueSummary", { issueId: issue._id });
+        navigation.navigate("IssueSummary", { issueId: issue?._id! });
     };
 
     const handleDelete = (issue: Issue) => {
@@ -48,10 +49,19 @@ const IssuesScreen = () => {
             {
                 text: "Delete",
                 style: "destructive",
-                onPress: () => {
-                    setIssues((prev) =>
-                        prev.filter((i) => i._id !== issue._id)
-                    );
+                onPress: async () => {
+                    try {
+                        // ✅ Call API
+                        await deleteIssueStatus(issue._id);
+
+                        // ✅ Update UI AFTER success
+                        setIssues(prev =>
+                            prev.filter(i => i._id !== issue._id)
+                        );
+
+                    } catch (err) {
+                        Alert.alert("Error", "Failed to delete issue");
+                    }
                 },
             },
         ]);

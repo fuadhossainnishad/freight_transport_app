@@ -1,16 +1,14 @@
+import { mapIssueFromApi } from "../../data/mapper/issue.mapper";
 import { deleteSingleIssueAPI, editIssueStatusAPI, getAllIssuesAPI, getShipmentIssuesAPI, getSingleIssueAPI } from "../../data/services/issueService";
-import { Issue } from "../entities/Issue.entity";
+import { Issue, IssueSummery } from "../entities/Issue.entity";
 
 // Fetch all issues
 export const fetchAllIssues = async (shipperId: string): Promise<Issue[]> => {
     try {
-        const apiResponse = response.data;
+        const response = await getAllIssuesAPI(shipperId);
 
-        if (!apiResponse?.success) {
-            throw new Error(apiResponse?.message || "Failed to fetch issues");
-        }
-
-        return apiResponse.data ?? [];
+        // normalize data
+        return response.map(mapIssueFromApi);
     } catch (error) {
         console.error("Error fetching all issues:", error);
         return [];
@@ -28,7 +26,7 @@ export const fetchShipmentIssues = async (shipmentId: string): Promise<Issue[]> 
 };
 
 // Fetch single issue by ID
-export const fetchIssueById = async (issueId: string): Promise<Issue | null> => {
+export const fetchIssueById = async (issueId: string): Promise<IssueSummery | null> => {
     try {
         return await getSingleIssueAPI(issueId);
 
@@ -48,7 +46,7 @@ export const updateIssueStatus = async (issueId: string, status: boolean): Promi
     }
 };
 
-export const deleteIssueStatus = async (issueId: string): Promise<Issue | null> => {
+export const deleteIssueStatus = async (issueId: string): Promise<IssueSummery | null> => {
     try {
         return await deleteSingleIssueAPI(issueId);
     } catch (error) {

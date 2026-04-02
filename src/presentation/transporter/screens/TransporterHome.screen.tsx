@@ -1,42 +1,69 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
-  View, Text, ActivityIndicator, TouchableOpacity,
-  Dimensions, ScrollView, FlatList,
-  StyleSheet,
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Dimensions,
+  FlatList,
+  ViewToken,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
 import { useAuth } from "../../../app/context/Auth.context";
 import { TransporterHomeStackParamList } from "../../../navigation/types";
 import { connectSocket, getSocket } from "../../../data/socket/socketClient";
 import { getTransporterStats } from "../../../data/services/dashboardService";
 import { getTransporterShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+
 import { Shipment } from "../../../domain/entities/shipment.entity";
+
 import HomeHeader from "../../../shared/components/HomeHeader";
 import StatCard from "../../../shared/components/StatCard";
 import ActiveShipmentCard from "../components/ActiveShipmentCard";
+import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 40;
 
-type NavigationProp = NativeStackNavigationProp<TransporterHomeStackParamList, "Home">;
+type NavigationProp = NativeStackNavigationProp<
+  TransporterHomeStackParamList,
+  "Home"
+>;
 
 export default function TransporterHomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user: authUser } = useAuth();
 
+  // ─────────────────────────────
+  // STATE
+  // ─────────────────────────────
   const [stats, setStats] = useState<any>(null);
   const [activeShipments, setActiveShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [driversMap, setDriversMap] = useState<Record<string, any>>({});
+
+  // ─────────────────────────────
+  // DRIVER CACHE REF (avoid rerenders)
+  // ─────────────────────────────
+  const driverCacheRef = useRef(new Map<string, any>());
+
+  // ─────────────────────────────
+  // DATA LOAD
+  // ─────────────────────────────
   const loadData = useCallback(async () => {
     if (!authUser?.transporter_id) return;
+
     try {
       const [statsRes, shipmentsRes] = await Promise.all([
         getTransporterStats(authUser.transporter_id),
         getTransporterShipmentsUseCase(authUser.transporter_id),
       ]);
+
       setStats(statsRes.data);
       setActiveShipments(shipmentsRes.shipments ?? []);
     } catch (error) {
@@ -46,322 +73,202 @@ export default function TransporterHomeScreen() {
     }
   }, [authUser?.transporter_id]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
+  // ─────────────────────────────
+  // SOCKET
+  // ─────────────────────────────
   useEffect(() => {
     const initSocket = async () => {
       const socket = await connectSocket();
       socket.on("connect", () => console.log("Socket connected"));
     };
+
     initSocket();
-    return () => { getSocket()?.disconnect(); };
+
+    return () => {
+      getSocket()?.disconnect();
+    };
   }, []);
 
+  // ─────────────────────────────
+  // DRIVER FETCH (CACHED + SAFE)
+  // ─────────────────────────────
+  const fetchDriver = useCallback(async (driverId: string) => {
+    if (!driverId) return;
+
+    // 1. check memory cache
+    if (driverCacheRef.current.has(driverId)) {
+      return driverCacheRef.current.get(driverId);
+    }
+
+    try {
+      const driver = await getDriverByIdsUseCase(driverId);
+
+      driverCacheRef.current.set(driverId, driver);
+
+      setDriversMap((prev) => ({
+        ...prev,
+        [driverId]: driver,
+      }));
+
+      return driver;
+    } catch (e) {
+      console.log("Driver fetch failed:", e);
+    }
+  }, []);
+
+  // ─────────────────────────────
+  // VIEWABILITY CONFIG
+  // ─────────────────────────────
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 70,
+  }).current;
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (!viewableItems?.length) return;
+
+      const item = viewableItems[0]?.item as Shipment;
+      const index = viewableItems[0]?.index ?? 0;
+
+      setActiveIndex(index);
+
+      // trigger lazy driver fetch
+      if (item?.driverId) {
+        fetchDriver(item.driverId);
+      }
+    }
+  ).current;
+
+  // ─────────────────────────────
+  // ACTIVE DATA DERIVATION
+  // ─────────────────────────────
+  const activeShipment = activeShipments[activeIndex];
+  const activeDriver =
+    driversMap[activeShipment?.driverId ?? ""] || null;
+
+  // ─────────────────────────────
+  // LOADING UI
+  // ─────────────────────────────
   if (loading) {
     return (
-      <SafeAreaView style={styles.centered}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50">
         <ActivityIndicator size="large" color="#f97316" />
       </SafeAreaView>
     );
   }
 
+  // ─────────────────────────────
+  // UI
+  // ─────────────────────────────
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.screen}>
+    <SafeAreaView className="flex-1 bg-gray-50">
       <HomeHeader
         onpressLogo={() => navigation.navigate("Home")}
         onpressNotification={() => navigation.navigate("Home")}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
-      >
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+      <View className="px-5 mt-4">
 
-          {/* Stats */}
-          <View style={{ gap: 12 }}>
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <StatCard title="Shipments In Progress" value={stats?.shipmentsInProgress ?? 0} />
-              <StatCard title="Completed Shipments" value={stats?.completedShipments ?? 0} />
-            </View>
-            <StatCard title="Total Earnings" value={`€${stats?.totalEarnings ?? 0}`} fullWidth />
-          </View>
-
-          {/* Section Header */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderTitle}>Active Shipments</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("ActiveShipments")}>
-              <Text style={styles.sectionHeaderLink}>See All</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Cards */}
-          {activeShipments.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No active shipments</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={activeShipments}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              snapToInterval={CARD_WIDTH + 16}
-              decelerationRate="fast"
-              contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
-              renderItem={({ item }) => (
-                <ActiveShipmentCard
-                  item={item}
-                  onPress={() =>
-                    navigation.navigate("ShipmentDetails", { shipmentId: item.id })
-                  }
-                />
-              )}
+        {/* ───── STATS ───── */}
+        <View className="gap-3">
+          <View className="flex-row gap-3">
+            <StatCard
+              title="Shipments In Progress"
+              value={stats?.shipmentsInProgress ?? 0}
             />
-          )}
+            <StatCard
+              title="Completed Shipments"
+              value={stats?.completedShipments ?? 0}
+            />
+          </View>
 
+          <StatCard
+            title="Total Earnings"
+            value={`€${stats?.totalEarnings ?? 0}`}
+            fullWidth
+          />
         </View>
-      </ScrollView>
+
+        {/* ───── HEADER ───── */}
+        <View className="flex-row justify-between items-center mt-6 mb-3">
+          <Text className="text-base font-bold text-gray-900">
+            Active Shipments
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ActiveShipments")}
+          >
+            <Text className="text-sm font-semibold text-black">
+              See All
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ───── CAROUSEL ───── */}
+        {activeShipments.length === 0 ? (
+          <View className="items-center py-10">
+            <Text className="text-gray-400 text-sm">
+              No active shipments
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={activeShipments}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            snapToInterval={CARD_WIDTH + 16}
+            decelerationRate="fast"
+            contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
+            renderItem={({ item }) => (
+              <ActiveShipmentCard
+                item={item}
+                onPress={() =>
+                  navigation.navigate("ShipmentDetails", {
+                    shipmentId: item.id,
+                  })
+                }
+              />
+            )}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+          />
+        )}
+
+        {/* ───── ACTIVE DETAILS ───── */}
+        {activeShipment && (
+          <View className="mt-4 p-4 bg-white rounded-xl shadow-sm">
+            <Text className="text-lg font-bold text-gray-900">
+              {activeShipment.title}
+            </Text>
+
+            <Text className="text-sm text-gray-500 mt-1">
+              Status: {activeShipment.status}
+            </Text>
+
+            <View className="mt-3">
+              <Text className="text-sm font-semibold text-gray-800">
+                Driver
+              </Text>
+
+              <Text className="text-sm text-gray-500 mt-1">
+                {activeDriver
+                  ? activeDriver.name
+                  : "Loading driver..."}
+              </Text>
+
+              <Text className="text-sm text-gray-500">
+                {activeDriver?.phone ?? ""}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9fafb",
-  },
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  imagePlaceholder: {
-    width: CARD_WIDTH,
-    height: 200,
-    backgroundColor: "#f3f4f6",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imagePlaceholderText: {
-    color: "#9ca3af",
-    fontSize: 13,
-  },
-  dotsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 10,
-  },
-  dot: {
-    height: 7,
-    borderRadius: 4,
-    marginHorizontal: 2,
-  },
-  cardTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 4,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 2,
-  },
-  cardCategory: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    gap: 5,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#f3f4f6",
-    marginHorizontal: 16,
-    marginVertical: 12,
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginBottom: 4,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#9ca3af",
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  driverRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 4,
-  },
-  driverAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#fff7ed",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  driverName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  driverSub: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 1,
-  },
-  mapFallback: {
-    height: 160,
-    borderRadius: 12,
-    backgroundColor: "#f3f4f6",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderStyle: "dashed",
-  },
-  mapFallbackText: {
-    fontSize: 13,
-    color: "#9ca3af",
-  },
-  addressRow: {
-    flexDirection: "row",
-    marginTop: 12,
-    gap: 8,
-  },
-  addressItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-  },
-  addressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 3,
-  },
-  addressText: {
-    flex: 1,
-    fontSize: 12,
-    color: "#374151",
-    lineHeight: 17,
-  },
-  addressDividerV: {
-    width: 1,
-    backgroundColor: "#e5e7eb",
-    marginVertical: 2,
-  },
-  detailsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  detailCell: {
-    width: (CARD_WIDTH - 32 - 10) / 2,
-    backgroundColor: "#f9fafb",
-    borderRadius: 10,
-    padding: 12,
-  },
-  detailLabel: {
-    fontSize: 10,
-    color: "#9ca3af",
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  detailHighlight: {
-    color: "#f97316",
-    fontWeight: "700",
-  },
-  ctaButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f97316",
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    gap: 8,
-  },
-  ctaText: {
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  ctaArrow: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 24,
-    marginBottom: 14,
-  },
-  sectionHeaderTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  sectionHeaderLink: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyText: {
-    color: "#9ca3af",
-    fontSize: 14,
-  },
-});

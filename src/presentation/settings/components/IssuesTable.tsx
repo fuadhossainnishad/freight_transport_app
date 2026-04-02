@@ -12,7 +12,7 @@ interface Props {
 const IssuesTable: React.FC<Props> = ({ issues, onView, onDelete }) => {
   return (
     <View className="border border-gray-200 rounded-lg overflow-hidden mt-4">
-      
+
       {/* Table Header */}
       <View className="flex-row bg-[#036BB4]">
         <View className="flex-1 p-3 border-r border-gray-200">
