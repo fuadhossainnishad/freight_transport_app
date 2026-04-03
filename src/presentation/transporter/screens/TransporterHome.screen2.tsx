@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -28,7 +28,13 @@ import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 import { ShipmentImageCarousel } from "../components/ShipmentImageCarousel";
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = width - 40;
+// ─────────────────────────────
+// CONSTANTS
+// ─────────────────────────────
+const GAP = 12;
+const CARD_WIDTH = (width - 80) / 2;
+const SNAP_INTERVAL = CARD_WIDTH + GAP;
+
 
 type NavigationProp = NativeStackNavigationProp<
   TransporterHomeStackParamList,
@@ -67,6 +73,23 @@ export default function TransporterHomeScreen2() {
     itemVisiblePercentThreshold: 70,
   }).current;
 
+  // ─────────────────────────────
+  // INFINITE SCROLL SETUP
+  // ─────────────────────────────
+  const CLONE_COUNT = 3; // clone 3 items from each end
+
+  const infiniteImages = useMemo(() => [
+    ...MockImages.slice(-CLONE_COUNT),   // tail clones at start
+    ...MockImages,
+    ...MockImages.slice(0, CLONE_COUNT), // head clones at end
+  ], []);
+
+  const REAL_OFFSET = CLONE_COUNT; // index where real data starts
+  // ─────────────────────────────
+  // REFS
+  // ─────────────────────────────
+  const flatListRef = useRef<FlatList>(null);
+  const isJumping = useRef(false); // prevent onViewableItemsChanged during silent jump
   // ─────────────────────────────
   // DATA LOAD
   // ─────────────────────────────
@@ -138,25 +161,55 @@ export default function TransporterHomeScreen2() {
   // ─────────────────────────────
   // VIEWABILITY CONFIG
   // ─────────────────────────────
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 70,
-  }).current;
+  // ─────────────────────────────
+  // VIEWABILITY
+  // ─────────────────────────────
+  const viewabilityConfig =
+    useRef({
+      itemVisiblePercentThreshold: 90,
+    }).current;
 
-  const onViewableItemsChanged = useRef(
+  const lastFiredIndex = useRef(-1);
+
+  const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (!viewableItems?.length) return;
+      if (!viewableItems?.length || isJumping.current) return;
 
-      const item = viewableItems[0]?.item as Shipment;
-      const index = viewableItems[0]?.index ?? 0;
+      const visibleItem = viewableItems[0];
+      const rawIndex = visibleItem?.index ?? 0;
 
-      setActiveIndex(index);
+      // ── deduplicate: skip if same index fired already ──
+      if (rawIndex === lastFiredIndex.current) return;
+      lastFiredIndex.current = rawIndex;
 
-      // trigger lazy driver fetch
-      if (item?.driverId) {
-        fetchDriver(item.driverId);
+      const realIndex =
+        ((rawIndex - CLONE_COUNT) % MockImages.length + MockImages.length) %
+        MockImages.length;
+
+      setActiveIndex(realIndex);
+      console.log(`[Image In Focus] realIndex: ${realIndex} | id: ${MockImages[realIndex]?.id}`);
+
+      const totalReal = MockImages.length;
+
+      if (rawIndex < CLONE_COUNT) {
+        isJumping.current = true;
+        flatListRef.current?.scrollToIndex({
+          index: rawIndex + totalReal,
+          animated: false,
+        });
+        setTimeout(() => { isJumping.current = false; }, 50);
+
+      } else if (rawIndex >= CLONE_COUNT + totalReal) {
+        isJumping.current = true;
+        flatListRef.current?.scrollToIndex({
+          index: rawIndex - totalReal,
+          animated: false,
+        });
+        setTimeout(() => { isJumping.current = false; }, 50);
       }
-    }
-  ).current;
+    },
+    [] // ← stable, no deps
+  );
 
   // ─────────────────────────────
   // ACTIVE DATA DERIVATION
@@ -231,22 +284,51 @@ export default function TransporterHomeScreen2() {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={MockImages}
+          < FlatList
+            ref={flatListRef}
+            data={infiniteImages}
+            extraData={activeIndex}
             horizontal
-            pagingEnabled
+            pagingEnabled={false}
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            snapToInterval={CARD_WIDTH + 16}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            snapToInterval={SNAP_INTERVAL}
             decelerationRate="fast"
-            contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item.uri }}
-                style={{ width: 100, height: 100 }}
-                resizeMode="cover"
-              />
-            )}
+            initialScrollIndex={CLONE_COUNT}           // start at first real item
+            getItemLayout={(_, index) => ({            // required for scrollToIndex + initialScrollIndex
+              length: SNAP_INTERVAL,
+              offset: SNAP_INTERVAL * index,
+              index,
+            })}
+            contentContainerStyle={{
+              gap: GAP,
+              paddingVertical: 8,
+            }}
+            renderItem={({ item, index }) => {
+              const realIndex = ((index - REAL_OFFSET) % MockImages.length + MockImages.length) % MockImages.length;
+              const isActive = activeIndex === realIndex;
+
+              return (
+                <View
+                  style={{
+                    width: CARD_WIDTH,
+                    height: 150,
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={{
+                      width: CARD_WIDTH,
+                      height: isActive ? 150 : 130,
+                      borderRadius: 12,
+                      opacity: isActive ? 1 : 0.6,
+                    }}
+                    resizeMode="cover"
+                  />
+                </View>
+              );
+            }}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
           />
