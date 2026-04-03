@@ -46,8 +46,8 @@ const MockImages = [
   { id: "2", uri: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308" },
   { id: "3", uri: "https://images.unsplash.com/photo-1522205408450-add114ad53fe" },
   { id: "4", uri: "https://images.unsplash.com/photo-1506744038136-46273834b3fb" },
-  { id: "5", uri: "https://images.unsplash.com/photo-1522205408450-add114ad53fe" },
-  { id: "6", uri: "https://images.unsplash.com/photo-1506744038136-46273834b3fb" },
+  // { id: "5", uri: "https://images.unsplash.com/photo-1522205408450-add114ad53fe" },
+  // { id: "6", uri: "https://images.unsplash.com/photo-1506744038136-46273834b3fb" },
 ];
 
 export default function TransporterHomeScreen2() {
@@ -76,7 +76,7 @@ export default function TransporterHomeScreen2() {
   // ─────────────────────────────
   // INFINITE SCROLL SETUP
   // ─────────────────────────────
-  const CLONE_COUNT = 3; // clone 3 items from each end
+  const CLONE_COUNT = 2; // clone 3 items from each end
 
   const infiniteImages = useMemo(() => [
     ...MockImages.slice(-CLONE_COUNT),   // tail clones at start

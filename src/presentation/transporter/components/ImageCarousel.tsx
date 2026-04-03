@@ -59,9 +59,8 @@ export default function ImageCarouselFocus() {
       return (
         <View
           style={{ width: ITEM_WIDTH }}
-          className={`mx-2 rounded-2xl overflow-hidden ${
-            isActive ? "border-4 border-orange-500" : "border border-gray-300"
-          }`}
+          className={`mx-2 rounded-2xl overflow-hidden ${isActive ? "border-4 border-orange-500" : "border border-gray-300"
+            }`}
         >
           <Image
             source={{ uri: item.uri }}
