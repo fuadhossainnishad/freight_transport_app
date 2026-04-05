@@ -122,3 +122,11 @@ export type DriverStackParamList = {
     AddDriver: undefined
 
 };
+
+export type DriverHomeStackParamList = {
+    DriverHome: undefined;
+    DriverProfileDetails: { driverId: string }
+    UpdateDriverProfile: { driverId: string }
+    AddDriver: undefined
+
+};

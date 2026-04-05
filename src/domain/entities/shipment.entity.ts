@@ -76,7 +76,9 @@ export const mapShipments = (res: any): Shipment[] => {
     weight: shipment.weight,
     dimensions: shipment.dimensions,
     packaging: shipment.type_of_packaging,
-    images: shipment.shipment_images || [],
+    images: (shipment.shipment_images || []).map((img: string) =>
+      normalizeImageUrl(img)
+    ),
     pickup: shipment.pickup_address,
     delivery: shipment.delivery_address,
     timeWindow: shipment.time_window,
