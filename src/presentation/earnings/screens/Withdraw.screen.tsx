@@ -36,7 +36,6 @@ const WithdrawScreen: React.FC = () => {
         if (error) { Alert.alert("Validation Error", error); return; }
         try {
             setLoading(true);
-            // TODO: await withdrawRequestUseCase({ amount, region: countryName });
             console.log("Withdraw payload:", { amount, region: countryName });
             Alert.alert("Success", "Withdraw request submitted");
             navigation.goBack();

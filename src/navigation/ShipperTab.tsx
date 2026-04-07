@@ -19,18 +19,11 @@ import SettingsStack from './SettingsStack';
 import ActiveShipmentsStack from './ActiveShipmentsStack';
 import InvoiceStack from './InvoiceStack';
 
-/* ----------------------------------------------
-   TYPE DEFINITIONS
----------------------------------------------- */
-
 type TabIconProps = {
   routeName: keyof ShipperTabParamList;
   focused: boolean;
 };
 
-/* ----------------------------------------------
-   TAB ICON COMPONENT
----------------------------------------------- */
 function TabIcon({ routeName, focused }: TabIconProps) {
   let IconComponent: React.FC<any> | null = null;
   let label = '';
@@ -64,9 +57,6 @@ function TabIcon({ routeName, focused }: TabIconProps) {
   );
 }
 
-/* ----------------------------------------------
-   STABLE FUNCTION TO AVOID NESTED COMPONENTS
----------------------------------------------- */
 function renderTabIcon(
   route: RouteProp<ShipperTabParamList, keyof ShipperTabParamList>,
 ) {
@@ -75,9 +65,6 @@ function renderTabIcon(
   };
 }
 
-/* ----------------------------------------------
-   BOTTOM TAB NAVIGATOR
----------------------------------------------- */
 const Tab = createBottomTabNavigator<ShipperTabParamList>();
 
 export default function ShipperTabs() {
@@ -101,9 +88,6 @@ export default function ShipperTabs() {
   );
 }
 
-/* ----------------------------------------------
-   STYLE SHEET (optional for static styles)
----------------------------------------------- */
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',

@@ -21,18 +21,11 @@ import ActiveShipmentsStack from './ActiveShipmentsStack';
 import TransporterHomeStack from './TransporterHomeStack';
 import EarningsStack from './EarningsStack';
 
-/* ----------------------------------------------
-   TYPE DEFINITIONS
----------------------------------------------- */
-
 type TabIconProps = {
   routeName: keyof TransporterTabParamList;
   focused: boolean;
 };
 
-/* ----------------------------------------------
-   TAB ICON COMPONENT
----------------------------------------------- */
 function TabIcon({ routeName, focused }: TabIconProps) {
   let IconComponent: React.FC<any> | null = null;
   let label = '';
@@ -70,9 +63,6 @@ function TabIcon({ routeName, focused }: TabIconProps) {
   );
 }
 
-/* ----------------------------------------------
-   STABLE FUNCTION TO AVOID NESTED COMPONENTS
----------------------------------------------- */
 function renderTabIcon(
   route: RouteProp<TransporterTabParamList, keyof TransporterTabParamList>,
 ) {
@@ -81,9 +71,6 @@ function renderTabIcon(
   };
 }
 
-/* ----------------------------------------------
-   BOTTOM TAB NAVIGATOR
----------------------------------------------- */
 const Tab = createBottomTabNavigator<TransporterTabParamList>();
 
 export default function TransporterTabs() {
@@ -106,19 +93,16 @@ export default function TransporterTabs() {
   );
 }
 
-/* ----------------------------------------------
-   STYLE SHEET (optional for static styles)
----------------------------------------------- */
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 0,
-    paddingBottom: 30,
+    paddingBottom: 50,
     borderTopWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#fff',
-    height: 70,
+    height: 100,
   },
 });
