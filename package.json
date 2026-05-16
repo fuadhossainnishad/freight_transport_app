@@ -20,6 +20,7 @@
     "@react-navigation/native-stack": "^7.9.0",
     "axios": "^1.13.6",
     "jwt-decode": "^4.0.0",
+    "lucide-react-native": "^1.16.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "nativewind": "^4.2.1",
     "polyline": "^0.2.0",

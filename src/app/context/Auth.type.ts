@@ -1,6 +1,6 @@
 export type User = {
   id: string;
-  role: "SHIPPER" | "TRANSPORTER";
+  role: "SHIPPER" | "TRANSPORTER" | "DRIVER";
   shipper_id?: string
   transporter_id?: string
 };

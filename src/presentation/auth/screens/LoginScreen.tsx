@@ -1,5 +1,4 @@
 import {
-  View,
   Text,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -7,6 +6,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  View,
   Alert,
 } from "react-native"
 
@@ -16,6 +16,7 @@ import { Controller, useForm } from "react-hook-form"
 import CustomInput from "../../../shared/components/CustomInput"
 
 import Logo from "../../../../assets/icons/logo.svg"
+import { Eye, EyeOff } from 'lucide-react-native';
 
 import { LoginForm } from "../../../domain/entities/LoginForm"
 import { useLogin } from "../hooks/useLogin"
@@ -23,6 +24,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { AuthParamList } from "../types"
 import { useNavigation } from "@react-navigation/native"
 import SubmitButton from "../../../shared/components/SubmitButton"
+import { useState } from "react"
 
 type props = NativeStackNavigationProp<AuthParamList, 'SignIn'>;
 
@@ -30,6 +32,7 @@ type props = NativeStackNavigationProp<AuthParamList, 'SignIn'>;
 export default function LoginScreen() {
   const { login, loading } = useLogin()
   const navigation = useNavigation<props>()
+  const [showPassword, setShowPassword] = useState<boolean>(false)
 
 
   const { control, handleSubmit } = useForm<LoginForm>()
@@ -92,6 +95,7 @@ export default function LoginScreen() {
               <View className="flex-row justify-center">
                 <Logo height={120} width={120} />
               </View>
+
               {/* HEADER */}
               <View className="">
                 <Text className="text-3xl text-center font-bold text-[#036BB4]">
@@ -104,6 +108,7 @@ export default function LoginScreen() {
               </View>
 
               <Text className="text-[#5C5C5C]">Email address</Text>
+
               {/* EMAIL */}
               <Controller
                 control={control}
@@ -126,12 +131,25 @@ export default function LoginScreen() {
                 name="password"
                 rules={{ required: "Password is required" }}
                 render={({ field: { onChange, value } }) => (
-                  <CustomInput
-                    placeholder="Password"
-                    secureTextEntry
-                    value={value}
-                    onChangeText={onChange}
-                  />
+                  <View className="relative">
+                    <CustomInput
+                      placeholder="Password"
+                      secureTextEntry={!showPassword}
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                    <TouchableOpacity
+                      className="absolute right-4 top-4"
+                      onPress={() => setShowPassword(!showPassword)}>
+                      {
+                        showPassword ?
+                          <EyeOff size={22} color={'#000000'} />
+                          :
+                          <Eye size={22} color={'#000000'} />
+                      }
+                    </TouchableOpacity>
+                  </View>
+
                 )}
               />
 
