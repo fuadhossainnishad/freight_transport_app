@@ -1,9 +1,15 @@
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const { withNativeWind } = require('nativewind/metro');
+const fs = require('fs');
+const path = require('path');
 
-const defaultConfig = getDefaultConfig(__dirname);
+// Resolve Windows junctions to canonical paths so Metro's internal realpath
+// resolution and withNativeWind's input path comparison stay in sync.
+const projectRoot = fs.realpathSync(__dirname);
 
-const config = mergeConfig(getDefaultConfig(__dirname), {
+const defaultConfig = getDefaultConfig(projectRoot);
+
+const config = mergeConfig(defaultConfig, {
   transformer: {
     babelTransformerPath: require.resolve('react-native-svg-transformer'),
   },
@@ -13,4 +19,9 @@ const config = mergeConfig(getDefaultConfig(__dirname), {
   },
 });
 
-module.exports = withNativeWind(config, { input: './global.css' });
+module.exports = withNativeWind(config, {
+  input: path.join(projectRoot, 'global.css'),
+  // Always write processed CSS to disk instead of virtual modules.
+  // Virtual module patching can silently fail on hot-reload, leaving styles empty.
+  forceWriteFileSystem: true,
+});

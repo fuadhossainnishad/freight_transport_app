@@ -3,9 +3,10 @@ import { jwtDecode } from "jwt-decode"
 export interface JwtPayload {
     _id: string
     email: string
-    role: "TRANSPORTER" | "SHIPPER"
+    role: "TRANSPORTER" | "SHIPPER" | "DRIVER"
     shipper_id: string
     transporter_id: string
+    driver_id?: string
     isBlocked: boolean
     isDeleted: boolean
     iat: number

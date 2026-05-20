@@ -22,12 +22,7 @@ export default function DriverStackStack() {
       <Stack.Screen
         name='DriverProfileDetails'
         component={DriverProfileDetailsScreen}
-      />
-
-      <Stack.Screen
-        name='AddDriver'
-        component={AddDriverScreen}
-      />
+      />      
       <Stack.Screen
         name='UpdateDriverProfile'
         component={UpdateDriverScreen}

@@ -1,149 +1,127 @@
-// screens/driver/DriverProfilesScreen.tsx
-
-import React, { useEffect, useState } from "react";
+import React from 'react';
 import {
   View,
   Text,
-  FlatList,
+  StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
-  TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { DriverStackParamList } from "../../../navigation/types";
-import { useAuth } from "../../../app/context/Auth.context";
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+} from 'react-native';
+import { Lock, LogOut } from 'lucide-react-native';
 
-import DriverCard from "../components/DriverCard";
-import { Driver } from "../types";
-import { getTransporterDriversUseCase } from "../../../domain/usecases/driver.usecase";
-
-import AddIcon from "../../../../assets/icons/add.svg"
-import AppHeader from "../../../shared/components/AppHeader";
-import { deleteDriver } from "../../../data/services/driverService";
-
-type Nav = NativeStackNavigationProp<
-  DriverStackParamList,
-  "DriverProfile"
->;
-
-export default function DriverProfilesScreen() {
-  const navigation = useNavigation<Nav>();
-  const { user } = useAuth();
-
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
-
-  // ✅ Load drivers via USECASE
-  const loadDrivers = async () => {
-    try {
-      setLoading(true);
-
-      const result = await getTransporterDriversUseCase(
-        user?.transporter_id as string,
-        search
-      );
-
-      setDrivers(result);
-    } catch (err) {
-      console.error("Failed to load drivers", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ Initial load
-  useEffect(() => {
-    if (user?.id) loadDrivers();
-  }, [user?.id!]);
-
-  // ✅ Search (debounced)
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      if (user?.id) loadDrivers();
-    }, 500);
-
-    return () => clearTimeout(delay);
-  }, [search]);
-
-  const handleRemoveDriver = async (driverId: string) => {
-    await deleteDriver(driverId)
-    setDrivers((prev) => prev.filter((d) => d.id !== driverId));
-  };
-
+const ProfileScreen = () => {
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1">
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-        {/* HEADER */}
-        <AppHeader text="Driver Profile Management" onpress={() => navigation.goBack()} />
-
-        <Text
-          className="font-normal text-lg mx-4"
-        >Active Shipments</Text>
-
-        {/* SEARCH */}
-        {/* <TextInput
-          placeholder="Search driver..."
-          value={search}
-          onChangeText={setSearch}
-          className="border p-3 rounded-lg mb-4"
-        /> */}
-
-        {/* DRIVER LIST */}
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <FlatList
-            data={drivers}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={{
-              justifyContent: "space-between",
-              marginBottom: 16,
-              gap: 16
-            }}
-            contentContainerStyle={{
-              margin: 16
-            }}
-            renderItem={({ item }) => (
-              <DriverCard
-                driver={item}
-                onView={() =>
-                  navigation.navigate("DriverProfileDetails", {
-                    driverId: item.id,
-                  })
-                }
-                onDelete={() => handleRemoveDriver(item.id)}
-                onEdit={() =>
-                  navigation.navigate("UpdateDriverProfile", {
-                    driverId: item.id,
-                  })
-                }
-              />
-            )}
-            ListEmptyComponent={
-              <Text className="text-gray-400 text-center mt-4">
-                No drivers found
-              </Text>
-            }
-          />
-        )}
+      <View style={styles.header}>
+        <View style={{ width: 40 }} /> 
+        <Text style={styles.headerTitle}>Profile</Text>
+        <TouchableOpacity style={styles.lockButton} activeOpacity={0.7}>
+          <Lock size={20} color="#666" strokeWidth={1.5} />
+        </TouchableOpacity>
       </View>
 
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.sectionTitle}>Profile Detail</Text>
 
-      <TouchableOpacity
-        className="p-3 rounded-xl m-4 flex-row gap-3 items-center justify-center border border-[#036BB4]"
-        onPress={() => navigation.navigate("AddDriver")}
-      >
-        <AddIcon height={24} width={24} />
-        <Text className="text-[#036BB4] text-center font-semibold">
-          Add Driver
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.infoCard}>
+          <Text style={styles.label}>User Name</Text>
+          <Text style={styles.value}>Sunan Rahman</Text>
+        </View>
 
+        <View style={styles.infoCard}>
+          <Text style={styles.label}>Email</Text>
+          <Text style={styles.value}>Demo@gmail.com</Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.label}>Contact no</Text>
+          <Text style={styles.value}>+99007007007</Text>
+        </View>
+
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+          <LogOut size={20} color="#FF3B30" strokeWidth={2} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 50
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1C1E',
+  },
+  lockButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#444',
+    marginBottom: 20,
+  },
+  infoCard: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 6,
+  },
+  value: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1C1E',
+  },
+  logoutButton: {
+    marginTop: 20,
+    backgroundColor: '#FFF0F0', // Very light red/pink background
+    flexDirection: 'row',
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoutText: {
+    color: '#FF3B30', // Action red
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 10,
+  },
+});
+
+export default ProfileScreen;

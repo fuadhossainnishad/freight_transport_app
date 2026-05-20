@@ -2,7 +2,8 @@
 import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useLocationPermission from "../hooks/useLocationPermission";
-import { LocationPermissionGate } from "./LocationPermissionGate";
+import LocationPermissionGateScreen from "../screens/LocationPermissionGate.screen";
+// import { LocationPermissionGate } from "./LocationPermissionGate";
 
 type Props = {
   children: React.ReactNode;
@@ -23,7 +24,7 @@ export function LocationGate({ children }: Props) {
   // ── not granted — show permission UI ──
   if (status === "denied" || status === "blocked") {
     return (
-      <LocationPermissionGate
+      <LocationPermissionGateScreen
         status={status}
         onRequest={request}
       />

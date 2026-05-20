@@ -3,6 +3,7 @@ export type User = {
   role: "SHIPPER" | "TRANSPORTER" | "DRIVER";
   shipper_id?: string
   transporter_id?: string
+  driver_id?: string
 };
 
 export type AuthContextType = {

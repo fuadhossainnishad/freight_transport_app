@@ -21,7 +21,8 @@ export const useLogin = () => {
                 id: decoded._id,
                 role: decoded.role,
                 shipper_id: decoded.shipper_id!,
-                transporter_id: decoded.transporter_id!
+                transporter_id: decoded.transporter_id!,
+                driver_id: decoded.driver_id!,
             };
             console.log("login:", user)
 

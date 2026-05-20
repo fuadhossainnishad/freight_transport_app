@@ -2,6 +2,7 @@ import { ActivityIndicator, View } from "react-native";
 import ShipperRootStack from "./ShipperRootStack";
 import TransporterRootStack from "./TransporterRootStack";
 import { useAuth } from "../app/context/Auth.context";
+import DriverStackStack from "./DriverStack";
 
 
 export default function AppStack() {
@@ -17,7 +18,9 @@ export default function AppStack() {
     }
     return user?.role === "SHIPPER" ? (
         <ShipperRootStack userId={user?.shipper_id!} />
-    ) : (
+    ) : user?.role === "DRIVER" ? (
+        <DriverStackStack />
+    ): (
         <TransporterRootStack userId={user?.transporter_id!} />
     );
 }

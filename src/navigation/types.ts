@@ -116,10 +116,13 @@ export type VehicleStackParamList = {
 };
 
 export type DriverStackParamList = {
+    DriverHome: undefined;
     DriverProfile: undefined;
+    ShipmentDetail: { shipmentId: string }
     DriverProfileDetails: { driverId: string }
     UpdateDriverProfile: { driverId: string }
     AddDriver: undefined
+    LiveTracking: { shipmentId: string }
 
 };
 

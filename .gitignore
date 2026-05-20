@@ -22,6 +22,13 @@ DerivedData
 *.xcuserstate
 **/.xcode.env.local
 
+.claude/
+./settings.local.json
+
+.env
+metro.config.js
+package-lock.json
+
 # Android/IntelliJ
 #
 build/
