@@ -20,11 +20,18 @@ export interface DriverApi {
   updatedAt: string;
 }
 
+export interface Coord {
+  latitude: number;
+  longitude: number;
+}
+
 export interface Shipment {
   id: string;
   title: string;
   pickupAddress: string;
   deliveryAddress: string;
+  pickupCoord?: Coord;
+  deliveryCoord?: Coord;
   status: "IN_PROGRESS" | "COMPLETED" | "PENDING" | "IN_TRANSIT";
   driverId?: string;
   transporterId?: string;

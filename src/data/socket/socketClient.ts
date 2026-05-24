@@ -11,10 +11,13 @@ export const connectSocket = async (): Promise<Socket> => {
     }
 
     if (isConnecting) {
-        // wait until connection is established
         return new Promise((resolve) => {
             const interval = setInterval(() => {
                 if (socket && socket.connected) {
+                    clearInterval(interval);
+                    resolve(socket);
+                } else if (socket && !isConnecting) {
+                    // connection attempt finished (failed/errored); resolve so callers don't hang
                     clearInterval(interval);
                     resolve(socket);
                 }
@@ -30,8 +33,9 @@ export const connectSocket = async (): Promise<Socket> => {
         auth: { token },
         transports: ["websocket"],
         reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1500,
+        reconnectionAttempts: 20,
+        reconnectionDelay: 3000,
+        reconnectionDelayMax: 10000,
     });
 
     socket.on("connect", () => {
@@ -52,3 +56,4 @@ export const connectSocket = async (): Promise<Socket> => {
 };
 
 export const getSocket = (): Socket | null => socket;
+export const isSocketConnected = (): boolean => socket?.connected ?? false;

@@ -9,12 +9,16 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { ArrowLeft, MapPin, Phone, MessageSquare, Truck } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Navigation, CheckCircle, Truck, WifiOff } from 'lucide-react-native';
 import axios from 'axios';
 import Config from 'react-native-config';
+import Geolocation from '@react-native-community/geolocation';
 import { Shipment } from '../types';
+import { connectSocket } from '../../../data/socket/socketClient';
+import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
+import axiosClient from '../../../shared/config/axios.config';
 
 const { width, height } = Dimensions.get('window');
 
@@ -49,72 +53,100 @@ async function geocodeAddress(address: string): Promise<Coord | null> {
   }
 }
 
-function regionFromCoords(p1: Coord, p2: Coord): Region {
-  const latDelta = Math.abs(p1.latitude - p2.latitude) * 1.6 + 0.5;
-  const lngDelta = Math.abs(p1.longitude - p2.longitude) * 1.6 + 0.5;
-  return {
-    latitude: (p1.latitude + p2.latitude) / 2,
-    longitude: (p1.longitude + p2.longitude) / 2,
-    latitudeDelta: Math.max(latDelta, 0.5),
-    longitudeDelta: Math.max(lngDelta, 0.5),
-  };
+// GeoJSON stores [longitude, latitude] — swap for react-native-maps
+function fromGeoJson([lng, lat]: number[]): Coord {
+  return { latitude: lat, longitude: lng };
 }
 
 const STATUS_LABEL: Record<string, string> = {
   IN_PROGRESS: 'In Progress',
-  IN_TRANSIT: 'In Transit',
-  COMPLETED: 'Completed',
-  PENDING: 'Pending',
+  IN_TRANSIT:  'In Transit',
+  COMPLETED:   'Completed',
+  PENDING:     'Pending',
 };
 const STATUS_COLOR: Record<string, string> = {
   IN_PROGRESS: '#F97316',
-  IN_TRANSIT: '#0071BC',
-  COMPLETED: '#22C55E',
-  PENDING: '#94A3B8',
+  IN_TRANSIT:  '#0071BC',
+  COMPLETED:   '#22C55E',
+  PENDING:     '#94A3B8',
 };
 
 // ── component ─────────────────────────────────────────────────────────────────
 
 const LiveTrackingScreen = () => {
-  const route = useRoute<any>();
+  const route      = useRoute<any>();
   const navigation = useNavigation();
   const { shipment }: { shipment: Shipment } = route.params;
 
   const mapRef = useRef<MapView>(null);
 
-  const [pickupCoord, setPickupCoord] = useState<Coord | null>(null);
+  // map geometry
+  const [pickupCoord,  setPickupCoord]  = useState<Coord | null>(null);
   const [dropoffCoord, setDropoffCoord] = useState<Coord | null>(null);
-  const [truckCoord, setTruckCoord] = useState<Coord | null>(null);
-  const [routeCoords, setRouteCoords] = useState<Coord[]>([]);
-  const [mapRegion, setMapRegion] = useState<Region>({
-    latitude: 9.5,
-    longitude: -2.5,
-    latitudeDelta: 8,
-    longitudeDelta: 8,
-  });
-  const [resolving, setResolving] = useState(true);
+  const [truckCoord,   setTruckCoord]   = useState<Coord | null>(null);
+  const [plannedRoute, setPlannedRoute] = useState<Coord[]>([]);
+  const [drivenPath,   setDrivenPath]   = useState<Coord[]>([]);
+  const [resolving,    setResolving]    = useState(true);
 
+  // progress
+  const [distanceCovered, setDistanceCovered] = useState(0);
+  const [totalDistance,   setTotalDistance]   = useState<number | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [eta,             setEta]             = useState<string>('');
+
+  // socket health
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  // marker + GPS refs
+  const [truckMarkerReady, setTruckMarkerReady] = useState(false);
+  const gpsObtained = useRef(false);
+  const socketRef   = useRef<any>(null);
+
+  const arrived      = progressPercent >= 100;
+  const almostThere  = eta === 'Arriving' && !arrived;
+  const etaIsUnknown = eta === '' || eta === 'N/A';
+
+  // ── Effect 0: driver's real GPS → initial truck position ─────────────────
+  useEffect(() => {
+    Geolocation.getCurrentPosition(
+      ({ coords }) => {
+        gpsObtained.current = true;
+        const coord = { latitude: coords.latitude, longitude: coords.longitude };
+        console.log('Initial GPS position obtained:', coord);
+        setTruckCoord(coord);
+        mapRef.current?.animateToRegion(
+          { ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 },
+          300,
+        );
+      },
+      () => { /* GPS unavailable — truck will appear from REST or socket */ },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  }, []);
+
+  // ── Effect 1: geocode addresses + planned route from Google Directions ────
   useEffect(() => {
     const init = async () => {
       setResolving(true);
       try {
-        // 1. Geocode both addresses in parallel
         const [pickup, dropoff] = await Promise.all([
-          geocodeAddress(shipment.pickupAddress),
-          geocodeAddress(shipment.deliveryAddress),
+          shipment.pickupCoord
+            ? Promise.resolve(shipment.pickupCoord)
+            : geocodeAddress(shipment.pickupAddress),
+          shipment.deliveryCoord
+            ? Promise.resolve(shipment.deliveryCoord)
+            : geocodeAddress(shipment.deliveryAddress),
         ]);
 
-        const p = pickup ?? { latitude: 5.36, longitude: -4.0 };
+        const p = pickup  ?? { latitude: 5.36,  longitude: -4.0  };
         const d = dropoff ?? { latitude: 12.37, longitude: -1.53 };
 
         setPickupCoord(p);
         setDropoffCoord(d);
-        setMapRegion(regionFromCoords(p, d));
 
-        // 2. Fetch road-following directions
         const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
           params: {
-            origin: `${p.latitude},${p.longitude}`,
+            origin:      `${p.latitude},${p.longitude}`,
             destination: `${d.latitude},${d.longitude}`,
             key: Config.GOOGLE_MAPS_API_KEY,
           },
@@ -122,13 +154,9 @@ const LiveTrackingScreen = () => {
 
         const routes = res.data?.routes;
         if (routes?.length > 0) {
-          const decoded = decodePolyline(routes[0].overview_polyline.points);
-          setRouteCoords(decoded);
-          const idx = Math.floor(decoded.length / 3);
-          if (decoded[idx]) setTruckCoord(decoded[idx]);
+          setPlannedRoute(decodePolyline(routes[0].overview_polyline.points));
         } else {
-          setRouteCoords([p, d]);
-          setTruckCoord({ latitude: (p.latitude + d.latitude) / 2, longitude: (p.longitude + d.longitude) / 2 });
+          setPlannedRoute([p, d]);
         }
       } catch {
         // keep defaults
@@ -138,68 +166,204 @@ const LiveTrackingScreen = () => {
     };
 
     init();
-  }, [shipment.pickupAddress, shipment.deliveryAddress]);
+  }, [shipment.pickupAddress, shipment.deliveryAddress, shipment.pickupCoord, shipment.deliveryCoord]);
 
-  const displayRoute = routeCoords.length > 1
-    ? routeCoords
-    : (pickupCoord && dropoffCoord ? [pickupCoord, dropoffCoord] : []);
+  // ── Effect 2: REST — last-known position + driven history ────────────────
+  useEffect(() => {
+    axiosClient
+      .get(`/map/shipment/${shipment.id}/location`)
+      .then(({ data }) => {
+        const payload = data?.data;
+
+        if (payload?.current_location?.coordinates) {
+          const coord = fromGeoJson(payload.current_location.coordinates);
+          // Only use server position if live GPS hasn't already placed the truck
+          if (!gpsObtained.current) {
+            setTruckCoord(coord);
+            mapRef.current?.animateToRegion(
+              { ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 },
+              600,
+            );
+          }
+        }
+
+        if (payload?.location_history?.coordinates?.length) {
+          setDrivenPath(payload.location_history.coordinates.map(fromGeoJson));
+        }
+      })
+      .catch(() => {
+        // endpoint not yet live — truck stays at GPS position
+      });
+  }, [shipment.id]);
+
+  // ── Effect 3: socket — room management, live position, progress, health ───
+  useEffect(() => {
+    let mounted = true;
+
+    // Define callbacks up-front so cleanup can pass the exact same references
+    // to socket.off() — otherwise socket.off(event) would remove ALL listeners
+    // for that event, including ones registered inside socketClient.ts itself.
+    const onConnect = () => { if (mounted) setSocketConnected(true); };
+    const onDisconnect = () => { if (mounted) setSocketConnected(false); };
+
+    const onLocationUpdate = (data: { shipmentId: string; latitude: number; longitude: number }) => {
+      if (!mounted || data.shipmentId !== shipment.id) return;
+      const coord: Coord = { latitude: data.latitude, longitude: data.longitude };
+      setTruckCoord(coord);
+      setDrivenPath(prev => [...prev, coord]);
+      mapRef.current?.animateToRegion({ ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 }, 400);
+    };
+
+    const onProgressUpdate = (data: {
+      shipmentId: string; distanceCovered: number; totalDistance: number | null;
+      progressPercent: number; eta: string;
+    }) => {
+      if (!mounted || data.shipmentId !== shipment.id) return;
+      setDistanceCovered(data.distanceCovered);
+      setTotalDistance(data.totalDistance);
+      setProgressPercent(data.progressPercent);
+      setEta(data.eta);
+    };
+
+    connectSocket().then(socket => {
+      if (!mounted) return;
+      socketRef.current = socket;
+      setSocketConnected(socket.connected);
+
+      socket.on('connect',    onConnect);
+      socket.on('disconnect', onDisconnect);
+      socket.on(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE,   onLocationUpdate);
+      socket.on(SOCKET_EVENTS.SHIPMENT_PROGRESS_UPDATE, onProgressUpdate);
+
+      socket.emit(SOCKET_EVENTS.JOIN_TRACKING_ROOM, { shipmentId: shipment.id });
+    });
+
+    return () => {
+      mounted = false;
+      const socket = socketRef.current;
+      if (socket) {
+        socket.emit(SOCKET_EVENTS.LEAVE_TRACKING_ROOM, { shipmentId: shipment.id });
+        socket.off('connect',    onConnect);
+        socket.off('disconnect', onDisconnect);
+        socket.off(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE,   onLocationUpdate);
+        socket.off(SOCKET_EVENTS.SHIPMENT_PROGRESS_UPDATE, onProgressUpdate);
+      }
+    };
+  }, [shipment.id]);
+
+  // ── Effect 4: driver GPS push — emit position every 7 s while trip is live
+  useEffect(() => {
+    if (shipment.status === 'COMPLETED') return; // no-op for completed trips
+
+    const push = () => {
+      const socket = socketRef.current;
+      if (!socket?.connected) return;
+      Geolocation.getCurrentPosition(
+        ({ coords }) => {
+          socket.emit(SOCKET_EVENTS.DRIVER_LOCATION_PUSH, {
+            shipmentId: shipment.id,
+            latitude:   coords.latitude,
+            longitude:  coords.longitude,
+            timestamp:  Date.now(),
+          });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
+      );
+    };
+
+    push(); // immediate first push
+    const interval = setInterval(push, 7000);
+    return () => clearInterval(interval);
+  }, [shipment.id, shipment.status]);
 
   const statusLabel = STATUS_LABEL[shipment.status] ?? shipment.status;
   const statusColor = STATUS_COLOR[shipment.status] ?? '#94A3B8';
+  const fillWidth   = `${Math.min(progressPercent, 100)}%` as any;
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      {/* MAP */}
+      {/* ── MAP ─────────────────────────────────────────────────────────────── */}
       <MapView
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        region={mapRegion}
+        initialRegion={
+          shipment.pickupCoord
+            ? { ...shipment.pickupCoord, latitudeDelta: 0.5, longitudeDelta: 0.5 }
+            : { latitude: 5.36, longitude: -4.0, latitudeDelta: 0.5, longitudeDelta: 0.5 }
+        }
         customMapStyle={mapStyle}
       >
+        {/* Planned route — sky-blue dashed */}
+        {plannedRoute.length > 1 && (
+          <Polyline
+            coordinates={plannedRoute}
+            strokeColor="#60A5FA"
+            strokeWidth={4}
+            lineDashPattern={[8, 6]}
+          />
+        )}
+
+        {/* Driven path — solid blue */}
+        {drivenPath.length > 1 && (
+          <Polyline
+            coordinates={drivenPath}
+            strokeColor="#0071BC"
+            strokeWidth={5}
+          />
+        )}
+
+        {/* Pickup pin */}
         {pickupCoord && (
-          <Marker coordinate={pickupCoord} title="Pickup" anchor={{ x: 0.5, y: 1 }}>
+          <Marker coordinate={pickupCoord} title="Pickup" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
             <View style={styles.pinPickup}>
               <MapPin size={16} color="#FFF" />
             </View>
           </Marker>
         )}
 
+        {/* Dropoff pin — green on arrival */}
         {dropoffCoord && (
-          <Marker coordinate={dropoffCoord} title="Dropoff" anchor={{ x: 0.5, y: 1 }}>
-            <View style={styles.pinDropoff}>
+          <Marker coordinate={dropoffCoord} title="Dropoff" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+            <View style={[styles.pinDropoff, arrived && styles.pinArrived]}>
               <MapPin size={16} color="#FFF" />
             </View>
           </Marker>
         )}
 
+        {/* Live truck marker */}
         {truckCoord && (
-          <Marker coordinate={truckCoord} title="Truck" anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={styles.truckMarker}>
-              <Truck size={18} color="#FFF" />
+          <Marker
+            coordinate={truckCoord}
+            title="Driver"
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges={!truckMarkerReady}
+          >
+            <View
+              style={styles.truckMarker}
+              onLayout={() => {
+                if (!truckMarkerReady) {
+                  setTimeout(() => setTruckMarkerReady(true), 200);
+                }
+              }}
+            >
+              <Truck size={22} color="#FFF" />
             </View>
           </Marker>
         )}
-
-        {displayRoute.length > 1 && (
-          <Polyline
-            coordinates={displayRoute}
-            strokeColor="#0071BC"
-            strokeWidth={4}
-          />
-        )}
       </MapView>
 
-      {/* Resolving overlay */}
+      {/* Loading overlay while geocoding */}
       {resolving && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#0071BC" />
         </View>
       )}
 
-      {/* TOP FLOATING HEADER */}
+      {/* ── TOP HEADER ──────────────────────────────────────────────────────── */}
       <SafeAreaView style={styles.headerContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color="#000" />
@@ -213,73 +377,162 @@ const LiveTrackingScreen = () => {
         </View>
       </SafeAreaView>
 
-      {/* BOTTOM TRACKING CARD */}
+      {/* ── SOCKET RECONNECTING BANNER ──────────────────────────────────────── */}
+      {!socketConnected && (
+        <View style={styles.reconnectBanner}>
+          <WifiOff size={14} color="#92400E" />
+          <Text style={styles.reconnectText}>Reconnecting…</Text>
+          <ActivityIndicator size="small" color="#92400E" style={{ marginLeft: 6 }} />
+        </View>
+      )}
+
+      {/* ── ALMOST THERE BANNER ─────────────────────────────────────────────── */}
+      {almostThere && (
+        <View style={styles.almostBanner}>
+          <Navigation size={15} color="#1D4ED8" />
+          <Text style={styles.almostText}>Almost there — approaching destination</Text>
+        </View>
+      )}
+
+      {/* ── ARRIVAL BANNER ──────────────────────────────────────────────────── */}
+      {arrived && (
+        <View style={styles.arrivalBanner}>
+          <CheckCircle size={16} color="#22C55E" />
+          <Text style={styles.arrivalText}>Driver has arrived at destination</Text>
+        </View>
+      )}
+
+      {/* ── BOTTOM TRACKING CARD ────────────────────────────────────────────── */}
       <View style={styles.trackingCard}>
         <View style={styles.dragHandle} />
 
-        {/* Route summary */}
+        {/* Route addresses */}
         <View style={styles.routeRow}>
-          {/* Left icons column */}
           <View style={styles.routeIcons}>
-            <View style={styles.dotGray} />
+            <View style={styles.dotPickup} />
             <View style={styles.routeLine} />
             <View style={styles.dotBlue} />
           </View>
-
-          {/* Addresses */}
           <View style={styles.routeAddresses}>
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>Pickup</Text>
-              <Text style={styles.addressValue} numberOfLines={2}>
-                {shipment.pickupAddress}
-              </Text>
+              <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
             </View>
             <View style={[styles.addressBlock, { marginTop: 12 }]}>
               <Text style={styles.addressLabel}>Delivery</Text>
-              <Text style={styles.addressValue} numberOfLines={2}>
-                {shipment.deliveryAddress}
-              </Text>
+              <Text style={styles.addressValue} numberOfLines={2}>{shipment.deliveryAddress}</Text>
             </View>
           </View>
         </View>
 
-        {/* Extra info row */}
         {(shipment.contactPerson || shipment.timeWindow) && (
           <>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
-              {shipment.contactPerson ? (
+              {shipment.contactPerson && (
                 <View style={styles.infoCell}>
                   <Text style={styles.infoLabel}>Contact</Text>
                   <Text style={styles.infoValue}>{shipment.contactPerson}</Text>
                 </View>
-              ) : null}
-              {shipment.timeWindow ? (
+              )}
+              {shipment.timeWindow && (
                 <View style={styles.infoCell}>
                   <Text style={styles.infoLabel}>Time Window</Text>
                   <Text style={styles.infoValue}>{shipment.timeWindow}</Text>
                 </View>
-              ) : null}
+              )}
             </View>
           </>
         )}
 
         <View style={styles.divider} />
 
-        {/* Action buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.contactBtn}>
-            <Phone size={20} color="#64748B" />
-            <Text style={styles.contactBtnText}>Call Center</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.contactBtn, styles.contactBtnBorder]}>
-            <MessageSquare size={20} color="#64748B" />
-            <Text style={styles.contactBtnText}>Message</Text>
-          </TouchableOpacity>
+        {/* Progress */}
+        <View style={styles.progressSection}>
+          <View style={styles.progressHeader}>
+            {/* Distance covered */}
+            <View style={styles.progressStat}>
+              <Navigation size={12} color="#94A3B8" style={{ marginBottom: 2 }} />
+              <Text style={styles.progressStatLabel}>Covered</Text>
+              <Text style={styles.progressStatValue}>
+                {distanceCovered > 0 ? `${distanceCovered.toFixed(1)} km` : '--'}
+              </Text>
+            </View>
+
+            {/* Percentage */}
+            <View style={styles.progressCenter}>
+              {totalDistance != null ? (
+                <>
+                  <Text style={[
+                    styles.progressPercent,
+                    arrived && styles.progressPercentArrived,
+                    almostThere && styles.progressPercentAlmost,
+                  ]}>
+                    {progressPercent}%
+                  </Text>
+                  <Text style={styles.progressPercentLabel}>complete</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.progressPercentUnknown}>--</Text>
+                  <Text style={styles.progressPercentLabel}>in progress</Text>
+                </>
+              )}
+            </View>
+
+            {/* Total distance */}
+            <View style={[styles.progressStat, { alignItems: 'flex-end' }]}>
+              <MapPin size={12} color="#0071BC" style={{ marginBottom: 2 }} />
+              <Text style={styles.progressStatLabel}>Total</Text>
+              <Text style={styles.progressStatValue}>
+                {totalDistance != null ? `${totalDistance.toFixed(1)} km` : '? km'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Progress bar */}
+          <View style={styles.progressBarTrack}>
+            {totalDistance != null ? (
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: fillWidth },
+                  arrived    && styles.progressBarArrived,
+                  almostThere && styles.progressBarAlmost,
+                ]}
+              />
+            ) : (
+              <View style={[styles.progressBarFill, styles.progressBarIndeterminate]} />
+            )}
+          </View>
+
+          {/* ETA — hidden when N/A or not yet received */}
+          {!etaIsUnknown && (
+            <View style={styles.etaRow}>
+              <Text style={styles.etaLabel}>Estimated Arrival</Text>
+              <Text style={[
+                styles.etaValue,
+                arrived    && styles.etaValueArrived,
+                almostThere && styles.etaValueAlmost,
+              ]}>
+                {arrived ? 'Arrived' : almostThere ? 'Arriving soon' : eta}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <TouchableOpacity style={styles.endTripBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.endTripText}>Arrival at Destination</Text>
+        <TouchableOpacity
+          style={[
+            styles.endTripBtn,
+            arrived    && styles.endTripBtnArrived,
+            almostThere && styles.endTripBtnAlmost,
+          ]}
+          activeOpacity={0.85}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.endTripText}>
+            {arrived ? 'Trip Complete' : almostThere ? 'Almost There' : 'Arrival at Destination'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -303,23 +556,22 @@ const styles = StyleSheet.create({
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: '#94A3B8',
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: '#FFF',
-    elevation: 4,
+    borderWidth: 2, borderColor: '#FFF', elevation: 4,
   },
   pinDropoff: {
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: '#0071BC',
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: '#FFF',
-    elevation: 4,
+    borderWidth: 2, borderColor: '#FFF', elevation: 4,
   },
+  pinArrived: { backgroundColor: '#22C55E' },
   truckMarker: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#0071BC',
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: '#FFF',
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6,
-    elevation: 5,
+    borderWidth: 3, borderColor: '#FFF',
+    shadowColor: '#0071BC', shadowOpacity: 0.5, shadowRadius: 8,
+    elevation: 8,
   },
 
   // header
@@ -345,8 +597,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 20, marginTop: 4,
   },
-  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  statusDot:  { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   statusText: { fontSize: 11, fontWeight: '700' },
+
+  // banners (stacked below header)
+  reconnectBanner: {
+    position: 'absolute', top: 110, left: 20, right: 20,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1, borderColor: '#FDE68A',
+    borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    gap: 8,
+    elevation: 4,
+  },
+  reconnectText: { fontSize: 13, fontWeight: '700', color: '#92400E', flex: 1 },
+
+  almostBanner: {
+    position: 'absolute', top: 110, left: 20, right: 20,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1, borderColor: '#BFDBFE',
+    borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    gap: 8,
+    elevation: 4,
+  },
+  almostText: { fontSize: 13, fontWeight: '700', color: '#1D4ED8', flex: 1 },
+
+  arrivalBanner: {
+    position: 'absolute', top: 110, left: 20, right: 20,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1, borderColor: '#86EFAC',
+    borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    gap: 8,
+    elevation: 4,
+  },
+  arrivalText: { fontSize: 13, fontWeight: '700', color: '#166534', flex: 1 },
 
   // card
   trackingCard: {
@@ -362,42 +651,68 @@ const styles = StyleSheet.create({
   },
 
   // route section
-  routeRow: { flexDirection: 'row', alignItems: 'stretch' },
-  routeIcons: { width: 20, alignItems: 'center', paddingTop: 4 },
-  dotGray: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#94A3B8' },
-  routeLine: { flex: 1, width: 2, backgroundColor: '#CBD5E1', marginVertical: 4, minHeight: 24 },
-  dotBlue: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0071BC' },
+  routeRow:       { flexDirection: 'row', alignItems: 'stretch' },
+  routeIcons:     { width: 20, alignItems: 'center', paddingTop: 4 },
+  dotPickup:      { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
+  routeLine:      { flex: 1, width: 2, backgroundColor: '#93C5FD', marginVertical: 4, minHeight: 24 },
+  dotBlue:        { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
   routeAddresses: { flex: 1, marginLeft: 12 },
-  addressBlock: {},
-  addressLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
-  addressValue: { fontSize: 14, fontWeight: '700', color: '#1A1C1E' },
+  addressBlock:   {},
+  addressLabel:   { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
+  addressValue:   { fontSize: 14, fontWeight: '700', color: '#1A1C1E' },
 
   // info row
-  infoRow: { flexDirection: 'row', gap: 16 },
-  infoCell: { flex: 1 },
+  infoRow:   { flexDirection: 'row', gap: 16 },
+  infoCell:  { flex: 1 },
   infoLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
   infoValue: { fontSize: 13, fontWeight: '700', color: '#1A1C1E' },
 
   divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 16 },
 
-  // action buttons
-  actionRow: { flexDirection: 'row', marginBottom: 16 },
-  contactBtn: {
-    flex: 1, flexDirection: 'row',
-    justifyContent: 'center', alignItems: 'center', paddingVertical: 10,
+  // progress section
+  progressSection: { marginBottom: 16 },
+  progressHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 12,
   },
-  contactBtnBorder: { borderLeftWidth: 1, borderLeftColor: '#F1F5F9' },
-  contactBtnText: { marginLeft: 8, fontSize: 14, fontWeight: '700', color: '#64748B' },
+  progressStat:         { alignItems: 'flex-start', minWidth: 72 },
+  progressStatLabel:    { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
+  progressStatValue:    { fontSize: 15, fontWeight: '800', color: '#1A1C1E' },
+  progressCenter:       { alignItems: 'center' },
+  progressPercent:      { fontSize: 24, fontWeight: '900', color: '#0071BC' },
+  progressPercentArrived: { color: '#22C55E' },
+  progressPercentAlmost:  { color: '#1D4ED8' },
+  progressPercentUnknown: { fontSize: 24, fontWeight: '900', color: '#94A3B8' },
+  progressPercentLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginTop: -2 },
+  progressBarTrack: {
+    height: 8, backgroundColor: '#EFF6FF',
+    borderRadius: 4, overflow: 'hidden', marginBottom: 10,
+  },
+  progressBarFill: {
+    height: '100%', backgroundColor: '#0071BC',
+    borderRadius: 4, minWidth: 8,
+  },
+  progressBarArrived:      { backgroundColor: '#22C55E' },
+  progressBarAlmost:       { backgroundColor: '#3B82F6' },
+  progressBarIndeterminate: { width: '100%', opacity: 0.3 },
+  etaRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  etaLabel:       { fontSize: 12, color: '#94A3B8', fontWeight: '600' },
+  etaValue:       { fontSize: 13, fontWeight: '800', color: '#1A1C1E' },
+  etaValueArrived: { color: '#22C55E' },
+  etaValueAlmost:  { color: '#1D4ED8' },
 
+  // buttons
   endTripBtn: {
     backgroundColor: '#0071BC', height: 56,
     borderRadius: 16, justifyContent: 'center', alignItems: 'center',
   },
+  endTripBtnArrived: { backgroundColor: '#22C55E' },
+  endTripBtnAlmost:  { backgroundColor: '#3B82F6' },
   endTripText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
 });
 
 const mapStyle = [
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi',     stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
 ];
 

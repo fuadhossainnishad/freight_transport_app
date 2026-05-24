@@ -11,4 +11,11 @@ export const SOCKET_EVENTS = {
 
   SHIPMENT_BIDDING_STARTED: "shipment_bidding_started",
 
+  // Live tracking
+  JOIN_TRACKING_ROOM: "tracking:join",
+  LEAVE_TRACKING_ROOM: "tracking:leave",
+  DRIVER_LOCATION_PUSH: "driver:location_push",
+  DRIVER_LOCATION_UPDATE: "driver:location_update",
+  SHIPMENT_PROGRESS_UPDATE: "shipment:progress_update",
+
 }

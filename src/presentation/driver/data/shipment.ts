@@ -17,7 +17,9 @@ export const SHIPMENTS: Shipment[] = [
     dimensions: "120 cm / 100 cm / 160 cm",
     packaging: "Wooden Crates",
     pickupAddress: "Rue 14.12, Zone 4, Abidjan",
+    pickupCoord: { latitude: 5.3364, longitude: -4.0267 },
     deliveryAddress: "Ave. Nelson Mandela, Ouagadougou",
+    deliveryCoord: { latitude: 12.3714, longitude: -1.5197 },
     contactPerson: "Sunan Rahman",
     timeWindow: "08:00 AM - 12:00 PM"
   },
@@ -37,7 +39,9 @@ export const SHIPMENTS: Shipment[] = [
     dimensions: "120 cm / 100 cm / 140 cm",
     packaging: "Cardboard Boxes",
     pickupAddress: "Main Port, Bamako",
+    pickupCoord: { latitude: 12.6392, longitude: -8.0029 },
     deliveryAddress: "Business District, Accra",
+    deliveryCoord: { latitude: 5.5502, longitude: -0.2034 },
     contactPerson: "Kofi Mensah",
     timeWindow: "09:00 AM - 05:00 PM"
   },
@@ -57,7 +61,9 @@ export const SHIPMENTS: Shipment[] = [
     dimensions: "120 cm / 100 cm / 100 cm",
     packaging: "Plastic Pallets",
     pickupAddress: "Ikeja Industrial Estate, Lagos",
+    pickupCoord: { latitude: 6.5960, longitude: 3.3475 },
     deliveryAddress: "Port de Cotonou, Benin",
+    deliveryCoord: { latitude: 6.3654, longitude: 2.4183 },
     contactPerson: "John Doe",
     timeWindow: "10:00 AM - 02:00 PM"
   },
@@ -77,7 +83,9 @@ export const SHIPMENTS: Shipment[] = [
     dimensions: "120 cm / 100 cm / 180 cm",
     packaging: "Sling Bags",
     pickupAddress: "Dakar Port Terminal",
+    pickupCoord: { latitude: 14.6937, longitude: -17.4441 },
     deliveryAddress: "Banjul City Center",
+    deliveryCoord: { latitude: 13.4531, longitude: -16.5775 },
     contactPerson: "Ousman Bah",
     timeWindow: "07:00 AM - 11:00 AM"
   }
