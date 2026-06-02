@@ -3,15 +3,10 @@
     <!-- Background color -->
     <item android:drawable="@color/splash_bg" />
 
-    <!-- Centered logo -->
-    <item
-        android:width="20dp"
-        android:height="20dp"
-        android:gravity="center"
-    >
-
+    <!-- Centered logo (density-specific splash_logo.png, ~200dp, never stretched) -->
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/logo" />
+            android:src="@drawable/splash_logo" />
     </item>
 </layer-list>

@@ -20,6 +20,17 @@ import { connectSocket } from '../../../data/socket/socketClient';
 import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
 import axiosClient from '../../../shared/config/axios.config';
 
+// Force the legacy Android location provider. The 'playServices' provider has a
+// bug (NPE "Listener must not be null" in PlayServicesLocationManager when it
+// removes location updates) that crashes the app on every location result.
+// With enableHighAccuracy:false the Android provider uses the network (Wi-Fi /
+// cell) provider, which still gets a fix indoors — no satellites required.
+Geolocation.setRNConfiguration({
+  skipPermissionRequests: false,
+  authorizationLevel: 'whenInUse',
+  locationProvider: 'android',
+});
+
 const { width, height } = Dimensions.get('window');
 
 type Coord = { latitude: number; longitude: number };
@@ -53,9 +64,89 @@ async function geocodeAddress(address: string): Promise<Coord | null> {
   }
 }
 
+// Fetch a road-aligned route between two points. Builds the line from each
+// step's detailed polyline (overview_polyline is simplified and cuts corners),
+// falling back to a straight segment if the request fails.
+async function fetchRoute(origin: Coord, dest: Coord): Promise<Coord[]> {
+  try {
+    const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
+      params: {
+        origin:      `${origin.latitude},${origin.longitude}`,
+        destination: `${dest.latitude},${dest.longitude}`,
+        key: Config.GOOGLE_MAPS_API_KEY,
+      },
+    });
+    const routes = res.data?.routes;
+    if (routes?.length > 0) {
+      const detailed: Coord[] = [];
+      for (const leg of routes[0].legs ?? []) {
+        for (const step of leg.steps ?? []) {
+          detailed.push(...decodePolyline(step.polyline.points));
+        }
+      }
+      if (detailed.length > 1) return detailed;
+      return decodePolyline(routes[0].overview_polyline.points);
+    }
+  } catch {
+    // fall through to straight-line fallback
+  }
+  return [origin, dest];
+}
+
 // GeoJSON stores [longitude, latitude] — swap for react-native-maps
 function fromGeoJson([lng, lat]: number[]): Coord {
   return { latitude: lat, longitude: lng };
+}
+
+// A coordinate is only usable if it is finite, within valid lat/lng ranges and
+// not the null-island (0,0) placeholder.
+function isValidCoord(c?: Coord | null): c is Coord {
+  return (
+    !!c &&
+    Number.isFinite(c.latitude) && Number.isFinite(c.longitude) &&
+    Math.abs(c.latitude) <= 90 && Math.abs(c.longitude) <= 180 &&
+    !(c.latitude === 0 && c.longitude === 0)
+  );
+}
+
+// Great-circle distance in km between two coordinates.
+function haversineKm(a: Coord, b: Coord): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLng = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude), lat2 = toRad(b.latitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Largest jump between consecutive driven-path points before we treat it as a
+// bad GPS reading / stale data point (km).
+const MAX_JUMP_KM = 200;
+
+// Drop invalid points, then anchor to the most recent point and keep only the
+// recent run whose consecutive gaps are plausible — this strips out stale
+// garbage history (e.g. a default California coordinate left over from testing).
+function sanitizePath(points: Coord[]): Coord[] {
+  const valid = points.filter(isValidCoord);
+  if (valid.length <= 1) return valid;
+  const out: Coord[] = [valid[valid.length - 1]];
+  for (let i = valid.length - 2; i >= 0; i--) {
+    if (haversineKm(valid[i], out[0]) <= MAX_JUMP_KM) out.unshift(valid[i]);
+    else break;
+  }
+  return out;
+}
+
+// Append a new live point only if it is valid and not an implausible jump from
+// the last one — keeps the driven path clean as updates stream in.
+function pushPoint(prev: Coord[], next: Coord): Coord[] {
+  if (!isValidCoord(next)) return prev;
+  const last = prev[prev.length - 1];
+  if (last && haversineKm(last, next) > MAX_JUMP_KM) return prev;
+  return [...prev, next];
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -85,8 +176,16 @@ const LiveTrackingScreen = () => {
   const [dropoffCoord, setDropoffCoord] = useState<Coord | null>(null);
   const [truckCoord,   setTruckCoord]   = useState<Coord | null>(null);
   const [plannedRoute, setPlannedRoute] = useState<Coord[]>([]);
+  const [pickupRoute,  setPickupRoute]  = useState<Coord[]>([]);
   const [drivenPath,   setDrivenPath]   = useState<Coord[]>([]);
   const [resolving,    setResolving]    = useState(true);
+
+  // trip phase: heading to the pickup, then the actual pickup→delivery ride.
+  // Local-only — starting the ride does not call the backend.
+  const [phase,      setPhase]      = useState<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
+  const [nearPickup, setNearPickup] = useState(false);
+  const phaseRef = useRef<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   // progress
   const [distanceCovered, setDistanceCovered] = useState(0);
@@ -108,21 +207,63 @@ const LiveTrackingScreen = () => {
 
   // ── Effect 0: driver's real GPS → initial truck position ─────────────────
   useEffect(() => {
+    console.log('📍 Requesting driver GPS position...');
     Geolocation.getCurrentPosition(
       ({ coords }) => {
         gpsObtained.current = true;
         const coord = { latitude: coords.latitude, longitude: coords.longitude };
-        console.log('Initial GPS position obtained:', coord);
+        console.log('✅ Initial GPS position obtained:', coord);
         setTruckCoord(coord);
         mapRef.current?.animateToRegion(
           { ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 },
           300,
         );
       },
-      () => { /* GPS unavailable — truck will appear from REST or socket */ },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      (err) => {
+        // GPS unavailable — truck will appear from REST or socket
+        console.log('❌ GPS error:', err.code, err.message);
+      },
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 10000 },
     );
   }, []);
+
+  // ── Phase 1: fetch the driver → pickup route (road-aligned), once ─────────
+  const pickupRouteFetched = useRef(false);
+  useEffect(() => {
+    if (phase !== 'TO_PICKUP') return;
+    if (!truckCoord || !pickupCoord || pickupRouteFetched.current) return;
+    pickupRouteFetched.current = true;
+    fetchRoute(truckCoord, pickupCoord).then(pts => {
+      setPickupRoute(pts);
+      // Frame both the driver and the pickup so the whole leg is visible.
+      mapRef.current?.fitToCoordinates([truckCoord, pickupCoord], {
+        edgePadding: { top: 120, right: 80, bottom: 360, left: 80 },
+        animated: true,
+      });
+    });
+  }, [phase, truckCoord, pickupCoord]);
+
+  // ── Phase 1: reveal "Start Ride" once the driver reaches the pickup ───────
+  const PICKUP_RADIUS_KM = 0.15; // ~150 m
+  useEffect(() => {
+    if (phase !== 'TO_PICKUP' || nearPickup) return;
+    if (!truckCoord || !pickupCoord) return;
+    if (haversineKm(truckCoord, pickupCoord) <= PICKUP_RADIUS_KM) {
+      setNearPickup(true);
+    }
+  }, [phase, nearPickup, truckCoord, pickupCoord]);
+
+  // Switch from "heading to pickup" into the live pickup → delivery ride.
+  const startRide = () => {
+    setPhase('IN_TRANSIT');
+    setDrivenPath([]); // start the travelled-path trail fresh from pickup
+    if (pickupCoord) {
+      mapRef.current?.animateToRegion(
+        { ...pickupCoord, latitudeDelta: 0.05, longitudeDelta: 0.05 },
+        400,
+      );
+    }
+  };
 
   // ── Effect 1: geocode addresses + planned route from Google Directions ────
   useEffect(() => {
@@ -144,17 +285,9 @@ const LiveTrackingScreen = () => {
         setPickupCoord(p);
         setDropoffCoord(d);
 
-        const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
-          params: {
-            origin:      `${p.latitude},${p.longitude}`,
-            destination: `${d.latitude},${d.longitude}`,
-            key: Config.GOOGLE_MAPS_API_KEY,
-          },
-        });
-
-        const routes = res.data?.routes;
-        if (routes?.length > 0) {
-          setPlannedRoute(decodePolyline(routes[0].overview_polyline.points));
+        const routePts = await fetchRoute(p, d);
+        if (routePts.length > 0) {
+          setPlannedRoute(routePts);
         } else {
           setPlannedRoute([p, d]);
         }
@@ -188,7 +321,7 @@ const LiveTrackingScreen = () => {
         }
 
         if (payload?.location_history?.coordinates?.length) {
-          setDrivenPath(payload.location_history.coordinates.map(fromGeoJson));
+          setDrivenPath(sanitizePath(payload.location_history.coordinates.map(fromGeoJson)));
         }
       })
       .catch(() => {
@@ -209,9 +342,11 @@ const LiveTrackingScreen = () => {
     const onLocationUpdate = (data: { shipmentId: string; latitude: number; longitude: number }) => {
       if (!mounted || data.shipmentId !== shipment.id) return;
       const coord: Coord = { latitude: data.latitude, longitude: data.longitude };
+      if (!isValidCoord(coord)) return;
       setTruckCoord(coord);
-      setDrivenPath(prev => [...prev, coord]);
-      mapRef.current?.animateToRegion({ ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 }, 400);
+      if (phaseRef.current === 'IN_TRANSIT') setDrivenPath(prev => pushPoint(prev, coord));
+      // Pan to follow without resetting the user's zoom level.
+      mapRef.current?.animateCamera({ center: coord }, { duration: 400 });
     };
 
     const onProgressUpdate = (data: {
@@ -256,19 +391,30 @@ const LiveTrackingScreen = () => {
     if (shipment.status === 'COMPLETED') return; // no-op for completed trips
 
     const push = () => {
-      const socket = socketRef.current;
-      if (!socket?.connected) return;
       Geolocation.getCurrentPosition(
         ({ coords }) => {
-          socket.emit(SOCKET_EVENTS.DRIVER_LOCATION_PUSH, {
-            shipmentId: shipment.id,
-            latitude:   coords.latitude,
-            longitude:  coords.longitude,
-            timestamp:  Date.now(),
-          });
+          const coord: Coord = { latitude: coords.latitude, longitude: coords.longitude };
+
+          // Always update the local marker — no backend round-trip needed
+          if (!isValidCoord(coord)) return;
+          setTruckCoord(coord);
+          if (phaseRef.current === 'IN_TRANSIT') setDrivenPath(prev => pushPoint(prev, coord));
+          // Pan to follow the truck WITHOUT resetting the user's zoom level.
+          mapRef.current?.animateCamera({ center: coord }, { duration: 400 });
+
+          // Also push to backend so other viewers (transporter/shipper) see the update
+          const socket = socketRef.current;
+          if (socket?.connected) {
+            socket.emit(SOCKET_EVENTS.DRIVER_LOCATION_PUSH, {
+              shipmentId: shipment.id,
+              latitude:   coords.latitude,
+              longitude:  coords.longitude,
+              timestamp:  Date.now(),
+            });
+          }
         },
-        () => {},
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 },
+        (err) => { console.log('❌ GPS push error:', err.code, err.message); },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 7000 },
       );
     };
 
@@ -280,6 +426,8 @@ const LiveTrackingScreen = () => {
   const statusLabel = STATUS_LABEL[shipment.status] ?? shipment.status;
   const statusColor = STATUS_COLOR[shipment.status] ?? '#94A3B8';
   const fillWidth   = `${Math.min(progressPercent, 100)}%` as any;
+  const distanceToPickup =
+    truckCoord && pickupCoord ? haversineKm(truckCoord, pickupCoord) : null;
 
   return (
     <View style={styles.container}>
@@ -297,8 +445,18 @@ const LiveTrackingScreen = () => {
         }
         customMapStyle={mapStyle}
       >
-        {/* Planned route — sky-blue dashed */}
-        {plannedRoute.length > 1 && (
+        {/* Phase 1 — driver → pickup route (orange dashed) */}
+        {phase === 'TO_PICKUP' && pickupRoute.length > 1 && (
+          <Polyline
+            coordinates={pickupRoute}
+            strokeColor="#F97316"
+            strokeWidth={4}
+            lineDashPattern={[8, 6]}
+          />
+        )}
+
+        {/* Phase 2 — planned pickup → delivery route (sky-blue dashed) */}
+        {phase === 'IN_TRANSIT' && plannedRoute.length > 1 && (
           <Polyline
             coordinates={plannedRoute}
             strokeColor="#60A5FA"
@@ -307,8 +465,8 @@ const LiveTrackingScreen = () => {
           />
         )}
 
-        {/* Driven path — solid blue */}
-        {drivenPath.length > 1 && (
+        {/* Driven path — solid blue (only during the ride) */}
+        {phase === 'IN_TRANSIT' && drivenPath.length > 1 && (
           <Polyline
             coordinates={drivenPath}
             strokeColor="#0071BC"
@@ -325,8 +483,8 @@ const LiveTrackingScreen = () => {
           </Marker>
         )}
 
-        {/* Dropoff pin — green on arrival */}
-        {dropoffCoord && (
+        {/* Dropoff pin — green on arrival (only once the ride has started) */}
+        {phase === 'IN_TRANSIT' && dropoffCoord && (
           <Marker coordinate={dropoffCoord} title="Dropoff" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
             <View style={[styles.pinDropoff, arrived && styles.pinArrived]}>
               <MapPin size={16} color="#FFF" />
@@ -402,7 +560,57 @@ const LiveTrackingScreen = () => {
         </View>
       )}
 
-      {/* ── BOTTOM TRACKING CARD ────────────────────────────────────────────── */}
+      {/* ── PHASE 1 CARD — heading to pickup ────────────────────────────────── */}
+      {phase === 'TO_PICKUP' && (
+        <View style={styles.trackingCard}>
+          <View style={styles.dragHandle} />
+
+          <View style={styles.pickupHeaderRow}>
+            <View style={styles.pickupIconWrap}>
+              <Navigation size={18} color="#F97316" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.addressLabel}>Heading to pickup</Text>
+              <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
+            </View>
+            {distanceToPickup != null && (
+              <Text style={styles.pickupDistance}>
+                {distanceToPickup < 1
+                  ? `${Math.round(distanceToPickup * 1000)} m`
+                  : `${distanceToPickup.toFixed(1)} km`}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          {nearPickup ? (
+            <>
+              <View style={styles.nearPickupHint}>
+                <CheckCircle size={16} color="#22C55E" />
+                <Text style={styles.nearPickupText}>You've reached the pickup location</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.endTripBtn, styles.startRideBtn]}
+                activeOpacity={0.85}
+                onPress={startRide}
+              >
+                <Text style={styles.endTripText}>Start Ride</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.headingHint}>
+              <Navigation size={15} color="#F97316" />
+              <Text style={styles.headingText}>
+                Drive to the pickup location — the "Start Ride" button will appear when you arrive.
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ── PHASE 2 CARD — live tracking pickup → delivery ──────────────────── */}
+      {phase === 'IN_TRANSIT' && (
       <View style={styles.trackingCard}>
         <View style={styles.dragHandle} />
 
@@ -418,7 +626,7 @@ const LiveTrackingScreen = () => {
               <Text style={styles.addressLabel}>Pickup</Text>
               <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
             </View>
-            <View style={[styles.addressBlock, { marginTop: 12 }]}>
+            <View style={[styles.addressBlock, { marginTop: 8 }]}>
               <Text style={styles.addressLabel}>Delivery</Text>
               <Text style={styles.addressValue} numberOfLines={2}>{shipment.deliveryAddress}</Text>
             </View>
@@ -535,6 +743,7 @@ const LiveTrackingScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 };
@@ -641,13 +850,13 @@ const styles = StyleSheet.create({
   trackingCard: {
     position: 'absolute', bottom: 0, width: '100%',
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 30, borderTopRightRadius: 30,
-    padding: 24,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16,
     shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 20, elevation: 10,
   },
   dragHandle: {
     width: 40, height: 5, backgroundColor: '#E2E8F0',
-    borderRadius: 3, alignSelf: 'center', marginBottom: 20,
+    borderRadius: 3, alignSelf: 'center', marginBottom: 12,
   },
 
   // route section
@@ -667,13 +876,13 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
   infoValue: { fontSize: 13, fontWeight: '700', color: '#1A1C1E' },
 
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 16 },
+  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 10 },
 
   // progress section
-  progressSection: { marginBottom: 16 },
+  progressSection: { marginBottom: 10 },
   progressHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 12,
+    alignItems: 'center', marginBottom: 8,
   },
   progressStat:         { alignItems: 'flex-start', minWidth: 72 },
   progressStatLabel:    { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
@@ -703,12 +912,26 @@ const styles = StyleSheet.create({
 
   // buttons
   endTripBtn: {
-    backgroundColor: '#0071BC', height: 56,
-    borderRadius: 16, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#0071BC', height: 48,
+    borderRadius: 14, justifyContent: 'center', alignItems: 'center',
   },
   endTripBtnArrived: { backgroundColor: '#22C55E' },
   endTripBtnAlmost:  { backgroundColor: '#3B82F6' },
   endTripText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+
+  // phase 1 — heading to pickup
+  pickupHeaderRow: { flexDirection: 'row', alignItems: 'center' },
+  pickupIconWrap: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#FFF7ED',
+    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+  },
+  pickupDistance: { fontSize: 15, fontWeight: '800', color: '#F97316', marginLeft: 8 },
+  headingHint: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headingText: { flex: 1, fontSize: 13, color: '#64748B', fontWeight: '600' },
+  nearPickupHint: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  nearPickupText: { fontSize: 14, color: '#15803D', fontWeight: '700' },
+  startRideBtn: { backgroundColor: '#22C55E' },
 });
 
 const mapStyle = [
