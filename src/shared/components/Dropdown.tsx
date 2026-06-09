@@ -20,6 +20,7 @@ export default function Dropdown({
             <Picker
                 selectedValue={value}
                 onValueChange={(itemValue) => onChange(itemValue)}
+
             >
                 <Picker.Item label={placeholder || "Select"} value="" />
                 {data.map((item) => (

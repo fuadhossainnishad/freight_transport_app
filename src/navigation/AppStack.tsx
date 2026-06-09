@@ -20,7 +20,7 @@ export default function AppStack() {
         <ShipperRootStack userId={user?.shipper_id!} />
     ) : user?.role === "DRIVER" ? (
         <DriverStackStack />
-    ): (
+    ) : (
         <TransporterRootStack userId={user?.transporter_id!} />
     );
 }

@@ -47,3 +47,29 @@ export interface CreateShipmentResponse {
     message: string
     data: Shipment
 }
+
+export interface AddressLocation {
+    address: string
+    latitude: number
+    longitude: number
+}
+
+
+export type ShipmentFormValues = {
+    shipment_title: string
+    category: string | null
+    discription: string
+    weight: string
+    type_of_packaging: string | null
+    dimensions: string
+
+    pickup_address: AddressLocation | null
+    delivery_address: AddressLocation | null
+
+    time_window: string
+    contact_person: string
+    date_preference: string
+
+    insurance: boolean
+    forwarding: boolean
+}

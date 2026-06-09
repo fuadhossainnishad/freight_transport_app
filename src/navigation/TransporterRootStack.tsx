@@ -53,7 +53,7 @@ export default function TransporterRootStack({ userId }: { userId: string }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
 
-      {!profileComplete ? (
+      {profileComplete ? (
         <Stack.Screen
           name="ProfileWizard"
           component={TransporterProfileWizard}

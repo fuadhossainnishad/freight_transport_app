@@ -6,9 +6,7 @@ import { StatsSkeleton } from "./StatsSkeleton";
 import { StatsError } from "./StatsError";
 import StatCard from "../../../shared/components/StatCard";
 
-// ─────────────────────────────
-// TYPES
-// ─────────────────────────────
+
 type Props = {
     data: TransporterStats | null;
     status: StatStatus
@@ -16,9 +14,6 @@ type Props = {
     onRetry: () => void;
 };
 
-// ─────────────────────────────
-// COMPONENT
-// ─────────────────────────────
 const TransporterStatsSection = memo(function TransporterStatsSection({
     data,
     status,

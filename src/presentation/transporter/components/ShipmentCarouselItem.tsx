@@ -23,7 +23,7 @@ export const ShipmentCarouselItem = memo(function ShipmentCarouselItem({
   onPress,
 }: Props) {
   const imageUri = item.images?.[0] ?? null;
-  const height   = isActive ? cardHeightActive : cardHeightInactive;
+  const height = isActive ? cardHeightActive : cardHeightInactive;
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>

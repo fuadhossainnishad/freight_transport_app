@@ -71,7 +71,7 @@ async function fetchRoute(origin: Coord, dest: Coord): Promise<Coord[]> {
   try {
     const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
       params: {
-        origin:      `${origin.latitude},${origin.longitude}`,
+        origin: `${origin.latitude},${origin.longitude}`,
         destination: `${dest.latitude},${dest.longitude}`,
         key: Config.GOOGLE_MAPS_API_KEY,
       },
@@ -151,47 +151,47 @@ function pushPoint(prev: Coord[], next: Coord): Coord[] {
 
 const STATUS_LABEL: Record<string, string> = {
   IN_PROGRESS: 'In Progress',
-  IN_TRANSIT:  'In Transit',
-  COMPLETED:   'Completed',
-  PENDING:     'Pending',
+  IN_TRANSIT: 'In Transit',
+  COMPLETED: 'Completed',
+  PENDING: 'Pending',
 };
 const STATUS_COLOR: Record<string, string> = {
   IN_PROGRESS: '#F97316',
-  IN_TRANSIT:  '#0071BC',
-  COMPLETED:   '#22C55E',
-  PENDING:     '#94A3B8',
+  IN_TRANSIT: '#0071BC',
+  COMPLETED: '#22C55E',
+  PENDING: '#94A3B8',
 };
 
 // ── component ─────────────────────────────────────────────────────────────────
 
 const LiveTrackingScreen = () => {
-  const route      = useRoute<any>();
+  const route = useRoute<any>();
   const navigation = useNavigation();
   const { shipment }: { shipment: Shipment } = route.params;
 
   const mapRef = useRef<MapView>(null);
 
   // map geometry
-  const [pickupCoord,  setPickupCoord]  = useState<Coord | null>(null);
+  const [pickupCoord, setPickupCoord] = useState<Coord | null>(null);
   const [dropoffCoord, setDropoffCoord] = useState<Coord | null>(null);
-  const [truckCoord,   setTruckCoord]   = useState<Coord | null>(null);
+  const [truckCoord, setTruckCoord] = useState<Coord | null>(null);
   const [plannedRoute, setPlannedRoute] = useState<Coord[]>([]);
-  const [pickupRoute,  setPickupRoute]  = useState<Coord[]>([]);
-  const [drivenPath,   setDrivenPath]   = useState<Coord[]>([]);
-  const [resolving,    setResolving]    = useState(true);
+  const [pickupRoute, setPickupRoute] = useState<Coord[]>([]);
+  const [drivenPath, setDrivenPath] = useState<Coord[]>([]);
+  const [resolving, setResolving] = useState(true);
 
   // trip phase: heading to the pickup, then the actual pickup→delivery ride.
   // Local-only — starting the ride does not call the backend.
-  const [phase,      setPhase]      = useState<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
+  const [phase, setPhase] = useState<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
   const [nearPickup, setNearPickup] = useState(false);
   const phaseRef = useRef<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   // progress
   const [distanceCovered, setDistanceCovered] = useState(0);
-  const [totalDistance,   setTotalDistance]   = useState<number | null>(null);
+  const [totalDistance, setTotalDistance] = useState<number | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
-  const [eta,             setEta]             = useState<string>('');
+  const [eta, setEta] = useState<string>('');
 
   // socket health
   const [socketConnected, setSocketConnected] = useState(false);
@@ -199,10 +199,10 @@ const LiveTrackingScreen = () => {
   // marker + GPS refs
   const [truckMarkerReady, setTruckMarkerReady] = useState(false);
   const gpsObtained = useRef(false);
-  const socketRef   = useRef<any>(null);
+  const socketRef = useRef<any>(null);
 
-  const arrived      = progressPercent >= 100;
-  const almostThere  = eta === 'Arriving' && !arrived;
+  const arrived = progressPercent >= 100;
+  const almostThere = eta === 'Arriving' && !arrived;
   const etaIsUnknown = eta === '' || eta === 'N/A';
 
   // ── Effect 0: driver's real GPS → initial truck position ─────────────────
@@ -234,6 +234,7 @@ const LiveTrackingScreen = () => {
     if (!truckCoord || !pickupCoord || pickupRouteFetched.current) return;
     pickupRouteFetched.current = true;
     fetchRoute(truckCoord, pickupCoord).then(pts => {
+      console.log("📍 Pickup route obtained:", pickupCoord);
       setPickupRoute(pts);
       // Frame both the driver and the pickup so the whole leg is visible.
       mapRef.current?.fitToCoordinates([truckCoord, pickupCoord], {
@@ -279,7 +280,7 @@ const LiveTrackingScreen = () => {
             : geocodeAddress(shipment.deliveryAddress),
         ]);
 
-        const p = pickup  ?? { latitude: 5.36,  longitude: -4.0  };
+        const p = pickup ?? { latitude: 5.36, longitude: -4.0 };
         const d = dropoff ?? { latitude: 12.37, longitude: -1.53 };
 
         setPickupCoord(p);
@@ -365,9 +366,9 @@ const LiveTrackingScreen = () => {
       socketRef.current = socket;
       setSocketConnected(socket.connected);
 
-      socket.on('connect',    onConnect);
+      socket.on('connect', onConnect);
       socket.on('disconnect', onDisconnect);
-      socket.on(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE,   onLocationUpdate);
+      socket.on(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE, onLocationUpdate);
       socket.on(SOCKET_EVENTS.SHIPMENT_PROGRESS_UPDATE, onProgressUpdate);
 
       socket.emit(SOCKET_EVENTS.JOIN_TRACKING_ROOM, { shipmentId: shipment.id });
@@ -378,9 +379,9 @@ const LiveTrackingScreen = () => {
       const socket = socketRef.current;
       if (socket) {
         socket.emit(SOCKET_EVENTS.LEAVE_TRACKING_ROOM, { shipmentId: shipment.id });
-        socket.off('connect',    onConnect);
+        socket.off('connect', onConnect);
         socket.off('disconnect', onDisconnect);
-        socket.off(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE,   onLocationUpdate);
+        socket.off(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE, onLocationUpdate);
         socket.off(SOCKET_EVENTS.SHIPMENT_PROGRESS_UPDATE, onProgressUpdate);
       }
     };
@@ -407,9 +408,9 @@ const LiveTrackingScreen = () => {
           if (socket?.connected) {
             socket.emit(SOCKET_EVENTS.DRIVER_LOCATION_PUSH, {
               shipmentId: shipment.id,
-              latitude:   coords.latitude,
-              longitude:  coords.longitude,
-              timestamp:  Date.now(),
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              timestamp: Date.now(),
             });
           }
         },
@@ -425,7 +426,7 @@ const LiveTrackingScreen = () => {
 
   const statusLabel = STATUS_LABEL[shipment.status] ?? shipment.status;
   const statusColor = STATUS_COLOR[shipment.status] ?? '#94A3B8';
-  const fillWidth   = `${Math.min(progressPercent, 100)}%` as any;
+  const fillWidth = `${Math.min(progressPercent, 100)}%` as any;
   const distanceToPickup =
     truckCoord && pickupCoord ? haversineKm(truckCoord, pickupCoord) : null;
 
@@ -611,138 +612,138 @@ const LiveTrackingScreen = () => {
 
       {/* ── PHASE 2 CARD — live tracking pickup → delivery ──────────────────── */}
       {phase === 'IN_TRANSIT' && (
-      <View style={styles.trackingCard}>
-        <View style={styles.dragHandle} />
+        <View style={styles.trackingCard}>
+          <View style={styles.dragHandle} />
 
-        {/* Route addresses */}
-        <View style={styles.routeRow}>
-          <View style={styles.routeIcons}>
-            <View style={styles.dotPickup} />
-            <View style={styles.routeLine} />
-            <View style={styles.dotBlue} />
+          {/* Route addresses */}
+          <View style={styles.routeRow}>
+            <View style={styles.routeIcons}>
+              <View style={styles.dotPickup} />
+              <View style={styles.routeLine} />
+              <View style={styles.dotBlue} />
+            </View>
+            <View style={styles.routeAddresses}>
+              <View style={styles.addressBlock}>
+                <Text style={styles.addressLabel}>Pickup</Text>
+                <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
+              </View>
+              <View style={[styles.addressBlock, { marginTop: 8 }]}>
+                <Text style={styles.addressLabel}>Delivery</Text>
+                <Text style={styles.addressValue} numberOfLines={2}>{shipment.deliveryAddress}</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.routeAddresses}>
-            <View style={styles.addressBlock}>
-              <Text style={styles.addressLabel}>Pickup</Text>
-              <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
-            </View>
-            <View style={[styles.addressBlock, { marginTop: 8 }]}>
-              <Text style={styles.addressLabel}>Delivery</Text>
-              <Text style={styles.addressValue} numberOfLines={2}>{shipment.deliveryAddress}</Text>
-            </View>
-          </View>
-        </View>
 
-        {(shipment.contactPerson || shipment.timeWindow) && (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              {shipment.contactPerson && (
-                <View style={styles.infoCell}>
-                  <Text style={styles.infoLabel}>Contact</Text>
-                  <Text style={styles.infoValue}>{shipment.contactPerson}</Text>
-                </View>
-              )}
-              {shipment.timeWindow && (
-                <View style={styles.infoCell}>
-                  <Text style={styles.infoLabel}>Time Window</Text>
-                  <Text style={styles.infoValue}>{shipment.timeWindow}</Text>
-                </View>
-              )}
+          {(shipment.contactPerson || shipment.timeWindow) && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                {shipment.contactPerson && (
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoLabel}>Contact</Text>
+                    <Text style={styles.infoValue}>{shipment.contactPerson}</Text>
+                  </View>
+                )}
+                {shipment.timeWindow && (
+                  <View style={styles.infoCell}>
+                    <Text style={styles.infoLabel}>Time Window</Text>
+                    <Text style={styles.infoValue}>{shipment.timeWindow}</Text>
+                  </View>
+                )}
+              </View>
+            </>
+          )}
+
+          <View style={styles.divider} />
+
+          {/* Progress */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressHeader}>
+              {/* Distance covered */}
+              <View style={styles.progressStat}>
+                <Navigation size={12} color="#94A3B8" style={{ marginBottom: 2 }} />
+                <Text style={styles.progressStatLabel}>Covered</Text>
+                <Text style={styles.progressStatValue}>
+                  {distanceCovered > 0 ? `${distanceCovered.toFixed(1)} km` : '--'}
+                </Text>
+              </View>
+
+              {/* Percentage */}
+              <View style={styles.progressCenter}>
+                {totalDistance != null ? (
+                  <>
+                    <Text style={[
+                      styles.progressPercent,
+                      arrived && styles.progressPercentArrived,
+                      almostThere && styles.progressPercentAlmost,
+                    ]}>
+                      {progressPercent}%
+                    </Text>
+                    <Text style={styles.progressPercentLabel}>complete</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.progressPercentUnknown}>--</Text>
+                    <Text style={styles.progressPercentLabel}>in progress</Text>
+                  </>
+                )}
+              </View>
+
+              {/* Total distance */}
+              <View style={[styles.progressStat, { alignItems: 'flex-end' }]}>
+                <MapPin size={12} color="#0071BC" style={{ marginBottom: 2 }} />
+                <Text style={styles.progressStatLabel}>Total</Text>
+                <Text style={styles.progressStatValue}>
+                  {totalDistance != null ? `${totalDistance.toFixed(1)} km` : '? km'}
+                </Text>
+              </View>
             </View>
-          </>
-        )}
 
-        <View style={styles.divider} />
-
-        {/* Progress */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressHeader}>
-            {/* Distance covered */}
-            <View style={styles.progressStat}>
-              <Navigation size={12} color="#94A3B8" style={{ marginBottom: 2 }} />
-              <Text style={styles.progressStatLabel}>Covered</Text>
-              <Text style={styles.progressStatValue}>
-                {distanceCovered > 0 ? `${distanceCovered.toFixed(1)} km` : '--'}
-              </Text>
-            </View>
-
-            {/* Percentage */}
-            <View style={styles.progressCenter}>
+            {/* Progress bar */}
+            <View style={styles.progressBarTrack}>
               {totalDistance != null ? (
-                <>
-                  <Text style={[
-                    styles.progressPercent,
-                    arrived && styles.progressPercentArrived,
-                    almostThere && styles.progressPercentAlmost,
-                  ]}>
-                    {progressPercent}%
-                  </Text>
-                  <Text style={styles.progressPercentLabel}>complete</Text>
-                </>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { width: fillWidth },
+                    arrived && styles.progressBarArrived,
+                    almostThere && styles.progressBarAlmost,
+                  ]}
+                />
               ) : (
-                <>
-                  <Text style={styles.progressPercentUnknown}>--</Text>
-                  <Text style={styles.progressPercentLabel}>in progress</Text>
-                </>
+                <View style={[styles.progressBarFill, styles.progressBarIndeterminate]} />
               )}
             </View>
 
-            {/* Total distance */}
-            <View style={[styles.progressStat, { alignItems: 'flex-end' }]}>
-              <MapPin size={12} color="#0071BC" style={{ marginBottom: 2 }} />
-              <Text style={styles.progressStatLabel}>Total</Text>
-              <Text style={styles.progressStatValue}>
-                {totalDistance != null ? `${totalDistance.toFixed(1)} km` : '? km'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Progress bar */}
-          <View style={styles.progressBarTrack}>
-            {totalDistance != null ? (
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: fillWidth },
-                  arrived    && styles.progressBarArrived,
-                  almostThere && styles.progressBarAlmost,
-                ]}
-              />
-            ) : (
-              <View style={[styles.progressBarFill, styles.progressBarIndeterminate]} />
+            {/* ETA — hidden when N/A or not yet received */}
+            {!etaIsUnknown && (
+              <View style={styles.etaRow}>
+                <Text style={styles.etaLabel}>Estimated Arrival</Text>
+                <Text style={[
+                  styles.etaValue,
+                  arrived && styles.etaValueArrived,
+                  almostThere && styles.etaValueAlmost,
+                ]}>
+                  {arrived ? 'Arrived' : almostThere ? 'Arriving soon' : eta}
+                </Text>
+              </View>
             )}
           </View>
 
-          {/* ETA — hidden when N/A or not yet received */}
-          {!etaIsUnknown && (
-            <View style={styles.etaRow}>
-              <Text style={styles.etaLabel}>Estimated Arrival</Text>
-              <Text style={[
-                styles.etaValue,
-                arrived    && styles.etaValueArrived,
-                almostThere && styles.etaValueAlmost,
-              ]}>
-                {arrived ? 'Arrived' : almostThere ? 'Arriving soon' : eta}
-              </Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={[
+              styles.endTripBtn,
+              arrived && styles.endTripBtnArrived,
+              almostThere && styles.endTripBtnAlmost,
+            ]}
+            activeOpacity={0.85}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.endTripText}>
+              {arrived ? 'Trip Complete' : almostThere ? 'Almost There' : 'Arrival at Destination'}
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={[
-            styles.endTripBtn,
-            arrived    && styles.endTripBtnArrived,
-            almostThere && styles.endTripBtnAlmost,
-          ]}
-          activeOpacity={0.85}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.endTripText}>
-            {arrived ? 'Trip Complete' : almostThere ? 'Almost There' : 'Arrival at Destination'}
-          </Text>
-        </TouchableOpacity>
-      </View>
       )}
     </View>
   );
@@ -806,7 +807,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 20, marginTop: 4,
   },
-  statusDot:  { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   statusText: { fontSize: 11, fontWeight: '700' },
 
   // banners (stacked below header)
@@ -860,19 +861,19 @@ const styles = StyleSheet.create({
   },
 
   // route section
-  routeRow:       { flexDirection: 'row', alignItems: 'stretch' },
-  routeIcons:     { width: 20, alignItems: 'center', paddingTop: 4 },
-  dotPickup:      { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
-  routeLine:      { flex: 1, width: 2, backgroundColor: '#93C5FD', marginVertical: 4, minHeight: 24 },
-  dotBlue:        { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
+  routeRow: { flexDirection: 'row', alignItems: 'stretch' },
+  routeIcons: { width: 20, alignItems: 'center', paddingTop: 4 },
+  dotPickup: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
+  routeLine: { flex: 1, width: 2, backgroundColor: '#93C5FD', marginVertical: 4, minHeight: 24 },
+  dotBlue: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#0071BC' },
   routeAddresses: { flex: 1, marginLeft: 12 },
-  addressBlock:   {},
-  addressLabel:   { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
-  addressValue:   { fontSize: 14, fontWeight: '700', color: '#1A1C1E' },
+  addressBlock: {},
+  addressLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
+  addressValue: { fontSize: 14, fontWeight: '700', color: '#1A1C1E' },
 
   // info row
-  infoRow:   { flexDirection: 'row', gap: 16 },
-  infoCell:  { flex: 1 },
+  infoRow: { flexDirection: 'row', gap: 16 },
+  infoCell: { flex: 1 },
   infoLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
   infoValue: { fontSize: 13, fontWeight: '700', color: '#1A1C1E' },
 
@@ -884,13 +885,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: 8,
   },
-  progressStat:         { alignItems: 'flex-start', minWidth: 72 },
-  progressStatLabel:    { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
-  progressStatValue:    { fontSize: 15, fontWeight: '800', color: '#1A1C1E' },
-  progressCenter:       { alignItems: 'center' },
-  progressPercent:      { fontSize: 24, fontWeight: '900', color: '#0071BC' },
+  progressStat: { alignItems: 'flex-start', minWidth: 72 },
+  progressStatLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
+  progressStatValue: { fontSize: 15, fontWeight: '800', color: '#1A1C1E' },
+  progressCenter: { alignItems: 'center' },
+  progressPercent: { fontSize: 24, fontWeight: '900', color: '#0071BC' },
   progressPercentArrived: { color: '#22C55E' },
-  progressPercentAlmost:  { color: '#1D4ED8' },
+  progressPercentAlmost: { color: '#1D4ED8' },
   progressPercentUnknown: { fontSize: 24, fontWeight: '900', color: '#94A3B8' },
   progressPercentLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginTop: -2 },
   progressBarTrack: {
@@ -901,14 +902,14 @@ const styles = StyleSheet.create({
     height: '100%', backgroundColor: '#0071BC',
     borderRadius: 4, minWidth: 8,
   },
-  progressBarArrived:      { backgroundColor: '#22C55E' },
-  progressBarAlmost:       { backgroundColor: '#3B82F6' },
+  progressBarArrived: { backgroundColor: '#22C55E' },
+  progressBarAlmost: { backgroundColor: '#3B82F6' },
   progressBarIndeterminate: { width: '100%', opacity: 0.3 },
-  etaRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  etaLabel:       { fontSize: 12, color: '#94A3B8', fontWeight: '600' },
-  etaValue:       { fontSize: 13, fontWeight: '800', color: '#1A1C1E' },
+  etaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  etaLabel: { fontSize: 12, color: '#94A3B8', fontWeight: '600' },
+  etaValue: { fontSize: 13, fontWeight: '800', color: '#1A1C1E' },
   etaValueArrived: { color: '#22C55E' },
-  etaValueAlmost:  { color: '#1D4ED8' },
+  etaValueAlmost: { color: '#1D4ED8' },
 
   // buttons
   endTripBtn: {
@@ -916,7 +917,7 @@ const styles = StyleSheet.create({
     borderRadius: 14, justifyContent: 'center', alignItems: 'center',
   },
   endTripBtnArrived: { backgroundColor: '#22C55E' },
-  endTripBtnAlmost:  { backgroundColor: '#3B82F6' },
+  endTripBtnAlmost: { backgroundColor: '#3B82F6' },
   endTripText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
 
   // phase 1 — heading to pickup
@@ -935,7 +936,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStyle = [
-  { featureType: 'poi',     stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
 ];
 

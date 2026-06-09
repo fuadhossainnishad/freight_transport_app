@@ -1,4 +1,5 @@
 import { InfoType } from "../domain/entities/info.entity"
+import { AddressLocation } from "../presentation/shipper/types"
 
 export type TransporterTabParamList = {
     HomeStack: undefined
@@ -45,7 +46,14 @@ export type ShipperRootParamList = {
 
 export type ShipperHomeStackParamList = {
     Home: undefined;
-    CreateShipment: undefined
+    CreateShipment: {
+        selectedLocation?: AddressLocation
+        field?: "pickup_address" | "delivery_address"
+    }
+
+    AddressPicker: {
+        field: "pickup_address" | "delivery_address";
+    }
 };
 
 export type TransporterHomeStackParamList = {

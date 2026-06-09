@@ -1,5 +1,16 @@
+/**
+ * BasicShipmentInfo.tsx
+ *
+ * Fix: removed the duplicate upload-trigger button.
+ * Previously both an "Upload Images" zone (shown when empty) AND a
+ * standalone Add button (always shown) were rendered simultaneously,
+ * which confused the UI. Now:
+ *   - Empty state: shows a full dashed upload zone.
+ *   - Has images: shows the image grid + a small "Add more" button below.
+ */
+
 import React, { useState } from "react"
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Control, Controller, UseFormSetValue } from "react-hook-form"
 import { Asset } from "react-native-image-picker"
 
@@ -42,21 +53,20 @@ export default function BasicShipmentInfo({
     images,
     onRemoveImage,
 }: Props) {
-
     const [categoryVisible, setCategoryVisible] = useState(false)
     const [packagingVisible, setPackagingVisible] = useState(false)
 
     return (
-        <View className="p-4">
+        <View style={styles.container}>
 
             {/* Shipment title */}
-            <Text className="font-semibold mb-2">Shipment title</Text>
+            <Text style={styles.label}>Shipment title</Text>
             <Controller
                 control={control}
                 name="shipment_title"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
-                        className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
+                        style={styles.input}
                         placeholder="Ship 12 Pallets of Rice"
                         value={value}
                         onChangeText={onChange}
@@ -64,7 +74,6 @@ export default function BasicShipmentInfo({
                 )}
             />
 
-            {/* Category selector */}
             <SelectField
                 label="Category"
                 name="category"
@@ -73,15 +82,14 @@ export default function BasicShipmentInfo({
                 onPress={() => setCategoryVisible(true)}
             />
 
-            {/* Description */}
-            <Text className="font-semibold mb-2">Description</Text>
+            <Text style={styles.label}>Description</Text>
             <Controller
                 control={control}
                 name="discription"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
                         multiline
-                        className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
+                        style={[styles.input, styles.multiline]}
                         placeholder="Description"
                         value={value}
                         onChangeText={onChange}
@@ -89,23 +97,21 @@ export default function BasicShipmentInfo({
                 )}
             />
 
-            {/* Weight */}
-            <Text className="font-semibold mb-2">Weight</Text>
+            <Text style={styles.label}>Weight</Text>
             <Controller
                 control={control}
                 name="weight"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
-                        className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
+                        style={styles.input}
                         placeholder="2300 KG"
                         value={value}
                         onChangeText={onChange}
-                        keyboardType='number-pad'
+                        keyboardType="number-pad"
                     />
                 )}
             />
 
-            {/* Packaging selector */}
             <SelectField
                 label="Packaging Type"
                 name="type_of_packaging"
@@ -114,81 +120,92 @@ export default function BasicShipmentInfo({
                 onPress={() => setPackagingVisible(true)}
             />
 
-            {/* Dimensions */}
-            <Text className="font-semibold mb-2">Dimensions</Text>
+            <Text style={styles.label}>Dimensions</Text>
             <Controller
                 control={control}
                 name="dimensions"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
-                        className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-                        placeholder="120 / 100 / 160"
+                        style={styles.input}
+                        placeholder="120 / 100 / 160 cm"
                         value={value}
                         onChangeText={onChange}
-                        keyboardType='numeric'
-
+                        keyboardType="numeric"
                     />
                 )}
             />
 
-            {/* Image preview */}
-            <View className="flex-row flex-wrap gap-3 mb-4">
-                {images.map((img, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        onPress={() => onRemoveImage(index)}
-                    >
-                        <Image
-                            source={{ uri: img.uri }}
-                            style={{ width: 80, height: 80, borderRadius: 8 }}
-                        />
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {images.length === 0 && (
+            {/* ── Image upload area ─────────────────────────── */}
+            {images.length === 0 ? (
+                // Empty state — full upload zone
                 <TouchableOpacity
                     onPress={onPickImages}
-                    className="p-4 rounded-lg mb-6 flex-col items-center gap-3 border border-dashed border-[#C3C3C3]"
+                    style={styles.uploadZone}
+                    activeOpacity={0.7}
                 >
-                    <Upload height={40} width={40} />
-                    <Text>Upload Images</Text>
+                    <Upload height={36} width={36} />
+                    <Text style={styles.uploadText}>Tap to upload images</Text>
+                    <Text style={styles.uploadSubtext}>JPG, PNG supported</Text>
                 </TouchableOpacity>
+            ) : (
+                // Has images — grid + add more button
+                <View style={styles.imageSection}>
+                    <View style={styles.imageGrid}>
+                        {images.map((img, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => onRemoveImage(index)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.imageWrapper}>
+                                    <Image
+                                        source={{ uri: img.uri }}
+                                        style={styles.thumbnail}
+                                    />
+                                    {/* Remove badge */}
+                                    <View style={styles.removeBadge}>
+                                        <Text style={styles.removeBadgeText}>✕</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {/* Add more */}
+                    <TouchableOpacity
+                        onPress={onPickImages}
+                        style={styles.addMoreButton}
+                        activeOpacity={0.7}
+                    >
+                        <Add height={22} width={22} />
+                        <Text style={styles.addMoreText}>Add more images</Text>
+                    </TouchableOpacity>
+                </View>
             )}
 
             <TouchableOpacity
-                onPress={onPickImages}
-                className="border border-dashed border-[#C3C3C3] p-4 rounded-lg mb-6 items-center"
-            >
-                <Add height={40} width={40} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
                 onPress={onNext}
-                className="bg-[#036BB4] p-4 rounded-full"
+                style={styles.nextButton}
+                activeOpacity={0.85}
             >
-                <Text className="text-white text-center font-semibold">
-                    Next
-                </Text>
+                <Text style={styles.nextText}>Next</Text>
             </TouchableOpacity>
 
-            {/* Category modal */}
             <OptionSelectorModal
                 visible={categoryVisible}
                 options={CATEGORY_OPTIONS}
                 onClose={() => setCategoryVisible(false)}
-                onSelect={(value) => {
+                onSelect={(value: string) => {
                     setValue("category", value)
                     setCategoryVisible(false)
                 }}
             />
 
-            {/* Packaging modal */}
             <OptionSelectorModal
                 visible={packagingVisible}
                 options={PACKAGING_OPTIONS}
                 onClose={() => setPackagingVisible(false)}
-                onSelect={(value) => {
+                onSelect={(value: string) => {
                     setValue("type_of_packaging", value)
                     setPackagingVisible(false)
                 }}
@@ -196,3 +213,119 @@ export default function BasicShipmentInfo({
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        padding: 16,
+    },
+    label: {
+        fontWeight: "600",
+        marginBottom: 6,
+        color: "#1a1a1a",
+        fontSize: 14,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: "#AEAEAE",
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        borderRadius: 10,
+        marginBottom: 16,
+        fontSize: 14,
+        color: "#1a1a1a",
+        backgroundColor: "#fff",
+    },
+    multiline: {
+        minHeight: 80,
+        textAlignVertical: "top",
+    },
+
+    // Upload
+    uploadZone: {
+        borderWidth: 1.5,
+        borderStyle: "dashed",
+        borderColor: "#AEAEAE",
+        borderRadius: 12,
+        paddingVertical: 32,
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 20,
+        backgroundColor: "#fafafa",
+    },
+    uploadText: {
+        fontSize: 14,
+        color: "#555",
+        fontWeight: "500",
+    },
+    uploadSubtext: {
+        fontSize: 12,
+        color: "#9ca3af",
+    },
+
+    // Image grid
+    imageSection: {
+        marginBottom: 20,
+    },
+    imageGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+        marginBottom: 12,
+    },
+    imageWrapper: {
+        position: "relative",
+    },
+    thumbnail: {
+        width: 80,
+        height: 80,
+        borderRadius: 10,
+    },
+    removeBadge: {
+        position: "absolute",
+        top: -6,
+        right: -6,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: "#ef4444",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    removeBadgeText: {
+        color: "#fff",
+        fontSize: 9,
+        fontWeight: "700",
+    },
+    addMoreButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        borderWidth: 1.5,
+        borderStyle: "dashed",
+        borderColor: "#036BB4",
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        alignSelf: "flex-start",
+    },
+    addMoreText: {
+        color: "#036BB4",
+        fontSize: 13,
+        fontWeight: "500",
+    },
+
+    // Next
+    nextButton: {
+        backgroundColor: "#036BB4",
+        paddingVertical: 15,
+        borderRadius: 30,
+        alignItems: "center",
+        marginTop: 4,
+    },
+    nextText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "600",
+        letterSpacing: 0.3,
+    },
+})

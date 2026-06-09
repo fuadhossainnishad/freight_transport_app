@@ -30,10 +30,8 @@ export default function TransporterHomeScreen() {
   const { user: authUser } = useAuth();
   const transporterId = authUser?.transporter_id;
 
-  // ─────────────────────────────
-  // HOOKS
-  // ─────────────────────────────
-  useTransporterSocket();  // ← self-contained, no return value needed
+
+  useTransporterSocket();
 
   const stats = useTransporterStats(transporterId);
   const shipments = useActiveShipments(transporterId);

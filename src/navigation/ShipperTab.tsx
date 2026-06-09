@@ -13,7 +13,6 @@ import InvoiceInline from '../../assets/icons/invoice_inactive.svg';
 import Settings from '../../assets/icons/settings.svg';
 import SettingsInline from '../../assets/icons/settings_inactive.svg';
 import { ShipperTabParamList } from './types';
-import ShipperHome from '../presentation/shipper/screens/ShipperHome.screen';
 import ShipperHomeStack from './ShipperHomeStack';
 import SettingsStack from './SettingsStack';
 import ActiveShipmentsStack from './ActiveShipmentsStack';

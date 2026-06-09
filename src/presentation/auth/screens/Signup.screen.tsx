@@ -133,7 +133,7 @@ export default function SignupScreen() {
                 {selectedRole === 'TRANSPORTER' ? "Company Details" : "Basic information"}
               </Text>
               <Text className="text-base  font-normal text-black/10 mb-1">
-                Company name</Text>
+                Company Name</Text>
               <Controller
                 control={control}
                 name="companyName"
@@ -148,7 +148,7 @@ export default function SignupScreen() {
 
               {/* Email */}
               <Text className="text-base  font-normal text-black/10 mb-1">
-                Company name</Text>
+                Email</Text>
               <Controller
                 control={control}
                 name="email"
@@ -165,7 +165,7 @@ export default function SignupScreen() {
 
               {/* Phone */}
               <Text className="text-base  font-normal text-black/10 mb-1">
-                Company name</Text>
+                Mobile Number</Text>
               <Controller
                 control={control}
                 name="phone"
@@ -191,8 +191,10 @@ export default function SignupScreen() {
                 <CountryCodeDropdownPicker
                   selected={dialCode}
                   setSelected={setDialCode as any}
-                  setCountryDetails={setCountryDetails}
-                  countryCodeContainerStyles={styles.countryCodeContainer}
+                  setCountryDetails={(details: any) => {
+                    console.log('Country details:', details); // Debug log
+                    setCountryDetails(details);
+                  }} countryCodeContainerStyles={styles.countryCodeContainer}
                   countryCodeTextStyles={styles.countryCodeText}
                 />
               </View>
@@ -215,7 +217,7 @@ export default function SignupScreen() {
 
                   {/* Truck Type */}
                   <Text className="text-base  font-normal text-black/10 mb-1">
-                    Company name</Text>
+                    Truck Type</Text>
                   <Controller
                     control={control}
                     name="truckType"
@@ -233,31 +235,35 @@ export default function SignupScreen() {
               }
               {/* Password */}
               <Text className="text-base  font-normal text-black/10 mb-1">
-                Company name</Text>
+                Password</Text>
               <Controller
                 control={control}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <PasswordInput
-                    placeholder="Password"
-                    value={value ?? ""}
-                    onChangeText={onChange}
-                  />
+                  <View className="border border-gray-400 rounded-xl px-4">
+                    <PasswordInput
+                      placeholder="Password"
+                      value={value ?? ""}
+                      onChangeText={onChange}
+                    />
+                  </View>
                 )}
               />
 
               {/* Confirm Password */}
               <Text className="text-base  font-normal text-black/10 mb-1">
-                Company name</Text>
+                Confirm Password</Text>
               <Controller
                 control={control}
                 name="confirmPassword"
                 render={({ field: { onChange, value } }) => (
-                  <PasswordInput
-                    placeholder="Confirm password"
-                    value={value ?? ""}
-                    onChangeText={onChange}
-                  />
+                  <View className="border border-gray-400 rounded-xl px-4">
+                    <PasswordInput
+                      placeholder="Confirm password"
+                      value={value ?? ""}
+                      onChangeText={onChange}
+                    />
+                  </View>
                 )}
               />
 
