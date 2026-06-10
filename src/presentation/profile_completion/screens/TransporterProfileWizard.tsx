@@ -26,7 +26,7 @@ export default function TransporterProfileWizard() {
         const documents = [
             { key: "registration_certificate", file: values.registration_certificate },
             { key: "transport_license", file: values.transport_license },
-            { key: "insurance_certificate", file: values.insurance_certificate }
+            // { key: "insurance_certificate", file: values.insurance_certificate }
         ]
 
         // Validate all documents are uploaded

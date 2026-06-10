@@ -14,12 +14,12 @@ export interface TransporterProfileFormValues {
         type: string
         size?: number
     }
-    insurance_certificate?: {
-        uri: string
-        name: string
-        type: string
-        size?: number
-    }
+    // insurance_certificate?: {
+    //     uri: string
+    //     name: string
+    //     type: string
+    //     size?: number
+    // }
 }
 
 export const useTransporterProfileWizard = () => {
@@ -27,7 +27,7 @@ export const useTransporterProfileWizard = () => {
         defaultValues: {
             registration_certificate: undefined,
             transport_license: undefined,
-            insurance_certificate: undefined,
+            // insurance_certificate: undefined,
         }
     })
 
