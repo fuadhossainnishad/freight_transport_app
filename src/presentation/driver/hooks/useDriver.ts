@@ -48,11 +48,17 @@ export default function useDriver(driverId: string | undefined): UseStatResult {
                 setData(res);
                 setStatus('success');
             } catch (err) {
-                const er = err instanceof Error ? err : new Error('Unknown error');
+                // The axios interceptor rejects with a plain object
+                // ({ message, statusCode, ... }), not an Error instance, so
+                // pull the message off whichever shape we actually got.
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : (err as any)?.message || 'Unknown error';
                 if (cancelled || currentId !== requestIdRef.current) return
-                setError(er.message);
+                setError(message);
                 setStatus('error');
-                logger.error("Failed to fetch driver details:", er);
+                logger.error("Failed to fetch driver details:", err);
 
             }
         }

@@ -1,21 +1,30 @@
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Controller, Control } from "react-hook-form"
-import Checkbox from "../../../shared/components/Checkbox"
-import AddressPickerField from "./AddressPickerField"
-import { useNavigation } from "@react-navigation/native"
+import LocationPickerInput, { LatLng } from "../../../shared/components/LocationPickerInput"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { ShipperHomeStackParamList } from "../../../navigation/types"
+import Checkbox from "../../../shared/components/Checkbox"
 
 type Props = {
   control: Control<any>
   onSubmit: () => void
+  pickupCoord: LatLng | null
+  deliveryCoord: LatLng | null
+  setPickupCoord: (c: LatLng | null) => void
+  setDeliveryCoord: (c: LatLng | null) => void
 }
 
 type NavigationProps = NativeStackNavigationProp<ShipperHomeStackParamList>;
 
-export default function DeliveryDetails({ control, onSubmit }: Props) {
-  const navigation = useNavigation<NavigationProps>()
+export default function DeliveryDetails({
+  control,
+  onSubmit,
+  pickupCoord,
+  deliveryCoord,
+  setPickupCoord,
+  setDeliveryCoord,
+}: Props) {
 
   return (
     <View className="p-4">
@@ -26,14 +35,15 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
       <Controller
         control={control}
         name="pickup_address"
-        render={({ field: { value } }) => (
-          <AddressPickerField
-            placeholder="Pickup Address"
-            value={value}
-            handlePress={() => {
-              navigation.navigate("AddressPicker", {
-                field: "pickup_address",
-              })
+        render={({ field: { onChange, value } }) => (
+          <LocationPickerInput
+            label="Pickup Location"
+            placeholder="Search pickup address"
+            address={value || ""}
+            coord={pickupCoord}
+            onChange={(addr, c) => {
+              onChange(addr)
+              setPickupCoord(c)
             }}
           />
         )}
@@ -55,14 +65,15 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
       <Controller
         control={control}
         name="delivery_address"
-        render={({ field: { value } }) => (
-          <AddressPickerField
-            placeholder="Delivery Address"
-            value={value}
-            handlePress={() => {
-              navigation.navigate("AddressPicker", {
-                field: "delivery_address",
-              })
+        render={({ field: { onChange, value } }) => (
+          <LocationPickerInput
+            label="Delivery Location"
+            placeholder="Search delivery address"
+            address={value || ""}
+            coord={deliveryCoord}
+            onChange={(addr, c) => {
+              onChange(addr)
+              setDeliveryCoord(c)
             }}
           />
         )}

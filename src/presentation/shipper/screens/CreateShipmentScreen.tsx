@@ -21,6 +21,7 @@ import AppHeader from "../../../shared/components/AppHeader"
 import StepIndicator from "../../../shared/components/StepIndicator"
 import BasicShipmentInfo from "../components/BasicShipmentInfo"
 import DeliveryDetails from "../components/DeliveryDetails"
+import { LatLng } from "../../../shared/components/LocationPickerInput"
 
 import { createShipment } from "../../../data/services/shipmentService"
 import { pickShipmentImages } from "../../../shared/hooks/useImagePicker"
@@ -38,67 +39,14 @@ export default function CreateShipmentScreen() {
 
     const [step, setStep] = useState(0)
     const [images, setImages] = useState<Asset[]>([])
+    const [pickupCoord, setPickupCoord] = useState<LatLng | null>(null)
+    const [deliveryCoord, setDeliveryCoord] = useState<LatLng | null>(null)
+    const { control, handleSubmit, setValue } = useForm()
 
-    const { control, handleSubmit, setValue } = useForm<ShipmentFormValues>({
-        defaultValues: {
-            shipment_title: "",
-            category: null,
-            discription: "",
-            weight: "",
-            type_of_packaging: null,
-            dimensions: "",
-            pickup_address: null,
-            delivery_address: null,
-            time_window: "",
-            contact_person: "",
-            date_preference: "",
-            insurance: false,
-            forwarding: false,
-        },
-    })
+    // Backend stores coordinates as GeoJSON Point ([lng, lat]).
+    const toGeoJson = (c: LatLng) =>
+        JSON.stringify({ type: "Point", coordinates: [c.longitude, c.latitude] })
 
-    // ------------------------------------------------------------------
-    // Consume location params from AddressPickerScreen.
-    //
-    // Problem: route.params.selectedLocation is a new object on every
-    // navigation.navigate() call — BUT if the user picks the same GPS
-    // coordinates twice, the lat/lng values are identical, and React's
-    // object-reference comparison would skip the effect.
-    //
-    // Fix: serialize the location to a JSON string as the dependency key.
-    // This is deterministic and fires whenever any value inside changes.
-    // ------------------------------------------------------------------
-    const selectedLocationKey = route.params?.selectedLocation
-        ? JSON.stringify(route.params.selectedLocation)
-        : null
-
-    // Track which keys we've already consumed so hot-reload / tab-switch
-    // doesn't re-apply stale params.
-    const consumedKeys = useRef<Set<string>>(new Set())
-
-    useEffect(() => {
-        if (!selectedLocationKey) return
-        if (consumedKeys.current.has(selectedLocationKey)) return
-
-        const location = route.params?.selectedLocation
-        const field = route.params?.field
-
-        if (!location || !field) return
-
-        consumedKeys.current.add(selectedLocationKey)
-
-        setValue(field as keyof ShipmentFormValues, location, {
-            shouldDirty: true,
-            shouldValidate: true,
-        })
-    }, [selectedLocationKey]) // eslint-disable-line react-hooks/exhaustive-deps
-    // Note: setValue is stable (react-hook-form guarantees this) so it's
-    // safe to omit from deps. Including route.params directly would cause
-    // the effect to fire on every unrelated navigation event.
-
-    // ------------------------------------------------------------------
-    // Image handling
-    // ------------------------------------------------------------------
     const handlePickImages = async () => {
         const selected = await pickShipmentImages()
         if (selected.length > 0) {
@@ -118,20 +66,14 @@ export default function CreateShipmentScreen() {
             const formData = new FormData()
             formData.append("shipper_id", user?.shipper_id as string)
 
-            // Serialize address objects as JSON strings for the API
-            const serialized: Record<string, any> = {
-                ...data,
-                pickup_address: data.pickup_address
-                    ? JSON.stringify(data.pickup_address)
-                    : "",
-                delivery_address: data.delivery_address
-                    ? JSON.stringify(data.delivery_address)
-                    : "",
-            }
-
-            Object.entries(serialized).forEach(([key, value]) => {
-                formData.append(key, value as string)
+            Object.keys(data).forEach(key => {
+                formData.append(key, data[key])
             })
+
+            // Exact pins chosen on the map — sent as GeoJSON so the backend can
+            // store precise coordinates instead of geocoding the address text.
+            if (pickupCoord) formData.append("pickup_location", toGeoJson(pickupCoord))
+            if (deliveryCoord) formData.append("delivery_location", toGeoJson(deliveryCoord))
 
             images.forEach((img, index) => {
                 formData.append("shipment_images", {
@@ -174,6 +116,10 @@ export default function CreateShipmentScreen() {
                         <DeliveryDetails
                             control={control}
                             onSubmit={handleSubmit(onSubmit)}
+                            pickupCoord={pickupCoord}
+                            deliveryCoord={deliveryCoord}
+                            setPickupCoord={setPickupCoord}
+                            setDeliveryCoord={setDeliveryCoord}
                         />
                     )}
                 </ScrollView>

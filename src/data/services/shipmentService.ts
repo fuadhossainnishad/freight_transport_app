@@ -62,6 +62,21 @@ export const fetchShipments = async (role: string, id: string, page = 1, limit =
     }
 };
 
+export type ShipmentStatus =
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "IN_TRANSIT"
+    | "COMPLETED";
+
+export const updateShipmentStatus = async (
+    shipmentId: string,
+    status: ShipmentStatus
+) => {
+    const res = await axiosClient.patch(`/shipment/${shipmentId}/status`, { status });
+    console.log("updateShipmentStatus:", res.data);
+    return res.data;
+};
+
 export const getShipmentBids = async (shipmentId: string) => {
     const res = await axiosClient.get(`/bid/${shipmentId}`);
     console.log("getShipmentBids:", res.data.data);
