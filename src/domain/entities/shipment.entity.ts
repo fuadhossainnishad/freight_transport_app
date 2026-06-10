@@ -22,6 +22,8 @@ export const mapShipmentDetails = (res: any) => {
     price: shipment.price,
     status: shipment.status,
 
+    driverId: driver?._id || shipment.driver_id || null,
+
     locationHistory: shipment.location_history || {
       coordinates: [],
     },

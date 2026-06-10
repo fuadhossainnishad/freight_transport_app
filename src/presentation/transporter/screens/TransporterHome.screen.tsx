@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
-  ActivityIndicator,
   TouchableOpacity,
   Dimensions,
   FlatList,
@@ -16,8 +15,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../../../app/context/Auth.context";
 import { TransporterHomeStackParamList } from "../../../navigation/types";
 import { connectSocket, getSocket } from "../../../data/socket/socketClient";
-import { getTransporterShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
-import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 import { Shipment } from "../../../domain/entities/shipment.entity";
 
 import HomeHeader from "../../../shared/components/HomeHeader";
@@ -41,8 +38,10 @@ type NavigationProp = NativeStackNavigationProp<
   "Home"
 >;
 
+const truckPlaceholder = require("../../../../assets/images/truck.png");
+
 // ─────────────────────────────
-// CAROUSEL ITEM — isolated so it never re-renders unless its own props change
+// CAROUSEL ITEM
 // ─────────────────────────────
 const ShipmentCarouselItem = ({
   item,
@@ -53,44 +52,66 @@ const ShipmentCarouselItem = ({
   isActive: boolean;
   onPress: () => void;
 }) => {
-  const imageUri = item.images ?? item.images ?? null;
-  const height = isActive ? CARD_HEIGHT_ACTIVE : CARD_HEIGHT_INACTIVE;
+  const imageUri = item.images?.[0] ?? null;
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <View
         style={{
           width: CARD_WIDTH,
-          height: CARD_HEIGHT_ACTIVE, // container always full height
-          justifyContent: "flex-end", // card grows upward from bottom
+          backgroundColor: "#fff",
+          borderRadius: 16,
+          overflow: "hidden",
+          opacity: isActive ? 1 : 0.6,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          elevation: 3,
         }}
       >
-        {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            style={{
-              width: CARD_WIDTH,
-              height,
-              borderRadius: 12,
-              opacity: isActive ? 1 : 0.55,
-            }}
-            resizeMode="cover"
-          />
-        ) : (
+        {/* Active dot indicator */}
+        {isActive && (
           <View
             style={{
-              width: CARD_WIDTH,
-              height,
-              borderRadius: 12,
-              opacity: isActive ? 1 : 0.55,
-              backgroundColor: "#e5e7eb",
-              alignItems: "center",
-              justifyContent: "center",
+              position: "absolute",
+              top: 10,
+              left: 10,
+              width: 10,
+              height: 10,
+              borderRadius: 5,
+              backgroundColor: "#f97316",
+              zIndex: 1,
             }}
-          >
-            <Text style={{ fontSize: 11, color: "#9ca3af" }}>No image</Text>
-          </View>
+          />
         )}
+
+        {/* Image */}
+        <Image
+          source={imageUri ? { uri: imageUri } : truckPlaceholder}
+          style={{
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT_ACTIVE,
+            backgroundColor: "#f3f4f6",
+          }}
+          resizeMode="cover"
+        />
+
+        {/* Title + category */}
+        <View style={{ paddingHorizontal: 10, paddingVertical: 8 }}>
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: 13, fontWeight: "700", color: "#111827" }}
+          >
+            {item.title ?? "Shipment"}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}
+          >
+            {item.category ?? ""}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -106,24 +127,20 @@ export default function TransporterHomeScreen() {
   // ─────────────────────────────
   // STATE
   // ─────────────────────────────
-  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [driversMap, setDriversMap] = useState<Record<string, any>>({});
 
   // ─────────────────────────────
   // REFS
   // ─────────────────────────────
   const flatListRef = useRef<FlatList>(null);
-  const driverCacheRef = useRef(new Map<string, any>());
   const isJumping = useRef(false);
   const lastFiredIndex = useRef(-1);
-
-  // keep a stable ref to activeShipments so the useCallback below
-  // never goes stale without needing activeShipments in its deps
   const activeShipmentsRef = useRef<Shipment[]>([]);
 
   const { data, status, error, refresh } = useTransporterStats(authUser?.transporter_id!)
   const { data: activeShipmentsData, status: activeShipmentsStatus, error: activeShipmentsError, refresh: activeShipmentsRefresh } = useActiveShipments(authUser?.transporter_id!)
+
+  const activeShipments: Shipment[] = activeShipmentsData ?? [];
 
   useEffect(() => {
     activeShipmentsRef.current = activeShipments;
@@ -175,21 +192,6 @@ export default function TransporterHomeScreen() {
     return () => { getSocket()?.disconnect(); };
   }, []);
 
-  // ─────────────────────────────
-  // DRIVER FETCH — lazy, cached, only fires on focus
-  // ─────────────────────────────
-  const fetchDriver = useCallback(async (driverId: string) => {
-    if (!driverId) return;
-    if (driverCacheRef.current.has(driverId)) return; // already in cache, skip
-
-    try {
-      const driver = await getDriverByIdsUseCase(driverId);
-      driverCacheRef.current.set(driverId, driver);
-      setDriversMap((prev) => ({ ...prev, [driverId]: driver }));
-    } catch (e) {
-      console.error("Driver fetch failed:", e);
-    }
-  }, []);
 
   // ─────────────────────────────
   // VIEWABILITY CONFIG
@@ -216,12 +218,6 @@ export default function TransporterHomeScreen() {
       const realIndex = ((rawIndex - CLONE_COUNT) % totalReal + totalReal) % totalReal;
       setActiveIndex(realIndex);
 
-      // ── lazy driver fetch only when this shipment comes into focus ──
-      const focusedShipment = shipments[realIndex];
-      if (focusedShipment?.driverId) {
-        fetchDriver(focusedShipment.driverId);
-      }
-
       // silent jump when entering clone zone
       if (rawIndex < CLONE_COUNT) {
         isJumping.current = true;
@@ -234,25 +230,8 @@ export default function TransporterHomeScreen() {
         setTimeout(() => { isJumping.current = false; }, 50);
       }
     },
-    [fetchDriver] // activeShipments accessed via ref — no stale closure, no dep needed
+    [] // activeShipments accessed via ref — no stale closure, no dep needed
   );
-
-  // ─────────────────────────────
-  // ACTIVE DATA DERIVATION
-  // ─────────────────────────────
-  const activeShipment = activeShipments[activeIndex];
-  const activeDriver = driversMap[activeShipment?.driverId ?? ""] ?? null;
-
-  // ─────────────────────────────
-  // LOADING UI
-  // ─────────────────────────────
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f97316" />
-      </SafeAreaView>
-    );
-  }
 
   // ─────────────────────────────
   // UI
@@ -292,7 +271,7 @@ export default function TransporterHomeScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={activeShipmentsData}
+            data={infiniteShipments}
             extraData={activeIndex}
             horizontal
             pagingEnabled={false}
@@ -309,6 +288,8 @@ export default function TransporterHomeScreen() {
             contentContainerStyle={{ gap: GAP, paddingVertical: 8 }}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
+            onMomentumScrollEnd={() => { isJumping.current = false; }}
+            onScrollEndDrag={() => { isJumping.current = false; }}
             renderItem={({ item, index }) => {
               const totalReal = activeShipments.length;
               const realIndex = ((index - CLONE_COUNT) % totalReal + totalReal) % totalReal;
@@ -325,34 +306,6 @@ export default function TransporterHomeScreen() {
               );
             }}
           />
-        )}
-
-        {/* ───── FOCUSED SHIPMENT DETAIL ───── */}
-        {activeShipment && (
-          <View className="mt-4 p-4 bg-white rounded-xl shadow-sm">
-            <Text className="text-lg font-bold text-gray-900">
-              {activeShipment.title}
-            </Text>
-            <Text className="text-sm text-gray-500 mt-1">
-              Status: {activeShipment.status}
-            </Text>
-
-            <View className="mt-3">
-              <Text className="text-sm font-semibold text-gray-800">Driver</Text>
-              {activeShipment.driverId ? (
-                activeDriver ? (
-                  <>
-                    <Text className="text-sm text-gray-500 mt-1">{activeDriver.name}</Text>
-                    <Text className="text-sm text-gray-500">{activeDriver.phone ?? ""}</Text>
-                  </>
-                ) : (
-                  <Text className="text-sm text-gray-400 mt-1">Loading driver...</Text>
-                )
-              ) : (
-                <Text className="text-sm text-gray-400 mt-1">No driver assigned</Text>
-              )}
-            </View>
-          </View>
         )}
 
       </View>

@@ -1,206 +1,693 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    View,
-    Text,
-    FlatList,
-    Image,
-    Dimensions,
-    ActivityIndicator,
-    ScrollView,
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  FlatList,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import InfoSection from "../components/InfoSection";
-import InfoRow from "../components/InfoRow";
-import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.usecase";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { AvailableBidsStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import AppHeader from "../../../shared/components/AppHeader";
+import { ArrowLeft, ArrowRight } from "lucide-react-native";
+import LinearGradient from "react-native-linear-gradient";
 
-const { width } = Dimensions.get("window");
-const PADDING = 16;
-const IMAGE_WIDTH = width - PADDING * 2; // matches px-4 padding
+import { ActiveShipmentsStackParamList } from "../../../navigation/types";
+import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.usecase";
+import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
+import { Driver } from "../../driver/types";
+import ShipmentMapRoute from "../../transporter/components/ShipmentMapRoute";
 
-type RoutePropType = RouteProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
-type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const MODAL_WIDTH = SCREEN_WIDTH * 0.85;
+const CARD_IMAGE_HEIGHT = 140;
+
+const truckPlaceholder = require("../../../../assets/images/truck.png");
+
+type RoutePropType = RouteProp<ActiveShipmentsStackParamList, "ShipmentDetails">;
+type NavigationPropType = NativeStackNavigationProp<
+  ActiveShipmentsStackParamList,
+  "ShipmentDetails"
+>;
+
+function LicenceIcon({ color = "#036BB4" }: { color?: string }) {
+  return (
+    <View style={[styles.licenceIconBox, { borderColor: color }]}>
+      <View style={[styles.licenceIconLine, { backgroundColor: color, width: 18 }]} />
+      <View style={[styles.licenceIconLine, { backgroundColor: color, width: 12, marginTop: 3 }]} />
+      <View style={[styles.licenceIconLine, { backgroundColor: color, width: 15, marginTop: 3 }]} />
+    </View>
+  );
+}
+
+function ColSep() {
+  return <View style={styles.colSep} />;
+}
+
+function Header({ onBack }: { onBack: () => void }) {
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={onBack}
+        style={styles.backBtn}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <ArrowLeft size={22} color="#111827" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Active Shipments</Text>
+      <View style={{ width: 36 }} />
+    </View>
+  );
+}
 
 export default function ShipmentDetailsScreen() {
-    const navigation = useNavigation<NavigationPropType>();
-    const route = useRoute<RoutePropType>();
-    const { shipmentId } = route.params;
+  const navigation = useNavigation<NavigationPropType>();
+  const route = useRoute<RoutePropType>();
+  const { shipmentId } = route.params;
 
-    const [shipmentData, setShipmentData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const flatListRef = useRef<FlatList>(null);
-    const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [shipment, setShipment] = useState<any>(null);
+  const [driver, setDriver] = useState<Driver | null | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [imgPage, setImgPage] = useState(0);
 
-    const fetchDetails = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getShipmentDetailsUseCase(shipmentId);
+      setShipment(data);
+
+      if (data.driverId) {
         try {
-            setLoading(true);
-            const res = await getShipmentDetailsUseCase(shipmentId);
-            setShipmentData(res);
-        } catch (err) {
-            console.error("Error fetching shipment details:", err);
-        } finally {
-            setLoading(false);
+          const d = await getDriverByIdsUseCase(data.driverId);
+          setDriver(d);
+        } catch {
+          setDriver(null);
         }
-    }, [shipmentId]);
-
-    useEffect(() => {
-        fetchDetails();
-    }, [fetchDetails]);
-
-    // Auto-scroll carousel
-    useEffect(() => {
-        if (!shipmentData?.images?.length) return;
-
-        autoScrollRef.current = setInterval(() => {
-            setActiveIndex((prev) => {
-                const next = (prev + 1) % shipmentData.images.length;
-                flatListRef.current?.scrollToIndex({ index: next, animated: true });
-                return next;
-            });
-        }, 3000);
-
-        return () => {
-            if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-        };
-    }, [shipmentData?.images?.length]);
-
-    if (loading) {
-        return (
-            <SafeAreaView className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" />
-            </SafeAreaView>
-        );
+      } else {
+        setDriver(null);
+      }
+    } catch (err) {
+      console.error("ShipmentDetails fetch error:", err);
+    } finally {
+      setLoading(false);
     }
+  }, [shipmentId]);
 
-    if (!shipmentData) {
-        return (
-            <SafeAreaView className="flex-1 justify-center items-center">
-                <Text className="text-gray-500">Shipment details not available</Text>
-            </SafeAreaView>
-        );
-    }
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
-    const {
-        title, description, category, weight, dimensions,
-        packaging, images, pickup, delivery, timeWindow,
-        datePreference, price, driver, vehicle, status, contactPerson,
-    } = shipmentData;
-
+  if (loading) {
     return (
-        <SafeAreaView className="flex-1 bg-white">
-            <AppHeader text="Shipment Detail" onpress={() => navigation.goBack()} />
+      <SafeAreaView edges={["top"]} style={styles.screen}>
+        <Header onBack={() => navigation.goBack()} />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#0071BC" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+  if (!shipment) {
+    return (
+      <SafeAreaView edges={["top"]} style={styles.screen}>
+        <Header onBack={() => navigation.goBack()} />
+        <View style={styles.centered}>
+          <Text style={styles.emptyText}>Shipment not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-                {/* Status Badge */}
-                <View className="px-4 pt-3 pb-2">
-                    <View className={`self-start px-3 py-1 rounded-full ${status === "IN_PROGRESS" ? "bg-orange-500" : "bg-green-500"}`}>
-                        <Text className="text-white text-xs font-medium">
-                            {status === "IN_PROGRESS" ? "In Progress" : "Delivered"}
-                        </Text>
+  const licenceImages = [driver?.licenseFront, driver?.licenseBack].filter(
+    Boolean
+  ) as string[];
+  const driverLoading = !!shipment.driverId && driver === undefined;
+  const driverNotFound = !!shipment.driverId && driver === null;
+  const imageUri = shipment.images?.[0] ?? null;
+
+  return (
+    <SafeAreaView edges={["top"]} style={styles.screen}>
+      <Header onBack={() => navigation.goBack()} />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* ── SHIPMENT PREVIEW CARD ─────────────────────────────────────────── */}
+        <Text style={styles.sectionLabel}>Active Shipments</Text>
+
+        <View style={styles.previewCard}>
+          <View style={styles.activeDot} />
+          <View style={styles.previewImageBox}>
+            <Image
+              source={imageUri ? { uri: imageUri } : truckPlaceholder}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.previewInfo}>
+            <Text style={styles.previewTitle} numberOfLines={1}>
+              {shipment.title ?? "Shipment"}
+            </Text>
+            <Text style={styles.previewCategory} numberOfLines={1}>
+              {shipment.category ?? ""}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── DRIVER DETAILS ────────────────────────────────────────────────── */}
+        <Text style={styles.sectionLabel}>Driver Details</Text>
+
+        <View style={styles.driverCard}>
+          {driverLoading ? (
+            <ActivityIndicator color="#036BB4" style={{ paddingVertical: 16 }} />
+          ) : driverNotFound ? (
+            <Text style={styles.emptyDriverText}>Driver record not found</Text>
+          ) : !shipment.driverId ? (
+            <Text style={styles.emptyDriverText}>No driver assigned yet</Text>
+          ) : (
+            <View style={styles.driverRow}>
+              <View style={styles.col}>
+                <Text style={styles.colLabel}>Name</Text>
+                <Text style={styles.colValue} numberOfLines={2}>
+                  {driver?.name ?? shipment.driver?.name ?? "—"}
+                </Text>
+              </View>
+
+              <ColSep />
+
+              <View style={styles.col}>
+                <Text style={styles.colLabel}>Phone</Text>
+                <Text style={styles.colValue} numberOfLines={1}>
+                  {driver?.phone ?? shipment.driver?.phone ?? "—"}
+                </Text>
+              </View>
+
+              <ColSep />
+
+              <View style={[styles.col, { alignItems: "center" }]}>
+                <Text style={styles.colLabel}>Driving Licence</Text>
+                <TouchableOpacity
+                  onPress={() => licenceImages.length > 0 && setModalVisible(true)}
+                  activeOpacity={0.75}
+                  disabled={licenceImages.length === 0}
+                >
+                  <LicenceIcon color={licenceImages.length > 0 ? "#036BB4" : "#9ca3af"} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* ── MAP ───────────────────────────────────────────────────────────── */}
+        <ShipmentMapRoute
+          pickupAddress={shipment.pickup}
+          deliveryAddress={shipment.delivery}
+          status={shipment.status}
+        />
+
+        {/* ── SHIPMENT DETAILS CARD ─────────────────────────────────────────── */}
+        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Shipment Details</Text>
+
+        <View style={styles.detailsCard}>
+          <Image
+            source={imageUri ? { uri: imageUri } : truckPlaceholder}
+            style={styles.detailsImage}
+            resizeMode={imageUri ? "cover" : "contain"}
+          />
+
+          <View style={styles.detailsBody}>
+            <Text style={styles.detailsTitle} numberOfLines={2}>
+              {shipment.title}
+            </Text>
+            {(shipment.packaging || shipment.description) ? (
+              <Text style={styles.detailsDesc} numberOfLines={2}>
+                {shipment.packaging || shipment.description}
+              </Text>
+            ) : null}
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoGrid}>
+              <View style={styles.infoCell}>
+                <Text style={styles.infoLabel}>Pickup Address</Text>
+                <Text style={styles.infoValue} numberOfLines={2}>
+                  {shipment.pickup || "—"}
+                </Text>
+              </View>
+              <View style={styles.infoCell}>
+                <Text style={styles.infoLabel}>Delivery Address</Text>
+                <Text style={styles.infoValue} numberOfLines={2}>
+                  {shipment.delivery || "—"}
+                </Text>
+              </View>
+            </View>
+
+            {shipment.contactPerson ? (
+              <View style={[styles.infoGrid, { marginTop: 12 }]}>
+                <View style={styles.infoCell}>
+                  <Text style={styles.infoLabel}>Contact Person</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {shipment.contactPerson}
+                  </Text>
+                </View>
+                <View style={styles.infoCell}>
+                  <Text style={styles.infoLabel}>Contact Number</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {driver?.phone ?? shipment.driver?.phone ?? "—"}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {(shipment.weight || shipment.category) ? (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.infoGrid}>
+                  {shipment.category ? (
+                    <View style={styles.infoCell}>
+                      <Text style={styles.infoLabel}>Category</Text>
+                      <Text style={styles.infoValue}>{shipment.category}</Text>
                     </View>
+                  ) : null}
+                  {shipment.weight ? (
+                    <View style={styles.infoCell}>
+                      <Text style={styles.infoLabel}>Weight</Text>
+                      <Text style={styles.infoValue}>{shipment.weight}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            ) : null}
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ShipmentTracking", { shipmentId })}
+              style={styles.viewDetailsBtn}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.viewDetailsBtnText}>View full details</Text>
+              <ArrowRight size={15} color="#0071BC" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* ── LIQUID GLASS LICENCE MODAL ────────────────────────────────────────── */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setModalVisible(false)}>
+          <Pressable onPress={() => {}} style={{ width: MODAL_WIDTH }}>
+            <LinearGradient
+              colors={["rgba(255,255,255,0.55)", "rgba(200,230,255,0.25)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.glassRing}
+            >
+              <LinearGradient
+                colors={[
+                  "rgba(255,255,255,0.97)",
+                  "rgba(235,247,255,0.95)",
+                  "rgba(220,240,255,0.92)",
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.glassCard}
+              >
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Driving Licence</Text>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(false)}
+                    style={styles.closeBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.closeBtnText}>✕</Text>
+                  </TouchableOpacity>
                 </View>
 
-                {/* 🔹 Image Carousel */}
-                {images?.length > 0 && (
-                    <View className="px-4">
-                        <FlatList
-                            ref={flatListRef}
-                            data={images}
-                            horizontal
-                            pagingEnabled
-                            scrollEnabled={true}
-                            showsHorizontalScrollIndicator={false}
-                            keyExtractor={(_, i) => i.toString()}
-                            getItemLayout={(_, index) => ({
-                                length: IMAGE_WIDTH,
-                                offset: IMAGE_WIDTH * index,
-                                index,
-                            })}
-                            onMomentumScrollEnd={(e) => {
-                                const index = Math.round(e.nativeEvent.contentOffset.x / IMAGE_WIDTH);
-                                setActiveIndex(index);
-                            }}
-                            renderItem={({ item }) => (
-                                <Image
-                                    source={{ uri: item }}
-                                    style={{
-                                        width: IMAGE_WIDTH,
-                                        height: 200,
-                                        borderRadius: 12,
-                                    }}
-                                    resizeMode="cover"
-                                />
-                            )}
-                        />
-
-                        {/* Dot Indicators */}
-                        <View className="flex-row justify-center mt-2 gap-1">
-                            {images.map((_: any, i: number) => (
-                                <View
-                                    key={i}
-                                    style={{
-                                        width: activeIndex === i ? 20 : 8,
-                                        height: 8,
-                                        borderRadius: 4,
-                                        backgroundColor: activeIndex === i ? "#f97316" : "#d1d5db",
-                                        marginHorizontal: 2,
-                                    }}
-                                />
-                            ))}
-                        </View>
-                    </View>
+                {licenceImages.length > 1 && (
+                  <View style={styles.pageRow}>
+                    {licenceImages.map((_, i) => (
+                      <View
+                        key={i}
+                        style={[styles.pageDot, i === imgPage && styles.pageDotActive]}
+                      />
+                    ))}
+                  </View>
                 )}
 
-                {/* 🔹 Content */}
-                <View className="px-4 py-4">
-                    <View className="flex-row justify-between items-start mb-5">
-                        <View className="flex-1 pr-3">
-                            <Text className="text-xl font-bold">{title}</Text>
-                            <Text className="text-gray-600 mt-1">{description}</Text>
-                        </View>
-                    </View>
+                <FlatList
+                  data={licenceImages}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  keyExtractor={(_, i) => String(i)}
+                  onMomentumScrollEnd={(e) => {
+                    const page = Math.round(
+                      e.nativeEvent.contentOffset.x / (MODAL_WIDTH - 32)
+                    );
+                    setImgPage(page);
+                  }}
+                  renderItem={({ item }) => (
+                    <Image
+                      source={{ uri: item }}
+                      style={styles.licenceImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                />
 
-                    <InfoSection title="Basic Information">
-                        <InfoRow label="Category" value={category} />
-                        <InfoRow label="Weight" value={weight} />
-                        <InfoRow label="Dimensions" value={dimensions} />
-                        <InfoRow label="Packaging" value={packaging} />
-                    </InfoSection>
-
-                    <InfoSection title="Pickup & Delivery Details">
-                        <InfoRow label="Pickup" value={pickup} />
-                        <InfoRow label="Delivery" value={delivery} />
-                        <InfoRow label="Time Window" value={timeWindow} />
-                        <InfoRow label="Date Preference" value={datePreference} />
-                        <InfoRow label="Contact Person" value={contactPerson || "---"} />
-                    </InfoSection>
-
-                    <InfoSection title="Amount">
-                        <InfoRow label="Price" value={`€${price}`} />
-                    </InfoSection>
-
-                    {driver && (
-                        <InfoSection title="Driver Info">
-                            <InfoRow label="Name" value={driver.name} />
-                            <InfoRow label="Phone" value={driver.phone || "---"} />
-                            <InfoRow label="Email" value={driver.email || "---"} />
-                        </InfoSection>
-                    )}
-
-                    {vehicle && (
-                        <InfoSection title="Vehicle Info">
-                            <InfoRow label="Type" value={vehicle.type} />
-                            <InfoRow label="Number" value={vehicle.number} />
-                            <InfoRow label="Plate" value={vehicle.plate} />
-                        </InfoSection>
-                    )}
-                </View>
-            </ScrollView>
-        </SafeAreaView>
-    );
+                <Text style={styles.imgLabel}>
+                  {licenceImages.length > 1
+                    ? imgPage === 0
+                      ? "Front side"
+                      : "Back side"
+                    : "Licence"}
+                </Text>
+              </LinearGradient>
+            </LinearGradient>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </SafeAreaView>
+  );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 32,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#9CA3AF",
+  },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#111827",
+  },
+
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111827",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+
+  previewCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  activeDot: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#F97316",
+    zIndex: 1,
+  },
+  previewImageBox: {
+    width: "100%",
+    height: CARD_IMAGE_HEIGHT,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewImage: {
+    width: SCREEN_WIDTH - 48,
+    height: CARD_IMAGE_HEIGHT - 16,
+  },
+  previewInfo: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  previewTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  previewCategory: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+
+  driverCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  driverRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  col: {
+    flex: 1,
+  },
+  colSep: {
+    width: 1,
+    height: 40,
+    backgroundColor: "#e5e7eb",
+    marginHorizontal: 10,
+  },
+  colLabel: {
+    fontSize: 11,
+    color: "#9ca3af",
+    fontWeight: "600",
+    marginBottom: 5,
+  },
+  colValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  emptyDriverText: {
+    fontSize: 13,
+    color: "#9ca3af",
+    textAlign: "center",
+    paddingVertical: 8,
+  },
+
+  detailsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  detailsImage: {
+    width: "100%",
+    height: 160,
+    backgroundColor: "#f3f4f6",
+  },
+  detailsBody: {
+    padding: 14,
+  },
+  detailsTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  detailsDesc: {
+    fontSize: 12,
+    color: "#6b7280",
+    lineHeight: 17,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginVertical: 12,
+  },
+  infoGrid: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  infoCell: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#9ca3af",
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#111827",
+    lineHeight: 18,
+  },
+
+  viewDetailsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: "#0071BC",
+    borderRadius: 12,
+    paddingVertical: 11,
+  },
+  viewDetailsBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0071BC",
+  },
+
+  licenceIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 6,
+  },
+  licenceIconLine: {
+    height: 2.5,
+    borderRadius: 2,
+  },
+
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(10, 20, 40, 0.72)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  glassRing: {
+    borderRadius: 28,
+    padding: 1.5,
+    shadowColor: "#0071BC",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 32,
+    elevation: 20,
+  },
+  glassCard: {
+    borderRadius: 27,
+    paddingTop: 18,
+    paddingBottom: 22,
+    paddingHorizontal: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.7)",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  closeBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "rgba(15,23,42,0.08)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  pageRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  pageDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(0,113,188,0.25)",
+  },
+  pageDotActive: {
+    width: 18,
+    backgroundColor: "#0071BC",
+  },
+  licenceImage: {
+    width: MODAL_WIDTH - 32,
+    height: 210,
+    borderRadius: 14,
+    backgroundColor: "#f3f4f6",
+  },
+  imgLabel: {
+    textAlign: "center",
+    marginTop: 12,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+    letterSpacing: 0.3,
+  },
+});

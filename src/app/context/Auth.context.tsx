@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import { AuthContextType, User } from './Auth.type';
+import { logout as clearAuthStorage } from "../../shared/utils/auth";
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
@@ -14,6 +15,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = () => {
         setUser(null);
+        // Clear persisted tokens so a stale session can't be restored.
+        clearAuthStorage().catch((err) =>
+            console.error("Failed to clear auth storage on logout:", err)
+        );
     };
 
     return (

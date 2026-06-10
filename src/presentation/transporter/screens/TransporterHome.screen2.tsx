@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -8,17 +8,15 @@ import { useAuth } from "../../../app/context/Auth.context";
 import useTransporterStats from "../hooks/useTransporterStats";
 import useActiveShipments from "../hooks/useActiveShipments";
 import useTransporterSocket from "../hooks/useTransporterSocket";
+import useDriverMap from "../hooks/useDriverMap";
 
 import { TransporterHomeStackParamList } from "../../../navigation/types";
-
 import { Shipment } from "../../../domain/entities/shipment.entity";
+
 import HomeHeader from "../../../shared/components/HomeHeader";
 import TransporterStatsSection from "../components/TransporterStatsSection";
 import { ShipmentsCarousel } from "../components/ShipmentsCarousel";
 import { ActiveShipmentDetail } from "../components/ActiveShipmentDetail";
-import useDriverMap from "../hooks/useDriverMap";
-
-
 
 type NavigationProp = NativeStackNavigationProp<
   TransporterHomeStackParamList,
@@ -30,10 +28,7 @@ export default function TransporterHomeScreen() {
   const { user: authUser } = useAuth();
   const transporterId = authUser?.transporter_id;
 
-  // ─────────────────────────────
-  // HOOKS
-  // ─────────────────────────────
-  useTransporterSocket();  // ← self-contained, no return value needed
+  useTransporterSocket();
 
   const stats = useTransporterStats(transporterId);
   const shipments = useActiveShipments(transporterId);
@@ -41,25 +36,21 @@ export default function TransporterHomeScreen() {
 
   const activeShipments = shipments.data ?? [];
 
-  // ─────────────────────────────
-  // FOCUSED SHIPMENT STATE
-  // ─────────────────────────────
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusedShipment, setFocusedShipment] = useState<Shipment | null>(null);
 
-  const activeDriver = driversMap[focusedShipment?.driverId ?? ""] ?? null;
+  // undefined = not yet fetched, null = fetched but not found, Driver = loaded
+  const activeDriver = focusedShipment?.driverId
+    ? driversMap[focusedShipment.driverId]
+    : null;
 
-  // called by carousel when a shipment scrolls into focus
   const handleShipmentFocus = (shipment: Shipment) => {
     setFocusedShipment(shipment);
     if (shipment.driverId) {
-      fetchDriver(shipment.driverId); // ← lazy, cached, only on focus
+      fetchDriver(shipment.driverId);
     }
   };
 
-  // ─────────────────────────────
-  // UI
-  // ─────────────────────────────
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <HomeHeader
@@ -67,8 +58,11 @@ export default function TransporterHomeScreen() {
         onpressNotification={() => navigation.navigate("Home")}
       />
 
-      <View className="px-5 mt-4">
-
+      <ScrollView
+        className="px-5 mt-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         <TransporterStatsSection
           data={stats.data}
           status={stats.status}
@@ -76,6 +70,7 @@ export default function TransporterHomeScreen() {
           onRetry={stats.refresh}
         />
 
+        {/* Active Shipments header */}
         <View className="flex-row justify-between items-center mt-6 mb-3">
           <Text className="text-base font-bold text-gray-900">Active Shipments</Text>
           <TouchableOpacity onPress={() => navigation.navigate("ActiveShipments")}>
@@ -83,6 +78,7 @@ export default function TransporterHomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Carousel */}
         {activeShipments.length === 0 ? (
           <View className="items-center py-10">
             <Text className="text-gray-400 text-sm">No active shipments</Text>
@@ -95,14 +91,17 @@ export default function TransporterHomeScreen() {
           />
         )}
 
+        {/* Driver details + map — shown when a shipment is focused */}
         {focusedShipment && (
           <ActiveShipmentDetail
             shipment={focusedShipment}
             driver={activeDriver}
+            onViewDetails={() =>
+              navigation.navigate("ShipmentDetails", { shipmentId: focusedShipment.id })
+            }
           />
         )}
-
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

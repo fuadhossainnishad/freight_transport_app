@@ -1,13 +1,25 @@
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Controller, Control } from "react-hook-form"
+import LocationPickerInput, { LatLng } from "../../../shared/components/LocationPickerInput"
 
 type Props = {
   control: Control<any>
   onSubmit: () => void
+  pickupCoord: LatLng | null
+  deliveryCoord: LatLng | null
+  setPickupCoord: (c: LatLng | null) => void
+  setDeliveryCoord: (c: LatLng | null) => void
 }
 
-export default function DeliveryDetails({ control, onSubmit }: Props) {
+export default function DeliveryDetails({
+  control,
+  onSubmit,
+  pickupCoord,
+  deliveryCoord,
+  setPickupCoord,
+  setDeliveryCoord,
+}: Props) {
 
   return (
     <View className="p-4">
@@ -20,11 +32,15 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         control={control}
         name="pickup_address"
         render={({ field: { onChange, value } }) => (
-          <TextInput
-            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Pickup Address"
-            value={value}
-            onChangeText={onChange}
+          <LocationPickerInput
+            label="Pickup Location"
+            placeholder="Search pickup address"
+            address={value || ""}
+            coord={pickupCoord}
+            onChange={(addr, c) => {
+              onChange(addr)
+              setPickupCoord(c)
+            }}
           />
         )}
       />
@@ -46,11 +62,15 @@ export default function DeliveryDetails({ control, onSubmit }: Props) {
         control={control}
         name="delivery_address"
         render={({ field: { onChange, value } }) => (
-          <TextInput
-            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Delivery Address"
-            value={value}
-            onChangeText={onChange}
+          <LocationPickerInput
+            label="Delivery Location"
+            placeholder="Search delivery address"
+            address={value || ""}
+            coord={deliveryCoord}
+            onChange={(addr, c) => {
+              onChange(addr)
+              setDeliveryCoord(c)
+            }}
           />
         )}
       />

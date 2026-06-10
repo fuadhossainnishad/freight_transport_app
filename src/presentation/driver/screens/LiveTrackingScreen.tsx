@@ -13,12 +13,12 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MapPin, Navigation, CheckCircle, Truck, WifiOff } from 'lucide-react-native';
 import axios from 'axios';
-import Config from 'react-native-config';
 import Geolocation from '@react-native-community/geolocation';
 import { Shipment } from '../types';
 import { connectSocket } from '../../../data/socket/socketClient';
 import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
 import axiosClient from '../../../shared/config/axios.config';
+import { updateShipmentStatus } from '../../../data/services/shipmentService';
 
 // Force the legacy Android location provider. The 'playServices' provider has a
 // bug (NPE "Listener must not be null" in PlayServicesLocationManager when it
@@ -52,42 +52,47 @@ function decodePolyline(encoded: string): Coord[] {
   return coords;
 }
 
+// Geocode via OpenStreetMap Nominatim (free, no key/billing — Google's geocoder
+// needs billing enabled, which this project doesn't have). Note: Nominatim can't
+// resolve informal POI names (e.g. "Durbin Bangla"); for precise pickup pins the
+// coordinate should come from the backend / a map-pin at shipment creation.
 async function geocodeAddress(address: string): Promise<Coord | null> {
   try {
-    const res = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-      params: { address, key: Config.GOOGLE_MAPS_API_KEY },
+    const res = await axios.get('https://nominatim.openstreetmap.org/search', {
+      params: { format: 'json', limit: 1, q: address },
+      headers: { 'User-Agent': 'LawapanTruck/1.0 (driver-app)' },
     });
-    const loc = res.data.results?.[0]?.geometry?.location;
-    return loc ? { latitude: loc.lat, longitude: loc.lng } : null;
-  } catch {
+    const hit = res.data?.[0];
+    if (hit?.lat && hit?.lon) {
+      return { latitude: parseFloat(hit.lat), longitude: parseFloat(hit.lon) };
+    }
+    console.log('📍 Nominatim no result for:', address);
+    return null;
+  } catch (e: any) {
+    console.log('📍 Geocode request failed:', e?.message);
     return null;
   }
 }
 
-// Fetch a road-aligned route between two points. Builds the line from each
-// step's detailed polyline (overview_polyline is simplified and cuts corners),
-// falling back to a straight segment if the request fails.
+// Fetch a road-aligned route between two points via OSRM (free, no key/billing).
+// OSRM returns an encoded polyline (precision 5, same as Google) that follows the
+// road network. Falls back to a straight segment only if the request fails.
 async function fetchRoute(origin: Coord, dest: Coord): Promise<Coord[]> {
   try {
-    const res = await axios.get('https://maps.googleapis.com/maps/api/directions/json', {
-      params: {
-        origin:      `${origin.latitude},${origin.longitude}`,
-        destination: `${dest.latitude},${dest.longitude}`,
-        key: Config.GOOGLE_MAPS_API_KEY,
-      },
-    });
-    const routes = res.data?.routes;
-    if (routes?.length > 0) {
-      const detailed: Coord[] = [];
-      for (const leg of routes[0].legs ?? []) {
-        for (const step of leg.steps ?? []) {
-          detailed.push(...decodePolyline(step.polyline.points));
-        }
-      }
-      if (detailed.length > 1) return detailed;
-      return decodePolyline(routes[0].overview_polyline.points);
+    const coords = `${origin.longitude},${origin.latitude};${dest.longitude},${dest.latitude}`;
+    const res = await axios.get(
+      `https://router.project-osrm.org/route/v1/driving/${coords}`,
+      { params: { overview: 'full', geometries: 'polyline' } },
+    );
+    if (res.data?.code === 'Ok' && res.data.routes?.length > 0) {
+      const pts = decodePolyline(res.data.routes[0].geometry);
+      if (pts.length > 1) return pts;
+    } else {
+      // 'NoRoute' → points not connected by road; otherwise a service error
+      console.log('🛣️ OSRM non-OK:', res.data?.code, '|', res.data?.message);
     }
-  } catch {
+  } catch (e: any) {
+    console.log('🛣️ OSRM request failed:', e?.message);
     // fall through to straight-line fallback
   }
   return [origin, dest];
@@ -179,6 +184,9 @@ const LiveTrackingScreen = () => {
   const [pickupRoute,  setPickupRoute]  = useState<Coord[]>([]);
   const [drivenPath,   setDrivenPath]   = useState<Coord[]>([]);
   const [resolving,    setResolving]    = useState(true);
+  // Set when we can't resolve a real pickup/delivery coordinate, so we show an
+  // explicit "unavailable" state instead of dropping a pin in the wrong place.
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // trip phase: heading to the pickup, then the actual pickup→delivery ride.
   // Local-only — starting the ride does not call the backend.
@@ -263,12 +271,30 @@ const LiveTrackingScreen = () => {
         400,
       );
     }
+    // Tell the backend the ride has started (best-effort — never block the UI).
+    updateShipmentStatus(shipment.id, 'IN_TRANSIT').catch(err =>
+      console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message),
+    );
   };
 
-  // ── Effect 1: geocode addresses + planned route from Google Directions ────
+  // Finish the trip — mark COMPLETED on the backend, then leave the screen.
+  // Best-effort: navigate back regardless so a network error can't trap the driver.
+  const completing = useRef(false);
+  const finishTrip = () => {
+    if (!completing.current) {
+      completing.current = true;
+      updateShipmentStatus(shipment.id, 'COMPLETED').catch(err =>
+        console.log('⚠️ Failed to mark COMPLETED:', err?.message),
+      );
+    }
+    navigation.goBack();
+  };
+
+  // ── Effect 1: resolve pickup/delivery coords + planned route ──────────────
   useEffect(() => {
     const init = async () => {
       setResolving(true);
+      setLocationError(null);
       try {
         const [pickup, dropoff] = await Promise.all([
           shipment.pickupCoord
@@ -279,20 +305,38 @@ const LiveTrackingScreen = () => {
             : geocodeAddress(shipment.deliveryAddress),
         ]);
 
-        const p = pickup  ?? { latitude: 5.36,  longitude: -4.0  };
-        const d = dropoff ?? { latitude: 12.37, longitude: -1.53 };
+        // TEMP DEBUG — confirms where the pickup/delivery pins come from.
+        // backend coord present  → rawPickupCoord is set, geocode skipped
+        // backend coord missing  → rawPickupCoord undefined, geocodedPickup used
+        // both null              → location unavailable (no more silent fallback)
+        console.log('🧭 Coord resolution:', {
+          pickupAddress:    shipment.pickupAddress,
+          rawPickupCoord:   shipment.pickupCoord,
+          resolvedPickup:   pickup,
+          deliveryAddress:  shipment.deliveryAddress,
+          rawDeliveryCoord: shipment.deliveryCoord,
+          resolvedDropoff:  dropoff,
+        });
 
-        setPickupCoord(p);
-        setDropoffCoord(d);
-
-        const routePts = await fetchRoute(p, d);
-        if (routePts.length > 0) {
-          setPlannedRoute(routePts);
-        } else {
-          setPlannedRoute([p, d]);
+        // No hardcoded fallback: a missing coordinate is surfaced, not faked.
+        if (!isValidCoord(pickup) || !isValidCoord(dropoff)) {
+          if (isValidCoord(pickup)) setPickupCoord(pickup);
+          if (isValidCoord(dropoff)) setDropoffCoord(dropoff);
+          setLocationError(
+            !isValidCoord(pickup)
+              ? "This shipment's pickup location isn't available yet."
+              : "This shipment's delivery location isn't available yet.",
+          );
+          return;
         }
+
+        setPickupCoord(pickup);
+        setDropoffCoord(dropoff);
+
+        const routePts = await fetchRoute(pickup, dropoff);
+        setPlannedRoute(routePts.length > 0 ? routePts : [pickup, dropoff]);
       } catch {
-        // keep defaults
+        setLocationError("Couldn't load this shipment's route. Please try again.");
       } finally {
         setResolving(false);
       }
@@ -441,7 +485,9 @@ const LiveTrackingScreen = () => {
         initialRegion={
           shipment.pickupCoord
             ? { ...shipment.pickupCoord, latitudeDelta: 0.5, longitudeDelta: 0.5 }
-            : { latitude: 5.36, longitude: -4.0, latitudeDelta: 0.5, longitudeDelta: 0.5 }
+            // No real coord yet — open on a wide view instead of a wrong city.
+            // The effects below frame the map once coords resolve.
+            : { latitude: 20, longitude: 0, latitudeDelta: 80, longitudeDelta: 80 }
         }
         customMapStyle={mapStyle}
       >
@@ -521,6 +567,30 @@ const LiveTrackingScreen = () => {
         </View>
       )}
 
+      {/* Location-unavailable state — shown instead of a misplaced pin */}
+      {!resolving && locationError && (
+        <View style={styles.locationErrorOverlay}>
+          <View style={styles.locationErrorCard}>
+            <View style={styles.locationErrorIcon}>
+              <MapPin size={28} color="#EF4444" />
+            </View>
+            <Text style={styles.locationErrorTitle}>Location unavailable</Text>
+            <Text style={styles.locationErrorText}>{locationError}</Text>
+            <Text style={styles.locationErrorHint}>
+              This shipment is missing precise map coordinates. Please contact
+              support or try again once it's updated.
+            </Text>
+            <TouchableOpacity
+              style={styles.locationErrorBtn}
+              activeOpacity={0.85}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.locationErrorBtnText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* ── TOP HEADER ──────────────────────────────────────────────────────── */}
       <SafeAreaView style={styles.headerContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -561,7 +631,7 @@ const LiveTrackingScreen = () => {
       )}
 
       {/* ── PHASE 1 CARD — heading to pickup ────────────────────────────────── */}
-      {phase === 'TO_PICKUP' && (
+      {phase === 'TO_PICKUP' && !locationError && (
         <View style={styles.trackingCard}>
           <View style={styles.dragHandle} />
 
@@ -610,7 +680,7 @@ const LiveTrackingScreen = () => {
       )}
 
       {/* ── PHASE 2 CARD — live tracking pickup → delivery ──────────────────── */}
-      {phase === 'IN_TRANSIT' && (
+      {phase === 'IN_TRANSIT' && !locationError && (
       <View style={styles.trackingCard}>
         <View style={styles.dragHandle} />
 
@@ -736,7 +806,7 @@ const LiveTrackingScreen = () => {
             almostThere && styles.endTripBtnAlmost,
           ]}
           activeOpacity={0.85}
-          onPress={() => navigation.goBack()}
+          onPress={finishTrip}
         >
           <Text style={styles.endTripText}>
             {arrived ? 'Trip Complete' : almostThere ? 'Almost There' : 'Arrival at Destination'}
@@ -759,6 +829,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // location-unavailable state
+  locationErrorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    zIndex: 30,
+    elevation: 30,
+  },
+  locationErrorCard: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 16, elevation: 6,
+  },
+  locationErrorIcon: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: '#FEF2F2',
+    justifyContent: 'center', alignItems: 'center',
+    marginBottom: 14,
+  },
+  locationErrorTitle: { fontSize: 18, fontWeight: '800', color: '#1A1C1E', marginBottom: 6 },
+  locationErrorText:  { fontSize: 14, fontWeight: '600', color: '#475569', textAlign: 'center' },
+  locationErrorHint:  { fontSize: 12, color: '#94A3B8', textAlign: 'center', marginTop: 8, lineHeight: 18 },
+  locationErrorBtn: {
+    marginTop: 20, alignSelf: 'stretch',
+    backgroundColor: '#0071BC', height: 48, borderRadius: 14,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  locationErrorBtnText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
 
   // markers
   pinPickup: {

@@ -7,6 +7,7 @@ import AppHeader from "../../../shared/components/AppHeader"
 import StepIndicator from "../../../shared/components/StepIndicator"
 import BasicShipmentInfo from "../components/BasicShipmentInfo"
 import DeliveryDetails from "../components/DeliveryDetails"
+import { LatLng } from "../../../shared/components/LocationPickerInput"
 
 import { createShipment } from "../../../data/services/shipmentService"
 import { pickShipmentImages } from "../../../shared/hooks/useImagePicker"
@@ -26,7 +27,13 @@ export default function CreateShipmentScreen() {
 
     const [step, setStep] = useState(0)
     const [images, setImages] = useState<Asset[]>([])
+    const [pickupCoord, setPickupCoord] = useState<LatLng | null>(null)
+    const [deliveryCoord, setDeliveryCoord] = useState<LatLng | null>(null)
     const { control, handleSubmit, setValue } = useForm()
+
+    // Backend stores coordinates as GeoJSON Point ([lng, lat]).
+    const toGeoJson = (c: LatLng) =>
+        JSON.stringify({ type: "Point", coordinates: [c.longitude, c.latitude] })
 
     const handlePickImages = async () => {
         const selectedImages = await pickShipmentImages()
@@ -50,6 +57,11 @@ export default function CreateShipmentScreen() {
             Object.keys(data).forEach(key => {
                 formData.append(key, data[key])
             })
+
+            // Exact pins chosen on the map — sent as GeoJSON so the backend can
+            // store precise coordinates instead of geocoding the address text.
+            if (pickupCoord) formData.append("pickup_location", toGeoJson(pickupCoord))
+            if (deliveryCoord) formData.append("delivery_location", toGeoJson(deliveryCoord))
 
             images.forEach((img, index) => {
                 formData.append("shipment_images", {
@@ -101,6 +113,10 @@ export default function CreateShipmentScreen() {
                         <DeliveryDetails
                             control={control}
                             onSubmit={handleSubmit(onSubmit)}
+                            pickupCoord={pickupCoord}
+                            deliveryCoord={deliveryCoord}
+                            setPickupCoord={setPickupCoord}
+                            setDeliveryCoord={setDeliveryCoord}
                         />
                     )}
 
