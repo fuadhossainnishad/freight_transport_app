@@ -9,7 +9,7 @@
  *    on unrelated navigations (optional but robust pattern).
  */
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 import { Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useForm } from "react-hook-form"
@@ -69,7 +69,8 @@ export default function CreateShipmentScreen() {
             Object.keys(data).forEach(key => {
                 formData.append(key, data[key])
             })
-
+            console.log("pickupCoord:", pickupCoord?.latitude, pickupCoord?.longitude)
+            console.log("deliveryCoord:", deliveryCoord?.latitude, deliveryCoord?.longitude)
             // Exact pins chosen on the map — sent as GeoJSON so the backend can
             // store precise coordinates instead of geocoding the address text.
             if (pickupCoord) formData.append("pickup_location", toGeoJson(pickupCoord))
@@ -85,6 +86,7 @@ export default function CreateShipmentScreen() {
 
             const res = await createShipment(formData)
             Alert.alert("Success", res.message)
+            navigation.goBack()
         } catch {
             Alert.alert("Error", "Shipment creation failed. Please try again.")
         }

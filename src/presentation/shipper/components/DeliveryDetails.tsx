@@ -2,8 +2,6 @@ import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Controller, Control } from "react-hook-form"
 import LocationPickerInput, { LatLng } from "../../../shared/components/LocationPickerInput"
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { ShipperHomeStackParamList } from "../../../navigation/types"
 import Checkbox from "../../../shared/components/Checkbox"
 
 type Props = {
@@ -15,7 +13,6 @@ type Props = {
   setDeliveryCoord: (c: LatLng | null) => void
 }
 
-type NavigationProps = NativeStackNavigationProp<ShipperHomeStackParamList>;
 
 export default function DeliveryDetails({
   control,
