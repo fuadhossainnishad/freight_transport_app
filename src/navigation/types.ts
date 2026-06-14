@@ -46,6 +46,8 @@ export type ShipperRootParamList = {
 export type ShipperHomeStackParamList = {
     Home: undefined;
     CreateShipment: undefined
+    Bids: undefined
+    BidDetails: { shipmentId: string; shipment?: any }
 };
 
 export type TransporterHomeStackParamList = {
@@ -53,6 +55,7 @@ export type TransporterHomeStackParamList = {
     ShipmentDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
     ActiveShipments: undefined
+    ActiveShipmentDetailsScreen: { shipmentId: string }
 };
 export type AvailableBidsStackParamList = {
     AvailableBids: undefined;
@@ -63,16 +66,17 @@ export type AvailableBidsStackParamList = {
 
 export type ActiveShipmentsStackParamList = {
     ActiveShipments: undefined;
+    ActiveShipmentDetailsScreen: { shipmentId: string}
     CreateShipment: undefined
     ShipmentDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
+    ShipperShipmentDetail: { shipmentId: string }
 };
 
 export type InvoiceStackParamList = {
     Invoices: undefined;
     CreateShipment: undefined
-    InvoiceDetails: undefined
-    // InvoiceDetails: { shipmentId: string }
+    InvoiceDetails: { paymentId: string }
     ShipmentTracking: { shipmentId: string }
 };
 

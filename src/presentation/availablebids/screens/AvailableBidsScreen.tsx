@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getAvailableBids } from "../../../data/services/bidService";
 import BidCard from "../../../shared/components/BidCard";
-import { DUMMY_BIDS } from "../dummy";
 import { AvailableBidsStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -32,15 +31,11 @@ export default function AvailableBidsScreen() {
             const res = await getAvailableBids(search);
 
             const apiBids = res?.data ?? [];
-
-            // fallback to dummy data if API returns empty
-            setBids(apiBids.length ? apiBids : DUMMY_BIDS);
+            setBids(apiBids);
 
         } catch (error) {
             console.log("Bid fetch error:", error);
-
-            // fallback to dummy data on error
-            setBids(DUMMY_BIDS);
+            setBids([]);
         } finally {
             setLoading(false);
         }

@@ -19,6 +19,7 @@ import { connectSocket } from '../../../data/socket/socketClient';
 import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
 import axiosClient from '../../../shared/config/axios.config';
 import { updateShipmentStatus } from '../../../data/services/shipmentService';
+import { geocodeAddress } from '../../../shared/utils/geocode';
 
 // Force the legacy Android location provider. The 'playServices' provider has a
 // bug (NPE "Listener must not be null" in PlayServicesLocationManager when it
@@ -50,28 +51,6 @@ function decodePolyline(encoded: string): Coord[] {
     coords.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
   }
   return coords;
-}
-
-// Geocode via OpenStreetMap Nominatim (free, no key/billing — Google's geocoder
-// needs billing enabled, which this project doesn't have). Note: Nominatim can't
-// resolve informal POI names (e.g. "Durbin Bangla"); for precise pickup pins the
-// coordinate should come from the backend / a map-pin at shipment creation.
-async function geocodeAddress(address: string): Promise<Coord | null> {
-  try {
-    const res = await axios.get('https://nominatim.openstreetmap.org/search', {
-      params: { format: 'json', limit: 1, q: address },
-      headers: { 'User-Agent': 'LawapanTruck/1.0 (driver-app)' },
-    });
-    const hit = res.data?.[0];
-    if (hit?.lat && hit?.lon) {
-      return { latitude: parseFloat(hit.lat), longitude: parseFloat(hit.lon) };
-    }
-    console.log('📍 Nominatim no result for:', address);
-    return null;
-  } catch (e: any) {
-    console.log('📍 Geocode request failed:', e?.message);
-    return null;
-  }
 }
 
 // Fetch a road-aligned route between two points via OSRM (free, no key/billing).

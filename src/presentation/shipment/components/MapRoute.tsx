@@ -9,7 +9,7 @@ type LatLng = {
     latitude: number;
     longitude: number;
 };
-export default function MapRoute() {
+export default function MapRoute({ fullscreen = false }: { fullscreen?: boolean }) {
     const pickupCoord = toLatLng([23.8103, 90.4125]);   // Dhaka center
     const deliveryCoord = toLatLng([23.7806, 90.4070]);
     const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
@@ -43,7 +43,7 @@ export default function MapRoute() {
     }, []);
 
     return (
-        <View style={{ height: 200, borderRadius: 12, overflow: "hidden" }}>
+        <View style={fullscreen ? { flex: 1 } : { height: 200, borderRadius: 12, overflow: "hidden" }}>
             <MapView
                 style={{ flex: 1 }}
                 initialRegion={{

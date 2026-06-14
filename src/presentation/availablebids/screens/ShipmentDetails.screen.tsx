@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
-    FlatList,
     Image,
     Dimensions,
     ActivityIndicator,
@@ -112,21 +111,21 @@ export default function ShipmentDetailsScreen() {
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 className="px-4 ">
-                <FlatList
-                    data={carosoul}
+                <ScrollView
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
-                    keyExtractor={(_, i) => i.toString()}
-                    renderItem={({ item }) => (
+                >
+                    {carosoul.map((item, i) => (
                         <Image
+                            key={i}
                             source={{ uri: item }}
                             style={{ width: width - 32, height: 200 }}
                             className="rounded-xl"
                             resizeMode="cover"
                         />
-                    )}
-                />
+                    ))}
+                </ScrollView>
                 <View className="flex-row justify-between items-start my-5">
                     <View className="flex-1 pr-3">
                         <Text className="text-xl font-bold">{title}</Text>

@@ -28,30 +28,48 @@ export const ProfileService = {
 
 }
 
+type ProfileUpdateUser = {
+    role?: "SHIPPER" | "TRANSPORTER" | "DRIVER";
+    shipper_id?: string;
+    transporter_id?: string;
+};
+
+// A locally-picked image has a file:// / content:// uri. A value fetched from
+// the backend is a remote https:// url that must NOT be re-uploaded as a file.
+const isLocalFile = (uri?: string) =>
+    !!uri && !/^https?:\/\//i.test(uri);
+
 export const updateProfile = async (
+    user: ProfileUpdateUser,
     payload: UserProfile
 ): Promise<UserProfile> => {
-    const formData = new FormData();
 
-    formData.append("name", payload.name);
-    formData.append("email", payload.email);
-    formData.append("phone", payload.phone);
+    // Transporter: backend route accepts multipart with `company_name` + `logo`.
+    if (user.role === "TRANSPORTER") {
+        const formData = new FormData();
+        formData.append("company_name", payload.name);
 
-    if (payload.avatar) {
-        formData.append("avatar", {
-            uri: payload.avatar.uri,
-            name: payload.avatar.name,
-            type: payload.avatar.type,
-        } as any);
-    }
-    const { data } = await axiosClient.patch(
-        "/profile/edit",
-        formData,
-        {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
+        if (payload.avatar && isLocalFile(payload.avatar.uri)) {
+            formData.append("logo", {
+                uri: payload.avatar.uri,
+                name: payload.avatar.name,
+                type: payload.avatar.type,
+            } as any);
         }
+
+        const { data } = await axiosClient.patch(
+            `/transporter/edit/${user.transporter_id}`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        return data.data;
+    }
+
+    // Shipper: backend route only updates `company_name` (JSON, no file upload).
+    const { data } = await axiosClient.patch(
+        `/shipper/edit/${user.shipper_id}`,
+        { company_name: payload.name }
     );
 
     return data.data;

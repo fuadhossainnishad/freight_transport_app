@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, ActivityIndicator, Alert } from "react-native";
+import { View, ActivityIndicator, Alert, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -76,13 +76,21 @@ const IssuesScreen = () => {
     }
 
     if (error) {
+        const message =
+            error === "MISSING_SHIPPER"
+                ? "We couldn't find your shipper profile on this session. Please sign out and sign in again."
+                : "Something went wrong while loading issues. Please try again.";
+
         return (
-            <View className="flex-1 justify-center items-center px-4">
+            <SafeAreaView edges={["top"]} className="flex-1 bg-white">
                 <AppHeader
                     text="Issue Reported"
                     onpress={() => navigation.goBack()}
                 />
-            </View>
+                <View className="flex-1 justify-center items-center px-6">
+                    <Text className="text-center text-gray-500">{message}</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 

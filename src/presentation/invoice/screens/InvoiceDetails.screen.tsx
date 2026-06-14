@@ -1,195 +1,189 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import {
-    FlatList,
-    Dimensions,
-} from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { InvoiceStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AppHeader from '../../../shared/components/AppHeader';
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { width } = Dimensions.get("window");
-const PADDING = 16;
-const IMAGE_WIDTH = width - PADDING * 2; // matches px-4 padding
+import { getInvoiceDetail, InvoiceDetail } from "../../../data/services/invoiceService";
+import { downloadInvoicePdf } from "../utils/invoicePdf";
 
 type RoutePropType = RouteProp<InvoiceStackParamList, 'InvoiceDetails'>;
 type NavigationPropType = NativeStackNavigationProp<InvoiceStackParamList, 'InvoiceDetails'>;
 
+const CURRENCY = "€";
+
+const formatDate = (value?: string | null) => {
+    if (!value) return "—";
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const formatAmount = (value?: number | null) =>
+    `${CURRENCY}${(value ?? 0).toFixed(2)}`;
+
 export default function InvoiceDetailsScreen() {
     const navigation = useNavigation<NavigationPropType>();
     const route = useRoute<RoutePropType>();
-    const { shipmentId } = route.params;
+    const { paymentId } = route.params ?? {};
 
-    const [shipmentData, setShipmentData] = useState<any>(null);
+    const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const flatListRef = useRef<FlatList>(null);
-    const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [downloading, setDownloading] = useState(false);
 
-    // const fetchDetails = useCallback(async () => {
-    //     try {
-    //         setLoading(true);
-    //         const res = await getShipmentDetailsUseCase(shipmentId);
-    //         setShipmentData(res);
-    //     } catch (err) {
-    //         console.error("Error fetching shipment details:", err);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }, [shipmentId]);
+    const fetchDetail = useCallback(async () => {
+        if (!paymentId) {
+            setError("Invoice not found");
+            setLoading(false);
+            return;
+        }
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await getInvoiceDetail(paymentId);
+            setInvoice(data);
+        } catch (err: any) {
+            console.error("Error fetching invoice detail:", err);
+            setError(err?.response?.data?.message || err.message || "Failed to load invoice");
+        } finally {
+            setLoading(false);
+        }
+    }, [paymentId]);
 
-    // useEffect(() => {
-    //     fetchDetails();
-    // }, [fetchDetails]);
+    useEffect(() => {
+        fetchDetail();
+    }, [fetchDetail]);
 
-    // // Auto-scroll carousel
-    // useEffect(() => {
-    //     if (!shipmentData?.images?.length) return;
+    const handleDownload = useCallback(async () => {
+        if (!invoice || downloading) return;
+        try {
+            setDownloading(true);
+            const result = await downloadInvoicePdf(invoice);
+            if (result === "saved") {
+                Alert.alert("Downloaded", "The invoice was saved to your device.");
+            }
+        } catch (err: any) {
+            console.error("Error downloading invoice:", err);
+            Alert.alert("Download failed", err?.message || "Could not save the invoice PDF");
+        } finally {
+            setDownloading(false);
+        }
+    }, [invoice, downloading]);
 
-    //     autoScrollRef.current = setInterval(() => {
-    //         setActiveIndex((prev) => {
-    //             const next = (prev + 1) % shipmentData.images.length;
-    //             flatListRef.current?.scrollToIndex({ index: next, animated: true });
-    //             return next;
-    //         });
-    //     }, 3000);
+    if (loading) {
+        return (
+            <SafeAreaView edges={['top']} className="flex-1 bg-white">
+                <AppHeader text="Invoice Summary" onpress={() => navigation.goBack()} />
+                <View className="flex-1 justify-center items-center">
+                    <ActivityIndicator size="large" color="#036BB4" />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
-    //     return () => {
-    //         if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-    //     };
-    // }, [shipmentData?.images?.length]);
+    if (error || !invoice) {
+        return (
+            <SafeAreaView edges={['top']} className="flex-1 bg-white">
+                <AppHeader text="Invoice Summary" onpress={() => navigation.goBack()} />
+                <View className="flex-1 justify-center items-center px-6">
+                    <Text className="text-gray-500 text-center">{error ?? "Invoice details not available"}</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
-    // if (loading) {
-    //     return (
-    //         <SafeAreaView className="flex-1 justify-center items-center">
-    //             <ActivityIndicator size="large" />
-    //         </SafeAreaView>
-    //     );
-    // }
+    const { invoice_summary, shipment_info, cost_breakdown } = invoice;
+    const isPaid = invoice.status === "VERIFIED";
 
-    // if (!shipmentData) {
-    //     return (
-    //         <SafeAreaView className="flex-1 justify-center items-center">
-    //             <Text className="text-gray-500">Shipment details not available</Text>
-    //         </SafeAreaView>
-    //     );
-    // }
-
-    // const {
-    //     title, description, category, weight, dimensions,
-    //     packaging, images, pickup, delivery, timeWindow,
-    //     datePreference, price, driver, vehicle, status, contactPerson,
-    // } = shipmentData;
-
-    const invoice = {
-        number: "INV-2025-00428",
-        status: "Paid",
-        issuedOn: "12 Feb 2025",
-        dueDate: "19 Feb 2025",
-        shipmentTitle: "Ship 12 Pallets of Rice",
-        shipmentId: "#####",
-        pickupAddress: "Rue 14.12, Ouagadougou",
-        deliveryAddress: "Rue 14.12, Ouagadougou",
-        deliveryDate: "14 Feb, 3:45 PM",
-        paymentMethod: "Bank Transfer",
-        weightCategory: "Bank Transfer",
-        currency: "€",
-        breakdown: [
-            { label: "Transport Fee", amount: 150.0 },
-            { label: "Platform Service Fee", amount: 2.0 },
-        ],
-    };
-
-    const total = invoice.breakdown.reduce((sum, item) => sum + item.amount, 0);
+    const weightCategory = [
+        shipment_info.weight != null ? `${shipment_info.weight} kg` : null,
+        shipment_info.category,
+    ].filter(Boolean).join(" / ") || "—";
 
     return (
-        <SafeAreaView edges={['top']} className="min-h-screen bg-gray-50 p-6 flex justify-center">
+        <SafeAreaView edges={['top']} className="flex-1 bg-white">
             <AppHeader text="Invoice Summary" onpress={() => navigation.goBack()} />
-            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b">
-                    <div>
-                        <h1 className="text-xl font-semibold">Invoice Summary</h1>
-                        <p className="text-sm text-gray-500">Invoice #{invoice.number}</p>
-                    </div>
-                    <span className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700">
-                        {invoice.status}
-                    </span>
-                </div>
+            <ScrollView contentContainerClassName="px-5 pt-2 pb-8" showsVerticalScrollIndicator={false}>
 
-                {/* Shipment Info */}
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InfoCard title="Shipment Information">
-                        <InfoRow label="Shipment ID" value={invoice.shipmentId} />
-                        <InfoRow label="Shipment Title" value={invoice.shipmentTitle} />
-                        <InfoRow label="Issued On" value={invoice.issuedOn} />
-                        <InfoRow label="Due Date" value={invoice.dueDate} />
-                        <InfoRow label="Delivery Date" value={invoice.deliveryDate} />
-                    </InfoCard>
+                {/* Invoice no + status */}
+                <View className="flex-row items-center justify-between py-4 border-b border-gray-100">
+                    <Text className="text-lg font-bold text-black flex-1 pr-3">
+                        Invoice {invoice.invoice_no}
+                    </Text>
+                    <View className={`px-3 py-1 rounded-full ${isPaid ? "bg-green-500" : "bg-orange-500"}`}>
+                        <Text className="text-xs font-semibold text-white">
+                            {isPaid ? "Paid" : invoice.status}
+                        </Text>
+                    </View>
+                </View>
 
-                    <InfoCard title="Addresses">
-                        <InfoRow label="Pickup Address" value={invoice.pickupAddress} />
-                        <InfoRow label="Delivery Address" value={invoice.deliveryAddress} />
-                        <InfoRow label="Payment Method" value={invoice.paymentMethod} />
-                        <InfoRow label="Weight Category" value={invoice.weightCategory} />
-                    </InfoCard>
-                </div>
+                {/* Two-column info */}
+                <View className="flex-row mt-5">
+                    {/* Left: Invoice Summary */}
+                    <View className="flex-1 pr-3">
+                        <Text className="text-base font-bold text-black mb-3">Invoice Summary</Text>
+                        <Field label="Total amount" value={formatAmount(invoice_summary.amount)} />
+                        <Field label="Issued on" value={formatDate(invoice_summary.issued_on)} />
+                        <Field label="Due Date" value={formatDate(invoice_summary.due_date)} />
+                        <Field label="Payment Method" value={invoice_summary.payment_method ?? "—"} />
+                    </View>
+
+                    {/* Right: Shipment Information */}
+                    <View className="flex-1 pl-3">
+                        <Text className="text-base font-bold text-black mb-3">Shipment Information</Text>
+                        <Field label="Shipment ID" value={shipment_info.shipment_id ?? "—"} />
+                        <Field label="Shipment title" value={shipment_info.shipment_title ?? "—"} />
+                        <Field label="Pickup address" value={shipment_info.pickup_address ?? "—"} />
+                        <Field label="Delivery address" value={shipment_info.delivery_address ?? "—"} />
+                        <Field label="Weight / category" value={weightCategory} />
+                        <Field label="Date of delivery" value={formatDate(shipment_info.date_of_delivery)} />
+                    </View>
+                </View>
 
                 {/* Cost Breakdown */}
-                <div className="px-6 pb-6">
-                    <h2 className="text-lg font-semibold mb-3">Cost Breakdown</h2>
-                    <div className="border rounded-xl overflow-hidden">
-                        {invoice.breakdown.map((item, idx) => (
-                            <div
-                                key={idx}
-                                className="flex justify-between px-4 py-3 border-b last:border-b-0"
-                            >
-                                <span className="text-gray-600">{item.label}</span>
-                                <span className="font-medium">
-                                    {invoice.currency}{item.amount.toFixed(2)}
-                                </span>
-                            </div>
-                        ))}
+                <Text className="text-lg font-bold text-black mt-10 mb-4">Cost Breakdown</Text>
+                <View>
+                    {/* Blue header */}
+                    <View className="flex-row bg-[#036BB4] rounded-lg px-5 py-4">
+                        <Text className="flex-1 text-white font-semibold text-[13px]">Item</Text>
+                        <Text className="w-28 text-white font-semibold text-[13px]">Amount</Text>
+                    </View>
+                    <CostRow label="Transport Fee" value={formatAmount(cost_breakdown.transport_fee)} />
+                    <CostRow label="Platform Service Fee" value={formatAmount(cost_breakdown.platform_fee)} />
+                    <CostRow label="Total" value={formatAmount(cost_breakdown.total)} />
+                </View>
 
-                        <div className="flex justify-between px-4 py-4 bg-gray-50 font-semibold">
-                            <span>Total</span>
-                            <span>
-                                {invoice.currency}{total.toFixed(2)}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex justify-end gap-3 p-6 border-t">
-                    <button className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100">
-                        Download Invoice
-                    </button>
-                    <button className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800">
-                        Print
-                    </button>
-                </div>
-            </div>
+                {/* Actions */}
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    className="mt-8 flex-row items-center justify-center gap-2 border border-[#036BB4] rounded-full py-3.5"
+                    onPress={handleDownload}
+                    disabled={downloading}
+                >
+                    {downloading && <ActivityIndicator size="small" color="#036BB4" className="mr-1" />}
+                    <Text className="text-[#036BB4] font-semibold text-[15px] py-2">Download invoice</Text>
+                </TouchableOpacity>
+            </ScrollView>
         </SafeAreaView>
     );
 }
 
-function InfoCard({ title, children }: { title: string, children: React.ReactNode }) {
+function Field({ label, value }: { label: string; value: string }) {
     return (
-        <div className="border rounded-xl p-4 bg-gray-50">
-            <h3 className="text-sm font-semibold mb-3 text-gray-700">{title}</h3>
-            <div className="space-y-2">{children}</div>
-        </div>
+        <View className="mb-4">
+            <Text className="text-xs text-gray-400 mb-1">{label}</Text>
+            <Text className="text-sm font-semibold text-black">{value}</Text>
+        </View>
     );
 }
 
-function InfoRow({ label, value }: { label: string, value: String }) {
+function CostRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="flex justify-between gap-4 text-sm">
-            <span className="text-gray-500">{label}</span>
-            <span className="text-gray-800 text-right break-words">{value}</span>
-        </div>
+        <View className="flex-row px-5 py-4">
+            <Text className="flex-1 text-[14px] text-gray-500">{label}</Text>
+            <Text className="w-28 text-[14px] font-medium text-black">{value}</Text>
+        </View>
     );
 }
-

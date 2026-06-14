@@ -16,7 +16,7 @@ import { ShipperTabParamList } from './types';
 import ShipperHome from '../presentation/shipper/screens/ShipperHome.screen';
 import ShipperHomeStack from './ShipperHomeStack';
 import SettingsStack from './SettingsStack';
-import ActiveShipmentsStack from './ActiveShipmentsStack';
+import ShipperShipmentsStack from './ShipperShipmentsStack';
 import InvoiceStack from './InvoiceStack';
 
 type TabIconProps = {
@@ -79,7 +79,7 @@ export default function ShipperTabs() {
       })}
     >
       <Tab.Screen name="HomeStack" component={ShipperHomeStack} />
-      <Tab.Screen name="Shipments" component={ActiveShipmentsStack} />
+      <Tab.Screen name="Shipments" component={ShipperShipmentsStack} />
       <Tab.Screen name="Invoices" component={InvoiceStack} />
       <Tab.Screen name="Settings" component={SettingsStack} />
       {/* <Tab.Screen name="Home" component={() => <Text>Home</Text>} />

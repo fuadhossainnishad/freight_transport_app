@@ -45,13 +45,15 @@ export default function DeliveryDetails({
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Time Window</Text>
       <Controller
         control={control}
         name="time_window"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Time Window"
+            placeholder="e.g. 9:00 AM - 5:00 PM"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
           />
@@ -75,41 +77,49 @@ export default function DeliveryDetails({
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Contact Person Number</Text>
       <Controller
         control={control}
         name="contact_person"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Contact Person Number"
+            placeholder="e.g. +1 555 123 4567"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
+            keyboardType="phone-pad"
           />
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Date Preference</Text>
       <Controller
         control={control}
         name="date_preference"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Date Preference"
+            placeholder="e.g. 25 June 2026"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
           />
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Budget Price</Text>
       <Controller
         control={control}
         name="price"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Budget Price"
+            placeholder="e.g. 1200"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
+            keyboardType="numeric"
           />
         )}
       />

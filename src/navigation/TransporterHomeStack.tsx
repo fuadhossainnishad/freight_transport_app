@@ -1,7 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { TransporterHomeStackParamList, } from "./types"; import ShipmentDetailsScreen from "../presentation/availablebids/screens/ShipmentDetails.screen";
+import { TransporterHomeStackParamList, } from "./types";
+import ShipmentDetailsScreen from "../presentation/availablebids/screens/ShipmentDetails.screen";
 import ActiveShipmentsScreen from "../presentation/shipment/screens/ActiveShipments.screen";
+import ActiveShipmentDetailsScreen from "../presentation/availablebids/screens/ActiveShipmentDetailsScreen";
 import ShipmentTrackingScreen from "../presentation/shipment/screens/ShipmentTrackingScreen";
 import TransporterHomeScreen2 from "../presentation/transporter/screens/TransporterHome.screen2";
 
@@ -30,6 +32,10 @@ export default function TransporterHomeStack() {
       <Stack.Screen
         name='ShipmentTracking'
         component={ShipmentTrackingScreen}
+      />
+      <Stack.Screen
+        name='ActiveShipmentDetailsScreen'
+        component={ActiveShipmentDetailsScreen}
       />
     </Stack.Navigator>
   );

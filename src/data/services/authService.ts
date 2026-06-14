@@ -1,4 +1,3 @@
-import axiosClient from "../../shared/config/axios.config"
 import { FORGOT_PASSWORD, RESET_PASSWORD, SIGNIN, VERIFY_OTP } from "../../domain/constants/api"
 import publicAxios from "../../shared/config/publicAxios.config"
 
@@ -17,7 +16,7 @@ export const signIn = async (
 
         console.log("Sending login request:", email)
 
-        const response = await axiosClient.post(
+        const response = await publicAxios.post(
             SIGNIN,
             { email, password }
         )

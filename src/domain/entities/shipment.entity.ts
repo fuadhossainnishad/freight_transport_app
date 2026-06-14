@@ -31,8 +31,9 @@ export const mapShipmentDetails = (res: any) => {
     driver: driver
       ? {
         name: driver.driver_name,
-        phone: driver.number,
-        email: driver.email,
+        phone: driver.user_id?.phone ?? driver.number ?? null,
+        email: driver.user_id?.email ?? driver.email ?? null,
+        country: driver.user_id?.country ?? null,
         avatar: driver.profile_picture?.[0],
       }
       : null,
