@@ -16,8 +16,8 @@ export const getAllIssuesAPI = async (shipperId: string): Promise<Issue[]> => {
 
 // GET issues by shipment ID
 export const getShipmentIssuesAPI = async (shipmentId: string): Promise<Issue[]> => {
-    const { data } = await axiosClient.get(GET_SHIPMENT_ISSUE(shipmentId));
-    return data || [];
+    const { data } = await axiosClient.get<ApiResponse<Issue[]>>(GET_SHIPMENT_ISSUE(shipmentId));
+    return data?.data ?? [];
 };
 
 // GET single issue by issue ID
@@ -34,11 +34,11 @@ export const getSingleIssueAPI = async (issueId: string): Promise<IssueSummery |
 
 // PATCH edit issue status
 export const editIssueStatusAPI = async (issueId: string, status: boolean): Promise<Issue | null> => {
-    const { data } = await axiosClient.patch(SINGLE_ISSUE(issueId), { status });
-    return data || null;
+    const { data } = await axiosClient.patch<ApiResponse<Issue>>(SINGLE_ISSUE(issueId), { status });
+    return data?.data ?? null;
 };
 
 export const deleteSingleIssueAPI = async (issueId: string): Promise<IssueSummery | null> => {
-    const { data } = await axiosClient.delete(SINGLE_ISSUE(issueId));
-    return data || null;
+    const { data } = await axiosClient.delete<ApiResponse<IssueSummery>>(SINGLE_ISSUE(issueId));
+    return data?.data ?? null;
 };

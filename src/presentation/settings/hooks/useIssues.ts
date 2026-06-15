@@ -8,6 +8,15 @@ export const useIssues = (shipperId: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const loadIssues = useCallback(async () => {
+    // Guard against a missing/empty shipper id. Firing the request with an
+    // empty id produces `/issues/shipper/`, which the backend misroutes to its
+    // `/:issue_id` handler and rejects with "Invalid issue ID format".
+    if (!shipperId) {
+      setIssues([]);
+      setError("MISSING_SHIPPER");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);

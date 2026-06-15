@@ -46,13 +46,15 @@ export default function DeliveryDetails({
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Time Window</Text>
       <Controller
         control={control}
         name="time_window"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Time Window"
+            placeholder="e.g. 9:00 AM - 5:00 PM"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
           />
@@ -76,60 +78,53 @@ export default function DeliveryDetails({
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Contact Person Number</Text>
       <Controller
         control={control}
         name="contact_person"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Contact Person Number"
+            placeholder="e.g. +1 555 123 4567"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
+            keyboardType="phone-pad"
           />
         )}
       />
 
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Date Preference</Text>
       <Controller
         control={control}
         name="date_preference"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
-            placeholder="Date Preference"
+            placeholder="e.g. 25 June 2026"
+            placeholderTextColor="#9AA0A6"
             value={value}
             onChangeText={onChange}
           />
         )}
       />
-      <Text className="font-semibold mb-2">Description</Text>
-      <View className="flex-row justify-between mb-4 gap-4">
-        <Controller
-          control={control}
-          name="insurance"
-          render={({ field: { onChange, value } }) => (
-            <View className="border border-[#AEAEAE] p-3 rounded-lg flex-1">
-              <Checkbox
-                label="Insurance"
-                checked={!!value}
-                onToggle={() => onChange(!value)}
-              />
-            </View>
-          )}
-        />
-        <Controller
-          control={control}
-          name="forwarding"
-          render={({ field: { onChange, value } }) => (
-            <View className="border border-[#AEAEAE] p-3 rounded-lg flex-1">
-              <Checkbox
-                label="Forwarding"
-                checked={!!value}
-                onToggle={() => onChange(!value)}
-              />
-            </View>
-          )}
-        />
-      </View>
+
+      <Text className="font-semibold mb-1 text-[#1A1C1E]">Budget Price</Text>
+      <Controller
+        control={control}
+        name="price"
+        render={({ field: { onChange, value } }) => (
+          <TextInput
+            className="border border-[#AEAEAE] p-3 rounded-lg mb-4"
+            placeholder="e.g. 1200"
+            placeholderTextColor="#9AA0A6"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="numeric"
+          />
+        )}
+      />
+
       <TouchableOpacity
         onPress={onSubmit}
         className="bg-[#036BB4] p-4 rounded-full"

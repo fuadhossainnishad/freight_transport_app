@@ -38,7 +38,7 @@ export default function ProfileImagePicker({ image, onChange }: Props) {
 
                 <Image
                     source={{
-                        uri: image?.uri || "https://i.pravatar.cc/300",
+                        uri: image?.uri || "https://forkast.news/wp-content/uploads/2022/03/NFT-Avatar.png",
                     }}
                     className="w-24 h-24 rounded-full"
                 />

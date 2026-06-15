@@ -43,10 +43,6 @@ export default function CreateShipmentScreen() {
     const [deliveryCoord, setDeliveryCoord] = useState<LatLng | null>(null)
     const { control, handleSubmit, setValue } = useForm()
 
-    // Backend stores coordinates as GeoJSON Point ([lng, lat]).
-    const toGeoJson = (c: LatLng) =>
-        JSON.stringify({ type: "Point", coordinates: [c.longitude, c.latitude] })
-
     const handlePickImages = async () => {
         const selected = await pickShipmentImages()
         if (selected.length > 0) {
@@ -69,12 +65,21 @@ export default function CreateShipmentScreen() {
             Object.keys(data).forEach(key => {
                 formData.append(key, data[key])
             })
-            console.log("pickupCoord:", pickupCoord?.latitude, pickupCoord?.longitude)
-            console.log("deliveryCoord:", deliveryCoord?.latitude, deliveryCoord?.longitude)
-            // Exact pins chosen on the map — sent as GeoJSON so the backend can
-            // store precise coordinates instead of geocoding the address text.
-            if (pickupCoord) formData.append("pickup_location", toGeoJson(pickupCoord))
-            if (deliveryCoord) formData.append("delivery_location", toGeoJson(deliveryCoord))
+
+            // Send the EXACT picked pin as flat numeric fields. multipart/form-data
+            // delivers every field as a string, so we cannot send a nested GeoJSON
+            // object (the backend doesn't JSON.parse form fields, and a stringified
+            // Point crashes it). Flat lat/lng strings are multipart-safe; the
+            // backend parses them into a GeoJSON Point and stores the precise pin,
+            // falling back to geocoding the address only when no pin was dropped.
+            if (pickupCoord) {
+                formData.append("pickup_lat", String(pickupCoord.latitude))
+                formData.append("pickup_lng", String(pickupCoord.longitude))
+            }
+            if (deliveryCoord) {
+                formData.append("delivery_lat", String(deliveryCoord.latitude))
+                formData.append("delivery_lng", String(deliveryCoord.longitude))
+            }
 
             images.forEach((img, index) => {
                 formData.append("shipment_images", {

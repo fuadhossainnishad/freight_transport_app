@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft, Map, Search } from "lucide-react-native";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
-import { mapShipments, Shipment } from "../../../domain/entities/shipment.entity";
+import { Shipment } from "../../../domain/entities/shipment.entity";
 import { useAuth } from "../../../app/context/Auth.context";
 import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
 
@@ -183,7 +183,7 @@ const ActiveShipmentsScreen = () => {
           renderItem={({ item }) => (
             <ShipmentCard
               item={item}
-              onPress={() => navigation.navigate("ShipmentDetails", { shipmentId: item.id })}
+              onPress={() => navigation.navigate("ActiveShipmentDetailsScreen", { shipmentId: item.id })}
               onMapPress={() => navigation.navigate("ShipmentDetails", { shipmentId: item.id })}
             />
           )}

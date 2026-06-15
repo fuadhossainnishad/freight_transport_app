@@ -15,15 +15,20 @@ export const GET_TRANSPORTER_STATS = (id: string) => `/stats/transporter/${id}`
 
 export const CREATE_SHIPMENTS = "/shipment/"
 
-export const BANK_API_ENDPOINT = "/bank-details";
+export type BankRole = "shipper" | "transporter";
+export const BANK_DETAILS = (role: BankRole) => `/bank/${role}`;
+export const BANK_DETAIL = (role: BankRole, bankId: string) => `/bank/${role}/${bankId}`;
 
 export const GET_SHIPPER_ISSUES = (shipperId: string) => `/issues/shipper/${shipperId}`
-export const GET_SHIPMENT_ISSUE = (shipmentId: string) => `/issues/${shipmentId}`
+export const GET_SHIPMENT_ISSUE = (shipmentId: string) => `/issues/shipment/${shipmentId}`
 export const SINGLE_ISSUE = (id: string) => `/issues/${id}`
 
 export const GET_INFO = (type: string) => `/setting/${type}`
 
 export const GET_BIDS = "/bid/"
+
+export const GET_INVOICES = "/pay/invoices"
+export const GET_INVOICE_DETAIL = (paymentId: string) => `/pay/invoices/${paymentId}`
 
 export const GET_VEHICLES = (transporterId: string) => `/vehicle/transporter/${transporterId}`
 export const GET_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`

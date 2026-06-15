@@ -8,6 +8,7 @@ export type User = {
 
 export type AuthContextType = {
   isAuthenticated: boolean;
+  isLoading: boolean;
   user: User | null;
   login: (user: User) => void;
   logout: () => void;

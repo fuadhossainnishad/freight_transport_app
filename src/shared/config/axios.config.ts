@@ -23,7 +23,7 @@ axiosClient.interceptors.request.use(
 
       if (token) {
         config.headers = config.headers || {}
-        config.headers.Authorization = token
+        config.headers.Authorization = `${token}`
       }
       console.log("HEADERS SENT:", config.headers)
       console.log("config:", config)

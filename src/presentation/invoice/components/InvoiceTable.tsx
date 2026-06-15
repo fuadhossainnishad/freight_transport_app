@@ -1,15 +1,15 @@
 import React from "react";
 import { View, Text, FlatList } from "react-native";
-import { Shipment } from "../../../domain/entities/shipment.entity";
-import ShipmentItem from "./InvoiceItem";
+import { InvoiceListItem } from "../../../data/services/invoiceService";
+import InvoiceItem from "./InvoiceItem";
 
 interface Props {
-  shipments: Shipment[];
-  onView: (shipment: Shipment) => void;
-  onMap: (shipment: Shipment) => void;
+  invoices: InvoiceListItem[];
+  onView: (invoice: InvoiceListItem) => void;
+  onDownload: (invoice: InvoiceListItem) => void;
 }
 
-const InvoiceTable: React.FC<Props> = ({ shipments, onView, onMap }) => {
+const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload }) => {
   return (
     <View className="border border-gray-200 rounded-lg overflow-hidden mt-4">
 
@@ -28,18 +28,18 @@ const InvoiceTable: React.FC<Props> = ({ shipments, onView, onMap }) => {
 
       {/* Table Rows */}
       <FlatList
-        data={shipments}
-        keyExtractor={(item) => item.id}
+        data={invoices}
+        keyExtractor={(item) => item.payment_id}
         renderItem={({ item }) => (
-          <ShipmentItem
-            shipment={item}
+          <InvoiceItem
+            invoice={item}
             onViewPress={onView}
-            onMapPress={onMap}
+            onDownloadPress={onDownload}
           />
         )}
         ListEmptyComponent={
           <View className="p-4">
-            <Text className="text-center text-gray-500">No active shipment found</Text>
+            <Text className="text-center text-gray-500">No invoices found</Text>
           </View>
         }
       />

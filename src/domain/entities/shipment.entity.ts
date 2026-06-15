@@ -1,5 +1,20 @@
 import { normalizeImageUrl } from "../../shared/utils/normalizeImageUrl";
 
+export type LatLng = { latitude: number; longitude: number };
+
+// Backend stores pickup/delivery as GeoJSON Points: { coordinates: [lng, lat] }.
+// react-native-maps wants { latitude, longitude }, so swap the order here.
+// Returns undefined when missing/malformed so the map falls back to geocoding
+// the address instead of dropping a bad pin. (matches the driver-side mapper)
+export const fromGeoJsonPoint = (point: any): LatLng | undefined => {
+  const coords = point?.coordinates;
+  if (!Array.isArray(coords) || coords.length < 2) return undefined;
+  const [lng, lat] = coords;
+  if (typeof lat !== "number" || typeof lng !== "number") return undefined;
+  if (lat === 0 && lng === 0) return undefined; // null-island placeholder
+  return { latitude: lat, longitude: lng };
+};
+
 export const mapShipmentDetails = (res: any) => {
   const { shipment, vehicle, driver } = res;
 
@@ -16,6 +31,9 @@ export const mapShipmentDetails = (res: any) => {
     ),
     pickup: shipment.pickup_address,
     delivery: shipment.delivery_address,
+    // Backend coords (GeoJSON) — preferred over geocoding the address strings.
+    pickupCoord: fromGeoJsonPoint(shipment.pickup_location),
+    deliveryCoord: fromGeoJsonPoint(shipment.delivery_location),
     timeWindow: shipment.time_window,
     datePreference: shipment.date_preference,
     contactPerson: shipment.contact_person,
@@ -31,8 +49,9 @@ export const mapShipmentDetails = (res: any) => {
     driver: driver
       ? {
         name: driver.driver_name,
-        phone: driver.number,
-        email: driver.email,
+        phone: driver.user_id?.phone ?? driver.number ?? null,
+        email: driver.user_id?.email ?? driver.email ?? null,
+        country: driver.user_id?.country ?? null,
         avatar: driver.profile_picture?.[0],
       }
       : null,
@@ -67,6 +86,8 @@ export interface Shipment {
   vehicleId?: string;
   status: string
   contactPerson?: string;
+  pickupCoord?: LatLng;
+  deliveryCoord?: LatLng;
 }
 
 export const mapShipments = (res: any): Shipment[] => {
@@ -83,6 +104,8 @@ export const mapShipments = (res: any): Shipment[] => {
     ),
     pickup: shipment.pickup_address,
     delivery: shipment.delivery_address,
+    pickupCoord: fromGeoJsonPoint(shipment.pickup_location),
+    deliveryCoord: fromGeoJsonPoint(shipment.delivery_location),
     timeWindow: shipment.time_window,
     datePreference: shipment.date_preference,
     price: shipment.price,

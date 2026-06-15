@@ -4,6 +4,8 @@ import { ShipperHomeStackParamList, } from "./types";
 import ShipperHome from "../presentation/shipper/screens/ShipperHome.screen";
 import CreateShipmentScreen from "../presentation/shipper/screens/CreateShipmentScreen";
 import AddressPickerScreen from "../presentation/shipper/screens/AddressPicker.Screen";
+import ShipperBids from "../presentation/shipper/screens/ShipperBids.screen";
+import BidDetails from "../presentation/shipper/screens/BidDetails.screen";
 
 const Stack = createNativeStackNavigator<ShipperHomeStackParamList>();
 
@@ -24,8 +26,12 @@ export default function ShipperHomeStack() {
         component={CreateShipmentScreen}
       />
       <Stack.Screen
-        name='AddressPicker'
-        component={AddressPickerScreen}
+        name='Bids'
+        component={ShipperBids}
+      />
+      <Stack.Screen
+        name='BidDetails'
+        component={BidDetails}
       />
 
     </Stack.Navigator>

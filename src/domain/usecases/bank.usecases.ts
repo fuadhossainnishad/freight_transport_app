@@ -1,30 +1,39 @@
-import { addBankDetailsAPI, getBankDetailsAPI, updateBankDetailsAPI } from "../../data/services/bankService";
-import { Bank } from "../entities/bank.entity";
+import {
+    addBankDetailsAPI,
+    getBankDetailsAPI,
+    updateBankDetailsAPI,
+    deleteBankDetailsAPI,
+} from "../../data/services/bankService";
+import { BankRole } from "../constants/api";
+import { Bank, BankPayload } from "../entities/bank.entity";
 
-export const getBankDetails = async (): Promise<Bank | null> => {
+export const getBankDetails = async (role: BankRole): Promise<Bank[]> => {
     try {
-        const response = await getBankDetailsAPI();
-        return response || null; // if no bank, return null
+        return await getBankDetailsAPI(role);
     } catch (error) {
         console.error("Error fetching bank details:", error);
-        return null;
+        return [];
     }
 };
 
-export const addBankDetails = async (bank: Bank): Promise<Bank> => {
-    try {
-        const response = await addBankDetailsAPI(bank);
-        return response;
-    } catch (error) {
-        throw new Error("Failed to add bank details");
-    }
+export const addBankDetails = async (
+    role: BankRole,
+    bank: BankPayload
+): Promise<Bank> => {
+    return await addBankDetailsAPI(role, bank);
 };
 
-export const updateBankDetails = async (bank: Bank): Promise<Bank> => {
-    try {
-        const response = await updateBankDetailsAPI(bank);
-        return response;
-    } catch (error) {
-        throw new Error("Failed to update bank details");
-    }
+export const updateBankDetails = async (
+    role: BankRole,
+    bankId: string,
+    bank: Partial<BankPayload>
+): Promise<Bank> => {
+    return await updateBankDetailsAPI(role, bankId, bank);
+};
+
+export const deleteBankDetails = async (
+    role: BankRole,
+    bankId: string
+): Promise<void> => {
+    return await deleteBankDetailsAPI(role, bankId);
 };

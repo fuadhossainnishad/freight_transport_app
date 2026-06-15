@@ -10,6 +10,11 @@ export const DocPicker = async () => {
   const res = await launchImageLibrary({
     mediaType: 'mixed',
     selectionLimit: 1,
+    // Downscale + compress images so the upload stays well under the
+    // server's body-size limit (avoids nginx 413 Request Entity Too Large).
+    maxWidth: 1024,
+    maxHeight: 1024,
+    quality: 0.7,
   });
   if (res.didCancel && !res.assets?.length) {
     return null;

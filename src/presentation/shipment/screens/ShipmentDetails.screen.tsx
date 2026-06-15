@@ -209,9 +209,13 @@ export default function ShipmentDetailsScreen() {
 
         {/* ── MAP ───────────────────────────────────────────────────────────── */}
         <ShipmentMapRoute
+          shipmentId={shipmentId}
           pickupAddress={shipment.pickup}
           deliveryAddress={shipment.delivery}
+          pickupCoord={shipment.pickupCoord}
+          deliveryCoord={shipment.deliveryCoord}
           status={shipment.status}
+          live
         />
 
         {/* ── SHIPMENT DETAILS CARD ─────────────────────────────────────────── */}
