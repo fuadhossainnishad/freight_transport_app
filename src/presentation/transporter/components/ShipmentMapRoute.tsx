@@ -2,9 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-import axios from 'axios';
-import { decodePolyline } from '../../../shared/utils/map';
+import { Truck } from 'lucide-react-native';
 import { geocodeAddress, Coord } from '../../../shared/utils/geocode';
+import {
+  fetchRoute,
+  fromGeoJson,
+  isValidCoord,
+  sanitizePath,
+  pushPoint,
+} from '../../../shared/utils/tracking';
+import { connectSocket } from '../../../data/socket/socketClient';
+import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
+import axiosClient from '../../../shared/config/axios.config';
 import TruckIcon from '../../../../assets/icons/truck3.svg';
 import BoxIcon from '../../../../assets/icons/box3.svg';
 
@@ -20,21 +29,6 @@ const STATUS_BG: Record<string, string> = {
   COMPLETED: '#22C55E',
   PENDING: '#94A3B8',
 };
-
-async function fetchRoute(origin: Coord, dest: Coord): Promise<Coord[]> {
-  try {
-    const coords = `${origin.longitude},${origin.latitude};${dest.longitude},${dest.latitude}`;
-    const res = await axios.get(
-      `https://router.project-osrm.org/route/v1/driving/${coords}`,
-      { params: { overview: 'full', geometries: 'polyline' } },
-    );
-    if (res.data?.code === 'Ok' && res.data.routes?.length > 0) {
-      const pts = decodePolyline(res.data.routes[0].geometry);
-      if (pts.length > 1) return pts;
-    }
-  } catch {}
-  return [origin, dest];
-}
 
 /* ── Pickup pin: white card, blue accent, truck icon ── */
 function PickupMarker() {
@@ -66,10 +60,20 @@ function DeliveryMarker() {
   );
 }
 
+type LatLng = { latitude: number; longitude: number };
+
 type Props = {
   pickupAddress: string;
   deliveryAddress: string;
   status: string;
+  // Live, read-only tracking (shipper/transporter). When `live` is set and the
+  // shipment is IN_TRANSIT, the map shows the driver's live position + driven
+  // trail, sourced from the same socket events the driver screen emits.
+  shipmentId?: string;
+  live?: boolean;
+  // Prefer backend-stored coordinates over geocoding the address strings.
+  pickupCoord?: LatLng;
+  deliveryCoord?: LatLng;
   fullscreen?: boolean;
   showBadge?: boolean;
 };
@@ -78,6 +82,10 @@ export default function ShipmentMapRoute({
   pickupAddress,
   deliveryAddress,
   status,
+  shipmentId,
+  live = false,
+  pickupCoord,
+  deliveryCoord,
   fullscreen = false,
   showBadge = true,
 }: Props) {
@@ -86,15 +94,23 @@ export default function ShipmentMapRoute({
   const [dropoff, setDropoff] = useState<Coord | null>(null);
   const [route, setRoute] = useState<Coord[]>([]);
   const [loading, setLoading] = useState(true);
+  // Live driver position + driven trail (only used in `live` mode).
+  const [truck, setTruck] = useState<Coord | null>(null);
+  const [drivenPath, setDrivenPath] = useState<Coord[]>([]);
   const mapRef = useRef<MapView>(null);
+  const socketRef = useRef<any>(null);
 
+  const isInTransit = status === 'IN_TRANSIT';
+
+  // ── Resolve pickup/delivery coords + planned route ──────────────────────────
+  // Prefer backend coordinates; geocode the address strings only as a fallback.
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       setLoading(true);
       const [p, d] = await Promise.all([
-        geocodeAddress(pickupAddress),
-        geocodeAddress(deliveryAddress),
+        isValidCoord(pickupCoord) ? Promise.resolve(pickupCoord) : geocodeAddress(pickupAddress),
+        isValidCoord(deliveryCoord) ? Promise.resolve(deliveryCoord) : geocodeAddress(deliveryAddress),
       ]);
       if (cancelled) return;
       setPickup(p);
@@ -115,12 +131,74 @@ export default function ShipmentMapRoute({
     };
     load();
     return () => { cancelled = true; };
-  }, [pickupAddress, deliveryAddress]);
+  }, [pickupAddress, deliveryAddress, pickupCoord, deliveryCoord]);
+
+  // ── Live: seed last-known position + driven history from REST ───────────────
+  // The backend returns an empty history unless the ride is IN_TRANSIT, so the
+  // trail naturally appears only during the ride and vanishes once completed.
+  useEffect(() => {
+    if (!live || !shipmentId) return;
+    if (!isInTransit) {
+      // Not an active ride — make sure no stale truck/trail is shown.
+      setTruck(null);
+      setDrivenPath([]);
+      return;
+    }
+    let cancelled = false;
+    axiosClient
+      .get(`/map/shipment/${shipmentId}/location`)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const payload = data?.data;
+        if (payload?.current_location?.coordinates) {
+          setTruck(fromGeoJson(payload.current_location.coordinates));
+        }
+        if (payload?.location_history?.coordinates?.length) {
+          setDrivenPath(sanitizePath(payload.location_history.coordinates.map(fromGeoJson)));
+        }
+      })
+      .catch(() => { /* endpoint not live yet — wait for socket updates */ });
+    return () => { cancelled = true; };
+  }, [live, shipmentId, isInTransit]);
+
+  // ── Live: subscribe to the driver's position updates (read-only) ────────────
+  useEffect(() => {
+    if (!live || !shipmentId || !isInTransit) return;
+    let mounted = true;
+
+    const onLocationUpdate = (d: { shipmentId: string; latitude: number; longitude: number }) => {
+      if (!mounted || d.shipmentId !== shipmentId) return;
+      const coord: Coord = { latitude: d.latitude, longitude: d.longitude };
+      if (!isValidCoord(coord)) return;
+      setTruck(coord);
+      setDrivenPath(prev => pushPoint(prev, coord));
+      // Follow the truck without resetting the viewer's zoom level.
+      mapRef.current?.animateCamera({ center: coord }, { duration: 400 });
+    };
+
+    connectSocket().then(socket => {
+      if (!mounted) return;
+      socketRef.current = socket;
+      socket.on(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE, onLocationUpdate);
+      socket.emit(SOCKET_EVENTS.JOIN_TRACKING_ROOM, { shipmentId });
+    });
+
+    return () => {
+      mounted = false;
+      const socket = socketRef.current;
+      if (socket) {
+        socket.emit(SOCKET_EVENTS.LEAVE_TRACKING_ROOM, { shipmentId });
+        // Pass the exact same reference so we don't remove listeners owned elsewhere.
+        socket.off(SOCKET_EVENTS.DRIVER_LOCATION_UPDATE, onLocationUpdate);
+      }
+    };
+  }, [live, shipmentId, isInTransit]);
 
   const label = STATUS_LABEL[status] ?? status;
   const badgeBg = STATUS_BG[status] ?? '#94A3B8';
   const center = pickup ?? { latitude: 23.8103, longitude: 90.4125 };
   const badgeTop = fullscreen ? insets.top + 12 : 10;
+  const showTruck = live && isInTransit && !!truck;
 
   return (
     <View style={fullscreen ? styles.containerFullscreen : styles.container}>
@@ -144,6 +222,20 @@ export default function ShipmentMapRoute({
         )}
         {route.length > 1 && (
           <Polyline coordinates={route} strokeWidth={4} strokeColor="#036BB4" />
+        )}
+
+        {/* Live driven trail (solid blue) — only during an active ride */}
+        {showTruck && drivenPath.length > 1 && (
+          <Polyline coordinates={drivenPath} strokeWidth={5} strokeColor="#0071BC" />
+        )}
+
+        {/* Live driver marker */}
+        {showTruck && truck && (
+          <Marker coordinate={truck} anchor={{ x: 0.5, y: 0.5 }} title="Driver" tracksViewChanges={false}>
+            <View style={styles.truckMarker}>
+              <Truck size={20} color="#FFF" />
+            </View>
+          </Marker>
         )}
       </MapView>
 
@@ -295,5 +387,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.65)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  truckMarker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#0071BC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFF',
+    shadowColor: '#0071BC',
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

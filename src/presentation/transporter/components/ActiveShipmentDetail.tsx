@@ -109,9 +109,13 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
 
       {/* ── MAP ──────────────────────────────────────────────────────────────── */}
       <ShipmentMapRoute
+        shipmentId={shipment.id}
         pickupAddress={shipment.pickup}
         deliveryAddress={shipment.delivery}
+        pickupCoord={shipment.pickupCoord}
+        deliveryCoord={shipment.deliveryCoord}
         status={shipment.status}
+        live
       />
 
       {/* ── SHIPMENT DETAILS CARD ────────────────────────────────────────────── */}

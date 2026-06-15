@@ -89,9 +89,13 @@ const ShipmentTrackingScreen: React.FC = () => {
 
                 {/* Map */}
                 <ShipmentMapRoute
+                    shipmentId={shipmentId}
                     pickupAddress={data.pickup}
                     deliveryAddress={data.delivery}
+                    pickupCoord={data.pickupCoord}
+                    deliveryCoord={data.deliveryCoord}
                     status={data.status}
+                    live
                     showBadge={false}
                 />
 

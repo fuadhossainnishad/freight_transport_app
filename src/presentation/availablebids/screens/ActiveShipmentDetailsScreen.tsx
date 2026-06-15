@@ -87,7 +87,7 @@ export default function ActiveShipmentDetailsScreen() {
     );
   }
 
-  const { title, description, pickup, delivery, contactPerson, driver, vehicle, images } = data;
+  const { title, description, pickup, delivery, pickupCoord, deliveryCoord, contactPerson, driver, vehicle, images } = data;
 
   const vehicleImageUri: string | null = vehicle?.images?.[0] ?? null;
   const shipmentImages: string[] = images?.length ? images : [];
@@ -153,9 +153,13 @@ export default function ActiveShipmentDetailsScreen() {
         <View className="mx-4 mb-5">
           <View style={{ position: 'relative' }}>
             <ShipmentMapRoute
+              shipmentId={shipmentId}
               pickupAddress={pickup}
               deliveryAddress={delivery}
+              pickupCoord={pickupCoord}
+              deliveryCoord={deliveryCoord}
               status={data.status ?? 'IN_PROGRESS'}
+              live
             />
             {/* Expand button — four-corner expand icon */}
             <TouchableOpacity
@@ -190,9 +194,13 @@ export default function ActiveShipmentDetailsScreen() {
           <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
           <View style={{ flex: 1 }}>
             <ShipmentMapRoute
+              shipmentId={shipmentId}
               pickupAddress={pickup}
               deliveryAddress={delivery}
+              pickupCoord={pickupCoord}
+              deliveryCoord={deliveryCoord}
               status={data.status ?? 'IN_PROGRESS'}
+              live
               fullscreen
             />
             {/* Close button — wide pill at the bottom */}
