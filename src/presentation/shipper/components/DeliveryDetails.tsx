@@ -2,7 +2,6 @@ import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Controller, Control } from "react-hook-form"
 import LocationPickerInput, { LatLng } from "../../../shared/components/LocationPickerInput"
-import Checkbox from "../../../shared/components/Checkbox"
 
 type Props = {
   control: Control<any>

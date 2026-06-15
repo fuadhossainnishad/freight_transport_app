@@ -1,5 +1,4 @@
 import { InfoType } from "../domain/entities/info.entity"
-import { AddressLocation } from "../presentation/shipper/types"
 
 export type TransporterTabParamList = {
     HomeStack: undefined
