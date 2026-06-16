@@ -77,6 +77,26 @@ export const updateShipmentStatus = async (
     return res.data;
 };
 
+// Completes a delivery by uploading proof images and marking the shipment
+// COMPLETED in one multipart request. `formData` carries one or more
+// `delivery_proof` file entries. (PATCH /shipment/:id/complete)
+export const completeShipmentWithProof = async (
+    shipmentId: string,
+    formData: FormData
+) => {
+    const res = await axiosClient.patch(
+        `/shipment/${shipmentId}/complete`,
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+    console.log("completeShipmentWithProof:", res.data);
+    return res.data;
+};
+
 export const getShipmentBids = async (shipmentId: string) => {
     const res = await axiosClient.get(`/bid/${shipmentId}`);
     console.log("getShipmentBids:", res.data.data);

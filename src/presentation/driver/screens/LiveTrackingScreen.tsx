@@ -8,16 +8,23 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
+  Modal,
+  Image,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { ArrowLeft, MapPin, Navigation, CheckCircle, Truck, WifiOff } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Navigation, CheckCircle, Truck, WifiOff, X, Upload, Plus, Check, AlertTriangle } from 'lucide-react-native';
 import Geolocation from '@react-native-community/geolocation';
+import { Asset } from 'react-native-image-picker';
+import { useAuth } from '../../../app/context/Auth.context';
 import { Shipment } from '../types';
 import { connectSocket } from '../../../data/socket/socketClient';
 import { SOCKET_EVENTS } from '../../../domain/constants/socketEvents';
 import axiosClient from '../../../shared/config/axios.config';
-import { updateShipmentStatus } from '../../../data/services/shipmentService';
+import { updateShipmentStatus, completeShipmentWithProof } from '../../../data/services/shipmentService';
+import { pickShipmentImages } from '../../../shared/hooks/useImagePicker';
 import { geocodeAddress } from '../../../shared/utils/geocode';
 import {
   Coord,
@@ -59,12 +66,37 @@ const STATUS_COLOR: Record<string, string> = {
   PENDING: '#94A3B8',
 };
 
+// Remembers which shipments have already had their ride started this session, so
+// re-entering this screen (e.g. backing out to the shipment details and opening
+// the map again) doesn't reset to the "Start Ride" phase. In-memory only — no
+// backend round-trip needed. Survives navigation because the module stays loaded;
+// app restarts are covered by deriving the phase from shipment.status instead.
+const startedRides = new Set<string>();
+
+// A shipment whose ride has actually begun should open straight into the live
+// ride rather than the "heading to pickup" phase. Per the backend lifecycle
+// (PENDING → IN_PROGRESS → IN_TRANSIT → COMPLETED), IN_PROGRESS only means the
+// shipment is assigned to a driver who is still heading to pickup — the ride
+// hasn't started. Only IN_TRANSIT (started) and COMPLETED (finished) count.
+const STARTED_STATUSES = new Set(['IN_TRANSIT', 'COMPLETED']);
+
 // ── component ─────────────────────────────────────────────────────────────────
 
 const LiveTrackingScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation();
+  const { user } = useAuth();
   const { shipment }: { shipment: Shipment } = route.params;
+
+  // Title of another shipment this driver already has IN_TRANSIT. When set, the
+  // driver is blocked from starting this ride until they finish that one — the
+  // backend enforces "one live ride per driver", and we surface it up-front here.
+  const [activeRideTitle, setActiveRideTitle] = useState<string | null>(null);
+
+  // The ride is already underway if we started it earlier this session, or the
+  // backend reports a started status. Either way, skip the "Start Ride" card.
+  const rideAlreadyStarted =
+    startedRides.has(shipment.id) || STARTED_STATUSES.has(shipment.status);
 
   const mapRef = useRef<MapView>(null);
 
@@ -81,11 +113,24 @@ const LiveTrackingScreen = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // trip phase: heading to the pickup, then the actual pickup→delivery ride.
-  // Local-only — starting the ride does not call the backend.
-  const [phase, setPhase] = useState<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
+  // Initialised from the started state so a remount can't drop us back onto the
+  // "Start Ride" card after the ride has already begun.
+  const [phase, setPhase] = useState<'TO_PICKUP' | 'IN_TRANSIT'>(
+    rideAlreadyStarted ? 'IN_TRANSIT' : 'TO_PICKUP',
+  );
   const [nearPickup, setNearPickup] = useState(false);
-  const phaseRef = useRef<'TO_PICKUP' | 'IN_TRANSIT'>('TO_PICKUP');
+  // True once the driver is within ~50 m of the dropoff. Gates the "Arrival at
+  // Destination" button so a driver can only complete the delivery on arrival.
+  const [nearDropoff, setNearDropoff] = useState(false);
+  const phaseRef = useRef<'TO_PICKUP' | 'IN_TRANSIT'>(
+    rideAlreadyStarted ? 'IN_TRANSIT' : 'TO_PICKUP',
+  );
   useEffect(() => { phaseRef.current = phase; }, [phase]);
+
+  // Delivery-proof upload sheet (shown when the driver taps to complete).
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [proofImages, setProofImages] = useState<Asset[]>([]);
+  const [submittingProof, setSubmittingProof] = useState(false);
 
   // progress
   const [distanceCovered, setDistanceCovered] = useState(0);
@@ -104,6 +149,9 @@ const LiveTrackingScreen = () => {
   const arrived = progressPercent >= 100;
   const almostThere = eta === 'Arriving' && !arrived;
   const etaIsUnknown = eta === '' || eta === 'N/A';
+  // The driver may only complete the delivery once within ~50 m of the dropoff
+  // (or the server has reported 100% progress, which also means arrival).
+  const canComplete = nearDropoff || arrived;
 
   // ── Effect 0: driver's real GPS → initial truck position ─────────────────
   useEffect(() => {
@@ -154,8 +202,50 @@ const LiveTrackingScreen = () => {
     }
   }, [phase, nearPickup, truckCoord, pickupCoord]);
 
+  // ── Phase 2: reveal "Arrival at Destination" within 50 m of the dropoff ───
+  const DROPOFF_RADIUS_KM = 0.05; // ~50 m
+  useEffect(() => {
+    if (phase !== 'IN_TRANSIT' || nearDropoff) return;
+    if (!truckCoord || !dropoffCoord) return;
+    if (haversineKm(truckCoord, dropoffCoord) <= DROPOFF_RADIUS_KM) {
+      setNearDropoff(true);
+    }
+  }, [phase, nearDropoff, truckCoord, dropoffCoord]);
+
+  // ── Detect a started-but-unfinished ride on another shipment ──────────────
+  // A driver may only have one ride IN_TRANSIT at a time. If another shipment is
+  // already in transit, surface it so this screen can block "Start Ride" before
+  // the driver taps it (rather than only failing on the backend round-trip).
+  useEffect(() => {
+    if (rideAlreadyStarted) return; // this shipment is the active one — no block
+    const driverId = user?.driver_id;
+    if (!driverId) return;
+    axiosClient
+      .get(`/shipment/driver/${driverId}`)
+      .then(({ data }) => {
+        const list: any[] = data?.data?.shipments ?? [];
+        const active = list.find(
+          s => s.status === 'IN_TRANSIT' && s._id !== shipment.id,
+        );
+        if (active) setActiveRideTitle(active.shipment_title ?? 'another shipment');
+      })
+      .catch(() => {
+        // Non-fatal — the backend still rejects a second concurrent ride.
+      });
+  }, [user?.driver_id, shipment.id, rideAlreadyStarted]);
+
   // Switch from "heading to pickup" into the live pickup → delivery ride.
   const startRide = () => {
+    // Hard stop: can't start a second ride while another is in transit.
+    if (activeRideTitle) {
+      Alert.alert(
+        'Finish your active delivery first',
+        `You already have "${activeRideTitle}" in transit. Complete that delivery before starting this one.`,
+      );
+      return;
+    }
+
+    startedRides.add(shipment.id); // remember across remounts this session
     setPhase('IN_TRANSIT');
     setDrivenPath([]); // start the travelled-path trail fresh from pickup
     if (pickupCoord) {
@@ -164,23 +254,66 @@ const LiveTrackingScreen = () => {
         400,
       );
     }
-    // Tell the backend the ride has started (best-effort — never block the UI).
-    updateShipmentStatus(shipment.id, 'IN_TRANSIT').catch(err =>
-      console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message),
-    );
+    // Tell the backend the ride has started. Best-effort, except a 409 means the
+    // driver already has an active ride — revert the optimistic switch and warn.
+    updateShipmentStatus(shipment.id, 'IN_TRANSIT').catch(err => {
+      if (err?.response?.status === 409) {
+        startedRides.delete(shipment.id);
+        setPhase('TO_PICKUP');
+        phaseRef.current = 'TO_PICKUP';
+        setActiveRideTitle(prev => prev ?? 'another shipment');
+        Alert.alert(
+          'Finish your active delivery first',
+          'You already have a shipment in transit. Complete that delivery before starting this one.',
+        );
+      } else {
+        console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message);
+      }
+    });
   };
 
-  // Finish the trip — mark COMPLETED on the backend, then leave the screen.
-  // Best-effort: navigate back regardless so a network error can't trap the driver.
-  const completing = useRef(false);
-  const finishTrip = () => {
-    if (!completing.current) {
-      completing.current = true;
-      updateShipmentStatus(shipment.id, 'COMPLETED').catch(err =>
-        console.log('⚠️ Failed to mark COMPLETED:', err?.message),
+  // Finishing the trip requires delivery proof: tapping "Arrival at Destination"
+  // opens the upload sheet rather than completing straight away.
+  const openProofModal = () => setShowProofModal(true);
+
+  const addProofImages = async () => {
+    const assets = await pickShipmentImages();
+    if (assets.length) {
+      // Cap at 10 to match the backend's multer array limit.
+      setProofImages(prev => [...prev, ...assets].slice(0, 10));
+    }
+  };
+
+  const removeProofImage = (idx: number) =>
+    setProofImages(prev => prev.filter((_, i) => i !== idx));
+
+  // Upload the proof images and mark the shipment COMPLETED in one request.
+  // The backend persists the proof URLs and clears the live trail on success.
+  const submitProof = async () => {
+    if (proofImages.length === 0 || submittingProof) return;
+    setSubmittingProof(true);
+
+    const formData = new FormData();
+    proofImages.forEach((img, i) => {
+      formData.append('delivery_proof', {
+        uri: img.uri,
+        type: img.type ?? 'image/jpeg',
+        name: img.fileName ?? `delivery_proof_${i}.jpg`,
+      } as any);
+    });
+
+    try {
+      await completeShipmentWithProof(shipment.id, formData);
+      setShowProofModal(false);
+      navigation.goBack();
+    } catch (err: any) {
+      console.log('⚠️ Failed to complete with proof:', err?.message);
+      setSubmittingProof(false);
+      Alert.alert(
+        'Upload failed',
+        "Couldn't submit the delivery proof. Please check your connection and try again.",
       );
     }
-    navigation.goBack();
   };
 
   // ── Effect 1: resolve pickup/delivery coords + planned route ──────────────
@@ -547,7 +680,20 @@ const LiveTrackingScreen = () => {
 
           <View style={styles.divider} />
 
-          {nearPickup ? (
+          {activeRideTitle ? (
+            <>
+              <View style={styles.activeRideWarn}>
+                <AlertTriangle size={18} color="#B45309" />
+                <Text style={styles.activeRideWarnText}>
+                  You already have an active delivery (“{activeRideTitle}”) in
+                  transit. Finish it before starting this shipment.
+                </Text>
+              </View>
+              <View style={[styles.endTripBtn, styles.startRideBtnDisabled]}>
+                <Text style={styles.endTripText}>Start Ride</Text>
+              </View>
+            </>
+          ) : nearPickup ? (
             <>
               <View style={styles.nearPickupHint}>
                 <CheckCircle size={16} color="#22C55E" />
@@ -692,21 +838,113 @@ const LiveTrackingScreen = () => {
             )}
           </View>
 
-        <TouchableOpacity
-          style={[
-            styles.endTripBtn,
-            arrived    && styles.endTripBtnArrived,
-            almostThere && styles.endTripBtnAlmost,
-          ]}
-          activeOpacity={0.85}
-          onPress={finishTrip}
-        >
-          <Text style={styles.endTripText}>
-            {arrived ? 'Trip Complete' : almostThere ? 'Almost There' : 'Arrival at Destination'}
-          </Text>
-        </TouchableOpacity>
+        {canComplete ? (
+          <TouchableOpacity
+            style={[styles.endTripBtn, arrived && styles.endTripBtnArrived]}
+            activeOpacity={0.85}
+            onPress={openProofModal}
+          >
+            <Text style={styles.endTripText}>Arrival at Destination</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headingHint}>
+            <Navigation size={15} color="#0071BC" />
+            <Text style={styles.headingText}>
+              {almostThere
+                ? 'Almost there — the complete button appears when you reach the destination.'
+                : 'Drive to the destination — the "Arrival at Destination" button will appear when you arrive.'}
+            </Text>
+          </View>
+        )}
       </View>
       )}
+
+      {/* ── DELIVERY-PROOF UPLOAD SHEET ─────────────────────────────────────── */}
+      <Modal
+        visible={showProofModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !submittingProof && setShowProofModal(false)}
+      >
+        <View style={styles.proofBackdrop}>
+          <View style={styles.proofCard}>
+            {/* Header */}
+            <View style={styles.proofHeader}>
+              <Text style={styles.proofTitle}>Upload Delivery Proof</Text>
+              <TouchableOpacity
+                style={styles.proofClose}
+                onPress={() => !submittingProof && setShowProofModal(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={20} color="#1A1C1E" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.proofDivider} />
+
+            <Text style={styles.proofLabel}>Upload images</Text>
+
+            {/* First-pick / empty state */}
+            {proofImages.length === 0 ? (
+              <TouchableOpacity
+                style={styles.proofUploadBox}
+                activeOpacity={0.7}
+                onPress={addProofImages}
+              >
+                <Upload size={26} color="#94A3B8" />
+                <Text style={styles.proofUploadText}>Upload</Text>
+              </TouchableOpacity>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.proofThumbRow}
+              >
+                {proofImages.map((img, i) => (
+                  <View key={`${img.uri}-${i}`} style={styles.proofThumbWrap}>
+                    <Image source={{ uri: img.uri }} style={styles.proofThumb} />
+                    <TouchableOpacity
+                      style={styles.proofThumbRemove}
+                      onPress={() => removeProofImage(i)}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <X size={12} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+
+            {/* Add-more box */}
+            {proofImages.length < 10 && (
+              <TouchableOpacity
+                style={styles.proofAddBox}
+                activeOpacity={0.7}
+                onPress={addProofImages}
+              >
+                <Plus size={24} color="#94A3B8" />
+              </TouchableOpacity>
+            )}
+
+            {/* Submit */}
+            <TouchableOpacity
+              style={[
+                styles.proofSubmit,
+                (proofImages.length === 0 || submittingProof) && styles.proofSubmitDisabled,
+              ]}
+              activeOpacity={0.85}
+              disabled={proofImages.length === 0 || submittingProof}
+              onPress={submitProof}
+            >
+              {submittingProof ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Check size={20} color="#FFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -929,6 +1167,72 @@ const styles = StyleSheet.create({
   nearPickupHint: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   nearPickupText: { fontSize: 14, color: '#15803D', fontWeight: '700' },
   startRideBtn: { backgroundColor: '#22C55E' },
+  startRideBtnDisabled: { backgroundColor: '#CBD5E1' },
+
+  // blocked-by-active-ride warning
+  activeRideWarn: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1, borderColor: '#FDE68A',
+    borderRadius: 12, padding: 12, marginBottom: 12,
+  },
+  activeRideWarnText: { flex: 1, fontSize: 13, color: '#92400E', fontWeight: '700', lineHeight: 18 },
+
+  // delivery-proof upload sheet
+  proofBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  proofCard: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 20, elevation: 10,
+  },
+  proofHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  proofTitle: { fontSize: 18, fontWeight: '800', color: '#1A1C1E' },
+  proofClose: {
+    width: 32, height: 32, borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  proofDivider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 14 },
+  proofLabel: { fontSize: 15, fontWeight: '700', color: '#1A1C1E', marginBottom: 12 },
+  proofUploadBox: {
+    height: 110, borderRadius: 12,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center', alignItems: 'center', gap: 6,
+  },
+  proofUploadText: { fontSize: 15, fontWeight: '600', color: '#64748B' },
+  proofThumbRow: { gap: 10, paddingVertical: 2 },
+  proofThumbWrap: { width: 90, height: 90 },
+  proofThumb: { width: 90, height: 90, borderRadius: 12, backgroundColor: '#E2E8F0' },
+  proofThumbRemove: {
+    position: 'absolute', top: -6, right: -6,
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: '#FFF',
+  },
+  proofAddBox: {
+    height: 64, borderRadius: 12, marginTop: 14,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  proofSubmit: {
+    marginTop: 20, height: 52, borderRadius: 14,
+    backgroundColor: '#0071BC',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  proofSubmitDisabled: { backgroundColor: '#94A3B8' },
 });
 
 const mapStyle = [
