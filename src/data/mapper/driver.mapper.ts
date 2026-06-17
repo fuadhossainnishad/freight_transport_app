@@ -1,6 +1,7 @@
 // data/mappers/driver.mapper.ts
 
 import { Driver } from "../../presentation/driver/types";
+import { normalizeImageUrl } from "../../shared/utils/normalizeImageUrl";
 
 
 export const mapDriverApiToEntity = (item: any): Driver => ({
@@ -9,7 +10,7 @@ export const mapDriverApiToEntity = (item: any): Driver => ({
     // API returns the phone under `number`; older payloads used `phone`.
     phone: item.number ?? item.phone,
     email: item.email,
-    avatar: item.profile_picture?.[0],
-    licenseFront: item.driver_license?.[0],
-    licenseBack: item.driver_license?.[1],
+    avatar: normalizeImageUrl(item.profile_picture?.[0]),
+    licenseFront: normalizeImageUrl(item.driver_license?.[0]),
+    licenseBack: normalizeImageUrl(item.driver_license?.[1]),
 });

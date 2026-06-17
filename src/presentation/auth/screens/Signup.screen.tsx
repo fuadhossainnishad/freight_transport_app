@@ -8,50 +8,91 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
-import CountryCodeDropdownPicker from "react-native-dropdown-country-picker";
 
 import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
 import { TRUCK_TYPES } from "../../../domain/constants/truckTypes";
+import {
+  Country,
+  DEFAULT_COUNTRY,
+  isValidPhoneForCountry,
+} from "../../../domain/constants/countries";
 import { useSignup } from "../hooks/useSignup";
 import CustomInput from "../../../shared/components/CustomInput";
-import Dropdown from "../../../shared/components/Dropdown";
+import CountryPicker from "../../../shared/components/CountryPicker";
+import PhoneNumberInput from "../../../shared/components/PhoneNumberInput";
+import TruckTypeSelect from "../../../shared/components/TruckTypeSelect";
 import PasswordInput from "../../../shared/components/PasswordInout";
 import Checkbox from "../../../shared/components/Checkbox";
-import RoleSelector from '../components/RoleSelector';
+import RoleSelector from "../components/RoleSelector";
 import { AuthParamList } from "../types";
 import { useNavigation } from "@react-navigation/native";
-import Logo from "../../../../assets/icons/logo.svg"
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import Logo from "../../../../assets/icons/logo.svg";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import Truck2 from "../../../../assets/icons/truck2.svg"
-import Truck from "../../../../assets/icons/transporter.svg"
-import Box2 from "../../../../assets/icons/box.svg"
-import Box from "../../../../assets/icons/box2.svg"
+import Truck2 from "../../../../assets/icons/truck2.svg";
+import Truck from "../../../../assets/icons/transporter.svg";
+import Box2 from "../../../../assets/icons/box.svg";
+import Box from "../../../../assets/icons/box2.svg";
 import SubmitButton from "../../../shared/components/SubmitButton";
 
-type props = NativeStackNavigationProp<AuthParamList, 'RootAuth'>;
+type props = NativeStackNavigationProp<AuthParamList, "RootAuth">;
+
+// Readable field label (replaces the near-invisible text-black/10 labels).
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <Text className="text-sm font-semibold text-gray-700 mb-1.5">{children}</Text>
+);
 
 export default function SignupScreen() {
   const { signup, loading } = useSignup();
-  const navigation = useNavigation<props>()
+  const navigation = useNavigation<props>();
 
-  // CountryCodeDropdownPicker manages its own dial-code state
-  const [dialCode, setDialCode] = useState<string>("+880");
-  const [countryDetails, setCountryDetails] = useState<any>(null);
+  // Selected country drives both the Country field and the phone prefix/flag.
+  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [phoneError, setPhoneError] = useState(false);
+
   const { control, handleSubmit, setValue, watch } = useForm<CompanyRegistrationForm>({
     defaultValues: {
-      role: "TRANSPORTER",
+      role: "SHIPPER",
       acceptTerms: false,
       service_policy: false,
     },
   });
   const selectedRole = watch("role");
 
+  // When the country changes, trim any already-typed phone digits to the new
+  // country's maximum so the field never holds more digits than allowed.
+  const handleCountryChange = (next: Country) => {
+    setCountry(next);
+    setPhoneError(false);
+    const maxDigits = Math.max(...next.phoneLengths);
+    const current = (watch("phone") ?? "").replace(/\D/g, "");
+    if (current.length > maxDigits) {
+      setValue("phone", current.slice(0, maxDigits));
+    }
+  };
+
   const onSubmit = async (data: CompanyRegistrationForm) => {
+    const nationalNumber = (data.phone ?? "").replace(/\D/g, "").replace(/^0+/, "");
+
+    if (!isValidPhoneForCountry(country, nationalNumber)) {
+      setPhoneError(true);
+      Alert.alert(
+        "Invalid phone number",
+        `A ${country.name} phone number must be ${country.phoneLengths.join(" or ")} digits.`,
+      );
+      return;
+    }
+    setPhoneError(false);
+
+    if ((data.password ?? "").length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
     if (data.password !== data.confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
@@ -61,21 +102,17 @@ export default function SignupScreen() {
       return;
     }
 
-
     try {
-      const normalizedPhone = data.phone.replace(/^0+/, "");
-
-      // Merge dial code with phone
-      const fullPhone = `${dialCode}${normalizedPhone}`;
+      const fullPhone = `${country.dialCode}${nationalNumber}`;
 
       const response = await signup({
         ...data,
         phone: fullPhone,
-        country: countryDetails?.name ?? "",
+        country: country.name,
       });
 
       if (response) {
-        navigation.navigate('SignIn')
+        navigation.navigate("SignIn");
       }
       Alert.alert("Success", "Account created successfully");
     } catch (error: any) {
@@ -97,43 +134,45 @@ export default function SignupScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View className="border-b border-b-black/10 pb-6">
-
               <View className="flex-row justify-center">
-                <Logo height={120} width={120} />
+                <Logo height={110} width={110} />
               </View>
-              <View className="">
-                <Text className="text-3xl text-center font-bold text-[#036BB4]">
+              <View>
+                <Text className="text-2xl text-center font-bold text-gray-900">
                   Create Account
                 </Text>
-
-                <Text className="text-gray-500 mt-2 text-base m-4 text-center">
+                <Text className="text-gray-500 mt-1.5 text-sm text-center">
                   Join thousands of businesses and transporters
                 </Text>
               </View>
-              <View className="flex-row w-full flex-1 gap-2 mb-6">
+
+              <View className="flex-row w-full flex-1 gap-3 mt-6">
                 <RoleSelector
                   role="SHIPPER"
-                  theme='I need to ship goods'
+                  title="I'm a shipper"
+                  theme="I need to ship goods"
                   selected={selectedRole === "SHIPPER"}
                   onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
                   Icon={[Box, Box2]}
                 />
                 <RoleSelector
                   role="TRANSPORTER"
-                  theme='I have trucks to offer'
+                  title="I'm a Transporter"
+                  theme="I have trucks to offer"
                   selected={selectedRole === "TRANSPORTER"}
                   onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
                   Icon={[Truck, Truck2]}
                 />
-
               </View>
             </View>
+
             <View>
-              <Text className="text-xl  font-normal text-black/80 mb-4">
-                {selectedRole === 'TRANSPORTER' ? "Company Details" : "Basic information"}
+              <Text className="text-lg font-bold text-gray-900 mb-4">
+                Basic information
               </Text>
-              <Text className="text-base  font-normal text-black/10 mb-1">
-                Company Name</Text>
+
+              {/* Company name */}
+              <Label>Company name</Label>
               <Controller
                 control={control}
                 name="companyName"
@@ -147,14 +186,13 @@ export default function SignupScreen() {
               />
 
               {/* Email */}
-              <Text className="text-base  font-normal text-black/10 mb-1">
-                Email</Text>
+              <Label>Email address</Label>
               <Controller
                 control={control}
                 name="email"
                 render={({ field: { onChange, value } }) => (
                   <CustomInput
-                    placeholder="Email address"
+                    placeholder="Your email address"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={value}
@@ -163,46 +201,38 @@ export default function SignupScreen() {
                 )}
               />
 
-              {/* Phone */}
-              <Text className="text-base  font-normal text-black/10 mb-1">
-                Mobile Number</Text>
+              {/* Phone — prefix/flag driven by selected country */}
+              <Label>Phone number</Label>
               <Controller
                 control={control}
                 name="phone"
                 render={({ field: { onChange, value } }) => (
-                  <CustomInput
-                    placeholder="Phone number"
-                    keyboardType="phone-pad"
-                    value={value}
-                    onChangeText={onChange}
-                  />
+                  <View style={{ marginBottom: 14 }}>
+                    <PhoneNumberInput
+                      country={country}
+                      value={value ?? ""}
+                      onChangeText={(t) => {
+                        if (phoneError) setPhoneError(false);
+                        onChange(t);
+                      }}
+                      onCountryChange={handleCountryChange}
+                      error={phoneError}
+                    />
+                  </View>
                 )}
               />
 
-              {/*
-              Country picker — flag + dial code dropdown
-              react-native-dropdown-country-picker:
-              - zero dependencies, React 19 compatible
-              - shows flag emoji + calling code
-              - built-in search
-            */}
-              <View style={styles.countryPickerWrapper}>
-                <Text style={styles.countryPickerLabel}>Country</Text>
-                <CountryCodeDropdownPicker
-                  selected={dialCode}
-                  setSelected={setDialCode as any}
-                  setCountryDetails={(details: any) => {
-                    console.log('Country details:', details); // Debug log
-                    setCountryDetails(details);
-                  }} countryCodeContainerStyles={styles.countryCodeContainer}
-                  countryCodeTextStyles={styles.countryCodeText}
-                />
+              {/* Country — selecting updates the phone prefix automatically */}
+              <Label>Country</Label>
+              <View style={{ marginBottom: 14 }}>
+                <CountryPicker value={country} onChange={handleCountryChange} />
               </View>
 
-              {selectedRole === 'TRANSPORTER' &&
+              {selectedRole === "TRANSPORTER" && (
                 <View>
                   {/* Number of Trucks */}
-                  < Controller
+                  <Label>Number of trucks</Label>
+                  <Controller
                     control={control}
                     name="numberOfTrucks"
                     render={({ field: { onChange, value } }) => (
@@ -216,33 +246,33 @@ export default function SignupScreen() {
                   />
 
                   {/* Truck Type */}
-                  <Text className="text-base  font-normal text-black/10 mb-1">
-                    Truck Type</Text>
-                  <Controller
-                    control={control}
-                    name="truckType"
-                    render={({ field: { onChange, value } }) => (
-                      <Dropdown
-                        placeholder="Select truck type"
-                        value={value}
-                        data={TRUCK_TYPES}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
+                  <Label>Truck type</Label>
+                  <View style={{ marginBottom: 14 }}>
+                    <Controller
+                      control={control}
+                      name="truckType"
+                      render={({ field: { onChange, value } }) => (
+                        <TruckTypeSelect
+                          placeholder="Select truck type"
+                          value={value}
+                          data={TRUCK_TYPES}
+                          onChange={onChange}
+                        />
+                      )}
+                    />
+                  </View>
                 </View>
+              )}
 
-              }
               {/* Password */}
-              <Text className="text-base  font-normal text-black/10 mb-1">
-                Password</Text>
+              <Label>Password</Label>
               <Controller
                 control={control}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <View className="border border-gray-400 rounded-xl px-4">
+                  <View className="border border-gray-300 rounded-xl px-4 mb-3.5 h-[52px] justify-center">
                     <PasswordInput
-                      placeholder="Password"
+                      placeholder="Minimum 6 characters"
                       value={value ?? ""}
                       onChangeText={onChange}
                     />
@@ -251,15 +281,14 @@ export default function SignupScreen() {
               />
 
               {/* Confirm Password */}
-              <Text className="text-base  font-normal text-black/10 mb-1">
-                Confirm Password</Text>
+              <Label>Confirm Password</Label>
               <Controller
                 control={control}
                 name="confirmPassword"
                 render={({ field: { onChange, value } }) => (
-                  <View className="border border-gray-400 rounded-xl px-4">
+                  <View className="border border-gray-300 rounded-xl px-4 mb-3.5 h-[52px] justify-center">
                     <PasswordInput
-                      placeholder="Confirm password"
+                      placeholder="Re-enter your password"
                       value={value ?? ""}
                       onChangeText={onChange}
                     />
@@ -297,15 +326,22 @@ export default function SignupScreen() {
 
             <View style={styles.buttonWrapper}>
               <SubmitButton
-                text="Create Account"
+                text="Create"
                 loading={loading}
                 onSubmit={handleSubmit(onSubmit)}
               />
             </View>
+
+            <View className="flex-row justify-center items-center mt-4">
+              <Text className="text-gray-600 text-sm">Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
+                <Text className="text-[#036BB4] font-semibold text-sm">Log In</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
 
@@ -322,135 +358,13 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 48,
-    gap: 16
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 6,
-    color: "#111",
-  },
-  subtitle: {
-    fontSize: 14,
-    marginBottom: 24,
-    color: "#666",
-  },
-
-  // ── Country Picker ──
-  countryPickerWrapper: {
-    marginBottom: 12,
-
-  },
-  countryPickerLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#888",
-    marginBottom: 4,
-    marginLeft: 2,
-  },
-  countryCodeContainer: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    backgroundColor: "#fafafa",
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-    minHeight: 50,
-  },
-  countryCodeText: {
-    fontSize: 14,
-    color: "#333",
-    fontWeight: "500",
-  },
-
-  // ── Password ──
-  passwordWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    marginBottom: 12,
-    backgroundColor: "#fafafa",
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 14,
-    color: "#111",
-  },
-  eyeButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  eyeIconWrapper: {
-    width: 22,
-    height: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  eyeOval: {
-    width: 20,
-    height: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#888",
-    position: "absolute",
-  },
-  eyePupil: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: "#888",
-    position: "absolute",
-  },
-  eyeSlash: {
-    position: "absolute",
-    width: 26,
-    height: 2,
-    backgroundColor: "#888",
-    transform: [{ rotate: "-45deg" }],
+    gap: 16,
   },
 
   // ── Checkboxes ──
   agreements: {
     marginTop: 12,
     gap: 14,
-  },
-  checkboxRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  checkboxBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: "#ccc",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 1,
-    flexShrink: 0,
-  },
-  checkboxChecked: {
-    borderColor: "#2563eb",
-    backgroundColor: "#2563eb",
-  },
-  checkboxTick: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
-    lineHeight: 14,
-  },
-  checkboxLabel: {
-    flex: 1,
-    fontSize: 13,
-    color: "#444",
-    lineHeight: 20,
   },
 
   // ── Button ──

@@ -11,8 +11,14 @@ export type TransporterTabParamList = {
 export type ShipperTabParamList = {
     HomeStack: undefined
     Shipments: undefined
-    Settings: undefined
     Invoices: undefined
+    Payments: undefined
+    Settings: undefined
+}
+
+export type PaymentsStackParamList = {
+    PaymentRequests: undefined
+    PayWebView: { paymentId: string; url: string; title?: string }
 }
 
 export type AuthParamList = {
@@ -56,6 +62,7 @@ export type TransporterHomeStackParamList = {
     ShipmentTracking: { shipmentId: string }
     ActiveShipments: undefined
     ActiveShipmentDetailsScreen: { shipmentId: string }
+    AssignVehicleDriver: { shipmentId: string }
 };
 export type AvailableBidsStackParamList = {
     AvailableBids: undefined;

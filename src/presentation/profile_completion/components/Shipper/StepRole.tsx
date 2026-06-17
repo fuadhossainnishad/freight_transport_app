@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity } from "react-native"
+import { View, Text } from "react-native"
 import { useFormContext } from "react-hook-form"
+import WizardOptionCard from "../WizardOptionCard"
 
 const options = [
   { label: "Logistic Manager", value: "Logistic_Manager" },
@@ -11,38 +12,30 @@ const options = [
   { label: "Other", value: "Other" }
 ]
 
-export default function StepRole({ next, back }: any) {
-
-  const { setValue } = useFormContext()
+export default function StepRole({ next }: any) {
+  const { setValue, watch } = useFormContext()
+  const current = watch("shipper_type")
 
   return (
-    <View className="">
+    <View className="gap-5">
+      <Text className="text-xl font-bold text-gray-900">
+        What role fits you best?
+      </Text>
 
-      <Text className="font-semibold text-xl mb-4">
-        What role fits you?</Text>
-
-      {options.map((item) => (
-        <TouchableOpacity
-          key={item.label}
-          onPress={() => {
-            setValue("shipper_type", item.value)
-            next()
-          }}
-          className="border border-black/10 p-4 flex-col font-semibold bg-black/10 rounded-lg mb-4"
-
-        >
-          <Text>{item.label}</Text>
-        </TouchableOpacity>
-      ))}
-
-      <TouchableOpacity
-        className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
-        onPress={back}>
-        <Text className="text-white text-center font-semibold">
-          Back
-        </Text>
-        {/* <Arrow height={16} width={16} /> */}
-      </TouchableOpacity>
+      <View style={{ gap: 12 }}>
+        {options.map((item) => (
+          <WizardOptionCard
+            key={item.value}
+            layout="row"
+            label={item.label}
+            selected={current === item.value}
+            onPress={() => {
+              setValue("shipper_type", item.value)
+              next()
+            }}
+          />
+        ))}
+      </View>
     </View>
   )
 }

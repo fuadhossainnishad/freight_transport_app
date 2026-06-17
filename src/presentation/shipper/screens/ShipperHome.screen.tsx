@@ -15,8 +15,10 @@ import { useNavigation } from "@react-navigation/native"
 import Create from '../../../../assets/icons/create.svg'
 import { connectSocket } from "../../../data/socket/socketClient";
 import StatCard from "../../../shared/components/StatCard";
-import { getAvailableBids } from "../../../data/services/bidService";
 import { getShipmentBids } from "../../../data/services/shipmentService";
+import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+import { normalizeImageUrl } from "../../../shared/utils/normalizeImageUrl";
+import { PackageSearch } from "lucide-react-native";
 
 const BLUE = '#036BB4';
 const { width } = Dimensions.get('window');
@@ -59,23 +61,25 @@ export default function ShipperHome() {
     // ── Data fetchers ────────────────────────────────────────────────
     const fetchStats = useCallback(async () => {
         try {
-            const res = await getShipperStats(authUser?.id!)
+            const res = await getShipperStats(authUser?.shipper_id!)
             setStats(res.data)
         } catch (err) {
             console.log("Stats error:", err)
         }
-    }, [authUser?.id])
+    }, [authUser?.shipper_id])
 
     const fetchBidShipments = useCallback(async () => {
         try {
-            const res = await getAvailableBids(undefined, 1, 5)
-            const list: any[] = res.data ?? []
-            setBidShipments(list)
-            if (list.length > 0) setSelectedId(list[0]._id)
+            // Only the shipper's OWN shipments that are currently open for
+            // bidding — not the global available-bids feed (that's transporter-side).
+            const { shipments } = await getShipmentsUseCase("shipper", authUser?.shipper_id!)
+            const bidding = (shipments ?? []).filter((s: any) => s.status === "BIDDING")
+            setBidShipments(bidding)
+            if (bidding.length > 0) setSelectedId(bidding[0].id)
         } catch (err) {
             console.log("Bid shipments error:", err)
         }
-    }, [])
+    }, [authUser?.shipper_id])
 
     const fetchShipmentBids = useCallback(async (id: string) => {
         setBidsLoading(true)
@@ -99,7 +103,7 @@ export default function ShipperHome() {
 
             const rawIndex = Math.round(offsetX / ITEM_SIZE)
             const realIdx = ((rawIndex - CLONE_COUNT) % totalReal + totalReal) % totalReal
-            setSelectedId(bidShipments[realIdx]._id)
+            setSelectedId(bidShipments[realIdx].id)
 
             if (rawIndex < CLONE_COUNT) {
                 isJumping.current = true
@@ -199,14 +203,29 @@ export default function ShipperHome() {
                 <View style={s.section}>
                     <View style={s.sectionHeader}>
                         <Text style={s.sectionTitle}>Live Bids</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Bids')}>
-                            <Text style={s.seeAll}>See All</Text>
-                        </TouchableOpacity>
+                        {bidShipments.length > 3 && (
+                            <TouchableOpacity onPress={() => navigation.navigate('Bids')}>
+                                <Text style={s.seeAll}>See All</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {bidShipments.length === 0 ? (
-                        <View style={s.empty}>
-                            <Text style={s.emptyText}>No active bids right now</Text>
+                        <View style={s.emptyCard}>
+                            <View style={s.emptyIconWrap}>
+                                <PackageSearch size={28} color={BLUE} />
+                            </View>
+                            <Text style={s.emptyTitle}>No live bids yet</Text>
+                            <Text style={s.emptySub}>
+                                Post a shipment and transporters will start placing bids here.
+                            </Text>
+                            <TouchableOpacity
+                                style={s.emptyCta}
+                                activeOpacity={0.85}
+                                onPress={() => navigation.navigate('CreateShipment')}
+                            >
+                                <Text style={s.emptyCtaText}>Create Shipment</Text>
+                            </TouchableOpacity>
                         </View>
                     ) : (
                         <ScrollView
@@ -227,13 +246,13 @@ export default function ShipperHome() {
                             }}
                         >
                             {loopItems.map((item, i) => {
-                                const isActive = item._id === selectedId
+                                const isActive = item.id === selectedId
                                 const cardH = isActive ? CARD_H_ACTIVE : CARD_H_INACTIVE
                                 return (
                                     <TouchableOpacity
-                                        key={`${item._id}-${i}`}
+                                        key={`${item.id}-${i}`}
                                         activeOpacity={0.88}
-                                        onPress={() => setSelectedId(item._id)}
+                                        onPress={() => setSelectedId(item.id)}
                                         style={[
                                             s.card,
                                             {
@@ -243,9 +262,9 @@ export default function ShipperHome() {
                                             },
                                         ]}
                                     >
-                                        {item.shipment_images?.[0] ? (
+                                        {item.images?.[0] ? (
                                             <Image
-                                                source={{ uri: item.shipment_images[0] }}
+                                                source={{ uri: normalizeImageUrl(item.images[0]) }}
                                                 style={StyleSheet.absoluteFill}
                                                 resizeMode="cover"
                                             />
@@ -269,7 +288,7 @@ export default function ShipperHome() {
                                         {/* Title always shown */}
                                         <View style={s.cardFooter}>
                                             <Text style={s.cardTitle} numberOfLines={2}>
-                                                {item.shipment_title}
+                                                {item.title}
                                             </Text>
                                         </View>
                                     </TouchableOpacity>
@@ -460,4 +479,47 @@ const s = StyleSheet.create({
 
     empty: { paddingVertical: 28, alignItems: 'center' },
     emptyText: { fontSize: 13, color: '#9ca3af' },
+
+    // Live Bids empty state
+    emptyCard: {
+        marginHorizontal: 16,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#EEF2F6',
+        paddingVertical: 28,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 1,
+    },
+    emptyIconWrap: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#EFF6FF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 14,
+    },
+    emptyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
+    emptySub: {
+        fontSize: 13,
+        color: '#6B7280',
+        textAlign: 'center',
+        marginTop: 6,
+        lineHeight: 19,
+        maxWidth: 280,
+    },
+    emptyCta: {
+        marginTop: 18,
+        backgroundColor: BLUE,
+        paddingHorizontal: 22,
+        paddingVertical: 12,
+        borderRadius: 999,
+    },
+    emptyCtaText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 })

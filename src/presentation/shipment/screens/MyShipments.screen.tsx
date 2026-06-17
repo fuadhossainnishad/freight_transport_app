@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Eye, Map, Plus, Search } from "lucide-react-native";
+import { Eye, Map, Plus, Search, PackageSearch, SearchX } from "lucide-react-native";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { Shipment } from "../../../domain/entities/shipment.entity";
@@ -102,24 +102,37 @@ const MyShipmentsScreen = () => {
     <SafeAreaView edges={["top"]} style={s.screen}>
       <Text style={s.screenTitle}>My Shipments</Text>
 
-      {/* Search */}
-      <View style={s.searchRow}>
-        <View style={s.searchBox}>
-          <Search size={16} color="#9ca3af" style={{ marginRight: 8 }} />
-          <TextInput
-            style={s.searchInput}
-            placeholder="Search"
-            placeholderTextColor="#9ca3af"
-            value={search}
-            onChangeText={setSearch}
-            returnKeyType="search"
-          />
+      {/* Search — only relevant once the shipper has shipments */}
+      {!loading && shipments.length > 0 && (
+        <View style={s.searchRow}>
+          <View style={s.searchBox}>
+            <Search size={16} color="#9ca3af" style={{ marginRight: 8 }} />
+            <TextInput
+              style={s.searchInput}
+              placeholder="Search"
+              placeholderTextColor="#9ca3af"
+              value={search}
+              onChangeText={setSearch}
+              returnKeyType="search"
+            />
+          </View>
         </View>
-      </View>
+      )}
 
       {loading ? (
         <View style={s.centered}>
           <ActivityIndicator size="large" color={BLUE} />
+        </View>
+      ) : shipments.length === 0 ? (
+        // No shipments at all — no search bar / table header, just a clean empty state.
+        <View style={s.fullEmpty}>
+          <View style={s.emptyIconWrap}>
+            <PackageSearch size={34} color={BLUE} />
+          </View>
+          <Text style={s.emptyTitle}>No shipments yet</Text>
+          <Text style={s.emptySub}>
+            Create your first shipment and transporters will start bidding on it.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -140,9 +153,14 @@ const MyShipmentsScreen = () => {
           }
           stickyHeaderIndices={[0]}
           ListEmptyComponent={
+            // Reached only when a search filters everything out.
             <View style={s.empty}>
-              <Text style={s.emptyText}>
-                {search ? "No shipments match your search" : "No shipments yet"}
+              <View style={s.emptyIconWrap}>
+                <SearchX size={30} color={BLUE} />
+              </View>
+              <Text style={s.emptyTitle}>No matching shipments</Text>
+              <Text style={s.emptySub}>
+                {`We couldn't find a shipment matching "${search.trim()}".`}
               </Text>
             </View>
           }
@@ -242,8 +260,26 @@ const s = StyleSheet.create({
 
   // states
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  empty: { paddingTop: 60, alignItems: "center" },
-  emptyText: { fontSize: 14, color: "#9CA3AF" },
+  empty: { paddingTop: 72, alignItems: "center", paddingHorizontal: 32 },
+  fullEmpty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingBottom: 40 },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: { fontSize: 17, fontWeight: "700", color: "#111827" },
+  emptySub: {
+    fontSize: 13.5,
+    color: "#6B7280",
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 20,
+    maxWidth: 300,
+  },
 
   // footer
   footer: {

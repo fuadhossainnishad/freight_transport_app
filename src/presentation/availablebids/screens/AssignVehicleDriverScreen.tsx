@@ -31,6 +31,7 @@ import { fetchTransporterDrivers } from '../../../data/services/driverService';
 import { searchVehicles } from '../../../data/services/vehicleService';
 import { createBid } from '../../../data/services/bidService';
 import { getSocket } from '../../../data/socket/socketClient';
+import { normalizeImageUrl } from '../../../shared/utils/normalizeImageUrl';
 
 type RoutePropType = RouteProp<AvailableBidsStackParamList, 'AssignVehicleDriver'>;
 type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList, 'AssignVehicleDriver'>;
@@ -128,7 +129,7 @@ function DriverCard({ item, selected, onPress }: { item: any; selected: boolean;
       {/* Avatar */}
       <View style={[s.avatarCircle, selected && { backgroundColor: BLUE }]}>
         {item.profile_picture?.[0] ? (
-          <Image source={{ uri: item.profile_picture[0] }} style={s.avatarImg} />
+          <Image source={{ uri: normalizeImageUrl(item.profile_picture[0]) }} style={s.avatarImg} />
         ) : (
           <User size={20} color={selected ? '#fff' : '#9ca3af'} />
         )}
