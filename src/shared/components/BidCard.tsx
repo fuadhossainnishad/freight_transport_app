@@ -1,53 +1,104 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import Bid from "../../../assets/icons/bid.svg";
+import { MapPin, Package, ArrowRight } from "lucide-react-native";
+import { normalizeImageUrl } from "../utils/normalizeImageUrl";
 
 type Props = {
   bid: any;
-  onPress: () => void
+  width: number;
+  onPress: () => void;
 };
 
+export default function BidCard({ bid, width, onPress }: Props) {
+  const [imgError, setImgError] = useState(false);
 
-export default function BidCard({ bid, onPress }: Props) {
+  const rawImage = bid?.shipment_images?.[0];
+  const uri = rawImage ? normalizeImageUrl(rawImage) : "";
+  const showImage = !!uri && !imgError;
+
+  const title = bid?.shipment_title || bid?.category || "Shipment";
+  const pickup = bid?.pickup_address || "—";
+  const delivery = bid?.delivery_address || "—";
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-1 m-1 bg-white rounded-2xl overflow-hidden border border-gray-200 mb-4">
+      activeOpacity={0.9}
+      style={{
+        width,
+        backgroundColor: "#fff",
+        borderRadius: 16,
+        overflow: "hidden",
+        borderWidth: 1,
+        borderColor: "#EEF1F4",
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 2,
+      }}
+    >
+      {/* Image */}
+      <View style={{ width: "100%", height: 112, backgroundColor: "#EEF2F6" }}>
+        {showImage ? (
+          <Image
+            source={{ uri }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <Package size={30} color="#9AA8B5" />
+          </View>
+        )}
 
-      {/* Image Section */}
-      <View className="relative">
-        <Image
-          source={{ uri: "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg" }}
-          className="w-full h-40"
-          resizeMode="cover"
-          onError={() => console.log("Image failed:", bid.shipment_images?.[0])}
-
-        />
-
-        {/* Category Badge */}
-        <View className="absolute bottom-2  px-3 py-1">
-          <Text className="text-white text-base font-semibold">
-            {bid.discription}
-          </Text>
-        </View>
+        {/* Price pill */}
+        {bid?.price != null && (
+          <View
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              backgroundColor: "#036BB4",
+              borderRadius: 999,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+            }}
+          >
+            <Text style={{ color: "#fff", fontSize: 12, fontWeight: "800" }}>
+              ${Number(bid.price).toLocaleString()}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Content */}
-      <View className="px-3  py-4">
-
-        {/* Route */}
-        <View className="flex-row items-start mb-2">
-          <Bid width={18} height={18} />
-          <Text className="ml-2 items-center text-[#33363F] text-sm flex-1">
-            {bid.pickup_address} → {bid.delivery_address}
-          </Text>
-        </View>
-
-        {/* Price */}
-        <Text className="text-lg font-bold text-[#0B0B0B]">
-          ${bid.price}
+      <View style={{ padding: 12 }}>
+        {/* Title — truncated */}
+        <Text numberOfLines={1} style={{ fontSize: 14.5, fontWeight: "700", color: "#0F172A" }}>
+          {title}
         </Text>
 
+        {/* Location — truncated */}
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 7 }}>
+          <MapPin size={13} color="#94A3B8" />
+          <Text
+            numberOfLines={1}
+            style={{ flex: 1, marginLeft: 5, fontSize: 12, color: "#64748B" }}
+          >
+            {pickup}
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}>
+          <ArrowRight size={13} color="#94A3B8" />
+          <Text
+            numberOfLines={1}
+            style={{ flex: 1, marginLeft: 5, fontSize: 12, color: "#64748B" }}
+          >
+            {delivery}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );

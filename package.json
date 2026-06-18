@@ -29,6 +29,7 @@
     "react": "19.2.0",
     "react-hook-form": "^7.71.0",
     "react-native": "0.83.1",
+    "react-native-calendars": "^1.1314.0",
     "react-native-config": "^1.6.1",
     "react-native-dropdown-country-picker": "^1.0.11",
     "react-native-geolocation-service": "^5.3.1",

@@ -1,6 +1,5 @@
 import { DELETE_VEHICLE, GET_VEHICLE, GET_VEHICLES, POST_VEHICLE, UPDATE_VEHICLE } from "../../domain/constants/api";
 import { Vehicle } from "../../domain/entities/vehicle";
-import { mockVehicles } from "../../presentation/shipment/dummy";
 import axiosClient from "../../shared/config/axios.config";
 import { mapVehicleFromApi } from '../../shared/utils/vehicle.utils';
 
@@ -17,17 +16,9 @@ export const searchVehicles = async (
 };
 
 
-const ENABLE_MOCK = true
 export const getVehicles = async (transporterId: string): Promise<Vehicle[]> => {
     const res = await axiosClient.get(GET_VEHICLES(transporterId));
-    console.log("getVehicles:", res.data)
     const vehicles = res.data?.data?.vehicles || [];
-
-    if (ENABLE_MOCK && vehicles.length === 0) {
-        console.log("⚠️ Using mock vehicles");
-        return mockVehicles;
-    }
-
     return vehicles.map(mapVehicleFromApi);
 };
 

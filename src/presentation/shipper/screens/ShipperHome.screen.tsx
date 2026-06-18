@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import {
     View, Text, ActivityIndicator, TouchableOpacity,
     ScrollView, Image, StyleSheet, Dimensions,
-    NativeScrollEvent, NativeSyntheticEvent,
+    NativeScrollEvent, NativeSyntheticEvent, RefreshControl,
 } from 'react-native';
 import { useUser } from "../../../app/context/User.context"
 import { getShipperStats } from "../../../data/services/dashboardService"
@@ -38,6 +38,7 @@ export default function ShipperHome() {
 
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [bidShipments, setBidShipments] = useState<any[]>([])
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [shipmentBids, setShipmentBids] = useState<any[]>([])
@@ -92,6 +93,18 @@ export default function ShipperHome() {
             setBidsLoading(false)
         }
     }, [])
+
+    // ── Pull-to-refresh ──────────────────────────────────────────────
+    const onRefresh = useCallback(async () => {
+        if (!authUser?.shipper_id) return
+        setRefreshing(true)
+        try {
+            await Promise.all([fetchStats(), fetchBidShipments()])
+            if (selectedId) await fetchShipmentBids(selectedId)
+        } finally {
+            setRefreshing(false)
+        }
+    }, [authUser?.shipper_id, fetchStats, fetchBidShipments, fetchShipmentBids, selectedId])
 
     // ── Snap handler — detect clone zone and silently jump ──────────
     const onCarouselSnap = useCallback(
@@ -177,7 +190,18 @@ export default function ShipperHome() {
                 onpressNotification={() => navigation.navigate('Home')}
             />
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 40 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[BLUE]}
+                        tintColor={BLUE}
+                    />
+                }
+            >
 
                 {/* ── Stats & Create ── */}
                 <View className="px-4 pt-4 gap-3">
