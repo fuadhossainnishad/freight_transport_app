@@ -1,6 +1,6 @@
 // EarningTable.tsx
 import React from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text } from "react-native";
 import { Earning } from "../types";
 import EarningItem from "./EarningItem";
 
@@ -26,18 +26,13 @@ const EarningTable: React.FC<Props> = ({ earnings }) => {
       </View>
 
       {/* Table Rows */}
-      <FlatList
-        data={earnings}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <EarningItem item={item} />
-        )}
-        ListEmptyComponent={
-          <View className="p-4">
-            <Text className="text-center text-gray-500">No earnings found</Text>
-          </View>
-        }
-      />
+      {earnings.length === 0 ? (
+        <View className="p-4">
+          <Text className="text-center text-gray-500">No earnings found</Text>
+        </View>
+      ) : (
+        earnings.map((item) => <EarningItem key={item.id} item={item} />)
+      )}
     </View>
   );
 };

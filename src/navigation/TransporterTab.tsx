@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
-import { RouteProp } from '@react-navigation/native';
+import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 import Home from '../../assets/icons/home.svg';
@@ -21,88 +21,73 @@ import ActiveShipmentsStack from './ActiveShipmentsStack';
 import TransporterHomeStack from './TransporterHomeStack';
 import EarningsStack from './EarningsStack';
 
-type TabIconProps = {
-  routeName: keyof TransporterTabParamList;
-  focused: boolean;
-};
+const BLUE = '#036BB4';
 
-function TabIcon({ routeName, focused }: TabIconProps) {
-  let IconComponent: React.FC<any> | null = null;
-  let label = '';
+type SvgIcon = React.FC<{ width?: number; height?: number }>;
 
-  switch (routeName) {
-    case 'HomeStack':
-      IconComponent = focused ? Home : HomeInline;
-      label = 'Home';
-      break;
-    case 'AvailableBids':
-      IconComponent = focused ? AvailableBids : AvailableBidsInline;
-      label = 'Available Bids';
-      break;
-    case 'Shipments':
-      IconComponent = focused ? Shipments : ShipmentsInline;
-      label = 'Shipments';
-      break;
-    case 'Earning':
-      IconComponent = focused ? Earning : EarningInline;
-      label = 'Earning';
-      break;
-    case 'Settings':
-      IconComponent = focused ? Settings : SettingsInline;
-      label = 'Settings';
-      break;
-  }
-
-  return (
-    <View
-      className={` items-center justify-center rounded-full px-4 w-32 leading-5`}
-    >
-      {IconComponent && <IconComponent width={24} height={24} />}
-      <Text className={`${focused ? "text-[#036BB4]" : "text-black"} text-xs font-medium`}>{label}</Text>
-    </View>
-  );
-}
-
-function renderTabIcon(
-  route: RouteProp<TransporterTabParamList, keyof TransporterTabParamList>,
-) {
+function svgTabIcon(Active: SvgIcon, Inactive: SvgIcon) {
   return function IconRenderer({ focused }: { focused: boolean }) {
-    return <TabIcon routeName={route.name} focused={focused} />;
+    const Icon = focused ? Active : Inactive;
+    return <Icon width={24} height={24} />;
   };
 }
 
 const Tab = createBottomTabNavigator<TransporterTabParamList>();
 
 export default function TransporterTabs() {
+  const insets = useSafeAreaInsets();
+  // insets.bottom is unreliable here (reports 0 on this device), so floor it.
+  const bottomPad = Math.max(insets.bottom, 16);
+
   return (
     <Tab.Navigator
       initialRouteName="HomeStack"
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
-        tabBarIcon: renderTabIcon(route),
-      })}
+        tabBarActiveTintColor: BLUE,
+        tabBarInactiveTintColor: '#000',
+        tabBarLabelStyle: styles.label,
+        tabBarStyle: [
+          styles.tabBar,
+          { height: 58 + bottomPad, paddingBottom: bottomPad },
+        ],
+      }}
     >
-      <Tab.Screen name="HomeStack" component={TransporterHomeStack} />
-      <Tab.Screen name="AvailableBids" component={AvailableBidsStack} />
-      <Tab.Screen name="Shipments" component={ActiveShipmentsStack} />
-      <Tab.Screen name="Earning" component={EarningsStack} />
-      <Tab.Screen name="Settings" component={SettingsStack} />
+      <Tab.Screen
+        name="HomeStack"
+        component={TransporterHomeStack}
+        options={{ tabBarLabel: 'Home', tabBarIcon: svgTabIcon(Home, HomeInline) }}
+      />
+      <Tab.Screen
+        name="AvailableBids"
+        component={AvailableBidsStack}
+        options={{ tabBarLabel: 'Bids', tabBarIcon: svgTabIcon(AvailableBids, AvailableBidsInline) }}
+      />
+      <Tab.Screen
+        name="Shipments"
+        component={ActiveShipmentsStack}
+        options={{ tabBarLabel: 'Shipments', tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
+      />
+      <Tab.Screen
+        name="Earning"
+        component={EarningsStack}
+        options={{ tabBarLabel: 'Earning', tabBarIcon: svgTabIcon(Earning, EarningInline) }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsStack}
+        options={{ tabBarLabel: 'Settings', tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
+      />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 0,
-    paddingBottom: 50,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#fff',
-    height: 100,
   },
+  label: { fontSize: 11, fontWeight: '500' },
 });

@@ -22,10 +22,13 @@ const BalanceCard: React.FC<Props> = ({ balance, onWithdraw }) => {
                 </Text>
                 <TouchableOpacity
                     onPress={onWithdraw}
+                    disabled={balance <= 0}
                     activeOpacity={0.85}
-                    className="mt-4 bg-transparent rounded-full border border-white py-3 px-8 self-start"
+                    className={`mt-4 bg-transparent rounded-full border py-3 px-8 self-start ${balance <= 0 ? "border-white/40" : "border-white"}`}
                 >
-                    <Text className="text-white font-normal text-sm">Withdraw</Text>
+                    <Text className={`font-normal text-sm ${balance <= 0 ? "text-white/40" : "text-white"}`}>
+                        Withdraw
+                    </Text>
                 </TouchableOpacity>
             </View>
         </ImageBackground>

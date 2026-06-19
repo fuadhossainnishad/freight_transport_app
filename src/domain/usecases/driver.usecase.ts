@@ -23,6 +23,21 @@ export const getDriverByIdsUseCase = async (
   return mapDriverApiToEntity(driver)
 };
 
+// Derive a sensible filename + mime type from a local file uri.
+const buildFilePart = (uri: string) => {
+  const name = uri.split("/").pop() || `upload-${Date.now()}.jpg`;
+  const ext = name.split(".").pop()?.toLowerCase();
+  const type =
+    ext === "png"
+      ? "image/png"
+      : ext === "webp"
+        ? "image/webp"
+        : ext === "pdf"
+          ? "application/pdf"
+          : "image/jpeg";
+  return { uri, name, type };
+};
+
 export const CreateDriverUseCase = async (
   data: DriverEntity
 ) => {
@@ -38,26 +53,18 @@ export const CreateDriverUseCase = async (
   formData.append("driver_name", data.name);
   formData.append("phone", data.phone);
   formData.append("email", data.email);
-  formData.append("country", "BD");
+  formData.append("country", data.country);
 
 
   // profile image
-  if (data.idFront?.length > 0) {
-    formData.append("profile_picture", {
-      uri: data.idFront[0],
-      name: "profile.jpg",
-      type: "image/jpeg",
-    } as any);
+  if (data.profilePicture?.length > 0) {
+    formData.append("profile_picture", buildFilePart(data.profilePicture[0]) as any);
   }
 
   // documents
-  if (data.idBack?.length > 0) {
-    data.idBack.forEach((uri, index) => {
-      formData.append("driver_license", {
-        uri,
-        name: `license_${index}.jpg`,
-        type: "image/jpeg",
-      } as any);
+  if (data.driverLicense?.length > 0) {
+    data.driverLicense.forEach((uri) => {
+      formData.append("driver_license", buildFilePart(uri) as any);
     });
   }
 
@@ -77,29 +84,22 @@ export const UpdateDriverUseCase = async (
   formData.append("driver_name", data.name);
   formData.append("number", data.phone);
   formData.append("email", data.email);
+  formData.append("country", data.country);
 
-  // profile picture (only if changed / exists)
-  if (data.idFront?.length > 0) {
-    const uri = data.idFront[0];
+  // profile picture (only if newly picked, not an existing remote url)
+  if (data.profilePicture?.length > 0) {
+    const uri = data.profilePicture[0];
 
     if (!uri.startsWith("http")) {
-      formData.append("profile_picture", {
-        uri,
-        name: "profile.jpg",
-        type: "image/jpeg",
-      } as any);
+      formData.append("profile_picture", buildFilePart(uri) as any);
     }
   }
 
-  // license files
-  if (data.idBack?.length > 0) {
-    data.idBack.forEach((uri, index) => {
+  // license files (only newly picked ones)
+  if (data.driverLicense?.length > 0) {
+    data.driverLicense.forEach((uri) => {
       if (!uri.startsWith("http")) {
-        formData.append("driver_license", {
-          uri,
-          name: `license_${index}.jpg`,
-          type: "image/jpeg",
-        } as any);
+        formData.append("driver_license", buildFilePart(uri) as any);
       }
     });
   }

@@ -123,12 +123,13 @@ export default function ShipmentDetailsScreen() {
     const statusInfo = STATUS_CONFIG[status] ?? { label: status ?? "Unknown", bg: "#64748B" };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-white">
             <AppHeader text="Shipment Detail" onpress={() => navigation.goBack()} />
             {/* 🔹 Image Carousel */}
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                className="px-4 ">
+                className="flex-1 px-4"
+                contentContainerStyle={{ paddingBottom: 24 }}>
                 <ScrollView
                     horizontal
                     pagingEnabled

@@ -6,14 +6,17 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
     ScrollView,
-    Alert
+    TouchableOpacity,
+    Alert,
 } from "react-native"
 
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Controller, useForm } from "react-hook-form"
+import { ArrowLeft } from "lucide-react-native"
 
 import CustomInput from "../../../shared/components/CustomInput"
-import CustomButton from "../../../shared/components/CustomButton"
+import SubmitButton from "../../../shared/components/SubmitButton"
+import { LockIllustration } from "../components/AuthIllustrations"
 
 import { useNavigation } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
@@ -28,107 +31,121 @@ interface ForgotPasswordForm {
 }
 
 export default function ForgetPasswordScreen() {
-
     const navigation = useNavigation<Props>()
 
     const { requestOtp, loading } = useForgotPassword()
 
-    const { control, handleSubmit } = useForm<ForgotPasswordForm>()
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ForgotPasswordForm>({ defaultValues: { email: "" } })
 
     const onSubmit = async (data: ForgotPasswordForm) => {
+        const email = data.email.trim().toLowerCase()
 
         try {
-
-            console.log("Forgot Password Email:", data.email)
-
-            const res = await requestOtp(data.email)
-
-            Alert.alert(
-                "Success",
-                "OTP sent to your email"
-            )
+            const res = await requestOtp(email)
 
             navigation.navigate("VerifyOtp", {
-                email: data.email,
-                verificationToken: res.verification_token
+                email,
+                verificationToken: res.verification_token,
             })
-
         } catch (error: any) {
-
-            Alert.alert(
-                "Error",
-                error?.message || "Failed to send OTP"
-            )
-
+            Alert.alert("Error", error?.message || "Failed to send OTP")
         }
-
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
             <KeyboardAvoidingView
                 className="flex-1"
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
-
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ flexGrow: 1 }}
                         keyboardShouldPersistTaps="handled"
                     >
+                        {/* Back button */}
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                            className="mt-2 ml-4 w-11 h-11 rounded-full items-center justify-center bg-gray-50 border border-gray-100"
+                        >
+                            <ArrowLeft size={22} color="#111" />
+                        </TouchableOpacity>
 
-                        <View className="flex-1 px-6 pt-16">
+                        <View className="flex-1 px-7 pt-6 items-center">
+                            {/* Illustration */}
+                            <LockIllustration size={176} />
 
-                            {/* HEADER */}
-                            <View className="mb-10">
-                                <Text className="text-3xl font-bold text-black">
-                                    Forgot Password
-                                </Text>
+                            {/* Header */}
+                            <Text className="text-2xl font-bold text-center text-gray-900 mt-5">
+                                Forgot Password
+                            </Text>
+                            <Text className="text-gray-500 text-[15px] text-center mt-3 leading-6">
+                                Please enter your email address to{"\n"}receive a verification code.
+                            </Text>
 
-                                <Text className="text-gray-500 mt-2">
-                                    Enter your email to receive OTP
-                                </Text>
+                            {/* Email */}
+                            <View className="w-full mt-9">
+                                <Controller
+                                    control={control}
+                                    name="email"
+                                    rules={{
+                                        required: "Email is required",
+                                        pattern: {
+                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                            message: "Enter a valid email address",
+                                        },
+                                    }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <CustomInput
+                                            placeholder="you@example.com"
+                                            autoCapitalize="none"
+                                            keyboardType="email-address"
+                                            autoCorrect={false}
+                                            value={value}
+                                            onChangeText={onChange}
+                                            error={errors.email?.message}
+                                            returnKeyType="send"
+                                            onSubmitEditing={handleSubmit(onSubmit)}
+                                        />
+                                    )}
+                                />
+
+                                {errors.email ? (
+                                    <Text className="text-red-500 text-xs -mt-2.5 mb-1">
+                                        {errors.email.message}
+                                    </Text>
+                                ) : null}
                             </View>
-
-                            {/* EMAIL */}
-                            <Text className="mb-2">Email Address</Text>
-
-                            <Controller
-                                control={control}
-                                name="email"
-                                rules={{ required: "Email is required" }}
-                                render={({ field: { onChange, value } }) => (
-                                    <CustomInput
-                                        placeholder="Email address"
-                                        autoCapitalize="none"
-                                        keyboardType="email-address"
-                                        value={value}
-                                        onChangeText={onChange}
-                                    />
-                                )}
-                            />
-
-                            {/* SUBMIT */}
-                            <CustomButton
-                                title="Submit"
-                                loading={loading}
-                                onPress={handleSubmit(onSubmit)}
-                            />
-
-                            {/* BACK TO LOGIN */}
-                            <CustomButton
-                                title="Back To Login"
-                                onPress={() => navigation.navigate("SignIn")}
-                            />
-
                         </View>
 
+                        {/* Footer action — kept inside the scroll view so the
+                            keyboard never hides it */}
+                        <View className="px-7 pt-4 pb-4">
+                            <SubmitButton
+                                text="Send"
+                                loading={loading}
+                                onSubmit={handleSubmit(onSubmit)}
+                            />
+
+                            <View className="flex-row justify-center mt-5">
+                                <Text className="text-gray-500">Remember your password?</Text>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate("SignIn")}
+                                    className="ml-2"
+                                    activeOpacity={0.7}
+                                >
+                                    <Text className="font-semibold text-[#036BB4]">Log In</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </ScrollView>
-
                 </TouchableWithoutFeedback>
-
             </KeyboardAvoidingView>
         </SafeAreaView>
     )

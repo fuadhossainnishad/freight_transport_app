@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
+import { View, TextInput, Text, TouchableOpacity, KeyboardTypeOptions } from "react-native";
 import { Controller } from "react-hook-form";
 
 interface Props {
@@ -8,6 +8,9 @@ interface Props {
   label: string;
   placeholder?: string;
   rules?: any;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  required?: boolean;
 }
 
 export default function FormInput({
@@ -16,12 +19,16 @@ export default function FormInput({
   label,
   placeholder,
   rules,
+  keyboardType,
+  autoCapitalize,
+  required,
 }: Props) {
   return (
     <View className="mb-5">
 
-      <Text className="text-sm text-gray-500 mb-2">
+      <Text className="text-sm font-medium text-gray-700 mb-2">
         {label}
+        {required ? <Text className="text-red-500"> *</Text> : null}
       </Text>
 
       <Controller
@@ -36,7 +43,10 @@ export default function FormInput({
               <TextInput
                 value={value}
                 placeholder={placeholder}
+                placeholderTextColor="#9CA3AF"
                 onChangeText={onChange}
+                keyboardType={keyboardType}
+                autoCapitalize={autoCapitalize}
                 className="flex-1 py-3 text-black"
               />
 

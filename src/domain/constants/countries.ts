@@ -47,3 +47,38 @@ export const isValidPhoneForCountry = (
   const digits = nationalNumber.replace(/\D/g, "").replace(/^0+/, "");
   return country.phoneLengths.includes(digits.length);
 };
+
+// Find a country by its (case-insensitive) name. Used to restore the picker
+// selection from a stored country name.
+export const findCountryByName = (
+  name?: string,
+): Country | undefined =>
+  name
+    ? COUNTRIES.find((c) => c.name.toLowerCase() === name.toLowerCase())
+    : undefined;
+
+// Split a stored international phone (e.g. "+229XXXXXXXX") back into the
+// matching country and the national-number digits. Falls back to the country
+// hint (e.g. a stored country name) or DEFAULT_COUNTRY when no dial code
+// prefix matches.
+export const splitInternationalPhone = (
+  full?: string,
+  countryHint?: string,
+): { country: Country; national: string } => {
+  const raw = (full ?? "").replace(/\s/g, "");
+
+  if (raw.startsWith("+")) {
+    // Prefer the longest matching dial code (e.g. +225 over +22).
+    const match = [...COUNTRIES]
+      .sort((a, b) => b.dialCode.length - a.dialCode.length)
+      .find((c) => raw.startsWith(c.dialCode));
+    if (match) {
+      return { country: match, national: raw.slice(match.dialCode.length).replace(/\D/g, "") };
+    }
+  }
+
+  return {
+    country: findCountryByName(countryHint) ?? DEFAULT_COUNTRY,
+    national: raw.replace(/\D/g, ""),
+  };
+};

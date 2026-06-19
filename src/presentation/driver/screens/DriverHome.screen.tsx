@@ -7,12 +7,16 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { AlertCircle } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import { LocationGate } from "../components/LocationGate";
 import DriverHeader from "../components/DriverHeader";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ShipmentCard } from "../components/ShipmentCard";
-import { useNavigation } from "@react-navigation/native";
+import { EmptyShipments } from "../components/EmptyShipments";
 import { useDriverShipments } from "../hooks/useDriverShipments";
 
 export default function DriverHomeScreen() {
@@ -27,42 +31,75 @@ function DriverHomeContent() {
   const navigation = useNavigation<any>();
   const { shipments, loading, error, refresh } = useDriverShipments();
 
+  const count = shipments.length;
+  const hasShipments = count > 0;
+  const initialLoading = loading && count === 0;
+
+  const subtitle = hasShipments
+    ? `${count} active ${count === 1 ? "delivery" : "deliveries"}`
+    : "Your assigned deliveries appear here";
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="white" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <DriverHeader />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refresh}
+            tintColor="#036BB4"
+            colors={["#036BB4"]}
+          />
         }
       >
+        {/* Title block */}
         <Text style={styles.title}>My Shipments</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
 
-        {loading && shipments.length === 0 && (
-          <ActivityIndicator size="large" color="#0071BC" style={styles.loader} />
+        {/* States */}
+        {initialLoading ? (
+          <View style={styles.centerState}>
+            <ActivityIndicator size="large" color="#036BB4" />
+            <Text style={styles.centerStateText}>Loading your deliveries…</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centerState}>
+            <View style={styles.errorIcon}>
+              <AlertCircle size={26} color="#EF4444" strokeWidth={2} />
+            </View>
+            <Text style={styles.errorTitle}>Couldn't load shipments</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              activeOpacity={0.85}
+              onPress={refresh}
+            >
+              <Text style={styles.retryText}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !hasShipments ? (
+          <EmptyShipments onRefresh={refresh} refreshing={loading} />
+        ) : (
+          <View style={styles.list}>
+            {shipments.map((item) => (
+              <ShipmentCard
+                key={item.id}
+                shipment={item}
+                onPress={() =>
+                  navigation.navigate("ShipmentDetail", { shipment: item })
+                }
+              />
+            ))}
+          </View>
         )}
-
-        {!loading && error && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
-
-        {!loading && !error && shipments.length === 0 && (
-          <Text style={styles.emptyText}>No shipments assigned yet.</Text>
-        )}
-
-        {shipments.map((item) => (
-          <ShipmentCard
-            key={item.id}
-            shipment={item}
-            onPress={() => navigation.navigate("ShipmentDetail", { shipment: item })}
-          />
-        ))}
       </ScrollView>
 
-      <SafeAreaView edges={['bottom']} style={{ backgroundColor: '#F3F4F6' }} />
+      <SafeAreaView edges={["bottom"]} style={styles.bottomInset} />
     </View>
   );
 }
@@ -76,29 +113,75 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 36,
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 28,
   },
   title: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 16,
+    fontWeight: "800",
+    color: "#1A1C1E",
+    letterSpacing: -0.3,
   },
-  loader: {
-    marginTop: 40,
-  },
-  errorText: {
-    textAlign: "center",
-    marginTop: 40,
-    color: "#EF4444",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 40,
-    color: "#9CA3AF",
+  subtitle: {
     fontSize: 14,
     fontWeight: "500",
+    color: "#64748B",
+    marginTop: 4,
+    marginBottom: 22,
+  },
+  list: {
+    flex: 1,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 56,
+    paddingHorizontal: 8,
+  },
+  centerStateText: {
+    marginTop: 14,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748B",
+  },
+  errorIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FEF2F2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  errorTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#1A1C1E",
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#64748B",
+    textAlign: "center",
+    marginTop: 6,
+    maxWidth: 300,
+  },
+  retryButton: {
+    marginTop: 22,
+    paddingVertical: 11,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    backgroundColor: "#036BB4",
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  bottomInset: {
+    backgroundColor: "#F3F4F6",
   },
 });

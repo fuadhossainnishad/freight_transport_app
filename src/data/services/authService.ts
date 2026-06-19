@@ -51,7 +51,7 @@ export const forgotPassword = async (
 ): Promise<ForgotPasswordResponse> => {
     try {
 
-        const response = await axiosClient.post(
+        const response = await publicAxios.post(
             FORGOT_PASSWORD,
             { email }
         )

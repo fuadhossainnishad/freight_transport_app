@@ -26,7 +26,7 @@ export const SETTINGS_MENU = [
 
   {
     id: "driver_profiles",
-    label: "Driver Profiles",
+    label: "My Drivers",
     Icon: Profile,
     roles: ["TRANSPORTER"],
   },

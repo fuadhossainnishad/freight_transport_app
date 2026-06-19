@@ -17,7 +17,15 @@ const THUMB_SIZE = 80;
 const UploadField: React.FC<Props> = ({ label, files, onPress, multiple = false }) => {
     const handlePickFiles = () => {
         launchImageLibrary(
-            { mediaType: "photo", selectionLimit: multiple ? 0 : 1 },
+            {
+                mediaType: "photo",
+                selectionLimit: multiple ? 0 : 1,
+                // Downscale + compress on-device so uploads stay well under the
+                // server's request-size limit (avoids nginx 413 errors).
+                maxWidth: 1280,
+                maxHeight: 1280,
+                quality: 0.7,
+            },
             (response) => {
                 if (response.didCancel) return;
                 if (response.errorCode) {
