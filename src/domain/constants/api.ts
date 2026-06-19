@@ -30,6 +30,9 @@ export const GET_BIDS = "/bid/"
 export const GET_INVOICES = "/pay/invoices"
 export const GET_INVOICE_DETAIL = (paymentId: string) => `/pay/invoices/${paymentId}`
 
+export const GET_MY_PAYMENT_REQUESTS = "/pay/my-requests"
+export const PAY_NOW = (paymentId: string) => `/pay/pay-now/${paymentId}`
+
 export const GET_VEHICLES = (transporterId: string) => `/vehicle/transporter/${transporterId}`
 export const GET_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
 export const POST_VEHICLE = '/vehicle/'

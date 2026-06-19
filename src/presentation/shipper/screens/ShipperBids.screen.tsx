@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useNavigation } from "@react-navigation/native"
 import { ShipperHomeStackParamList } from "../../../navigation/types"
 import { getAvailableBids } from "../../../data/services/bidService"
+import { normalizeImageUrl } from "../../../shared/utils/normalizeImageUrl"
 
 const BLUE = '#036BB4';
 
@@ -47,7 +48,7 @@ export default function ShipperBids() {
         >
             {item.shipment_images?.[0] ? (
                 <Image
-                    source={{ uri: item.shipment_images[0] }}
+                    source={{ uri: normalizeImageUrl(item.shipment_images[0]) }}
                     style={StyleSheet.absoluteFill}
                     resizeMode="cover"
                 />

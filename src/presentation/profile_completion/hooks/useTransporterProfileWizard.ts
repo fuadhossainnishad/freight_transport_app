@@ -1,33 +1,25 @@
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 
+export interface TransporterDocument {
+    uri: string
+    name: string
+    type: string
+    size?: number
+}
+
 export interface TransporterProfileFormValues {
-    registration_certificate?: {
-        uri: string
-        name: string
-        type: string
-        size?: number
-    }
-    transport_license?: {
-        uri: string
-        name: string
-        type: string
-        size?: number
-    }
-    // insurance_certificate?: {
-    //     uri: string
-    //     name: string
-    //     type: string
-    //     size?: number
-    // }
+    company_address?: string
+    registration_certificate?: TransporterDocument
+    transport_license?: TransporterDocument
 }
 
 export const useTransporterProfileWizard = () => {
     const form = useForm<TransporterProfileFormValues>({
         defaultValues: {
+            company_address: "",
             registration_certificate: undefined,
             transport_license: undefined,
-            // insurance_certificate: undefined,
         }
     })
 

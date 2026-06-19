@@ -1,30 +1,65 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Image, ScrollView, FlatList, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { deleteVehicle, getVehicleById } from "../../../data/services/vehicleService";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { VehicleStackParamList } from "../../../navigation/types";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { Pencil, Trash2, FileText, ChevronRight } from "lucide-react-native";
 import AppHeader from "../../../shared/components/AppHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
-import VehicleDetailsDataCard from "../components/VehicleDetailsDataCard";
 import { Vehicle, VehicleDocument } from "../../../domain/entities/vehicle";
-import DocumentGrid from "../components/DocumentGrid";
 import DocsPreviewModal from "../components/DocsPreviewModal";
-import EditIcon from "../../../../assets/icons/edit3.svg"
-import DeleteIcon from "../../../../assets/icons/delete.svg"
+import VehicleImageCarousel from "../components/VehicleImageCarousel";
 
+type props = NativeStackNavigationProp<VehicleStackParamList, "VehicleDetails">;
+type RoutePropType = RouteProp<VehicleStackParamList, "VehicleDetails">;
 
-const { width } = Dimensions.get("window");
+const PRIMARY = "#036BB4";
+const DANGER = "#EF4444";
 
-type props = NativeStackNavigationProp<VehicleStackParamList, 'VehicleDetails'>;
-type RoutePropType = RouteProp<VehicleStackParamList, 'VehicleDetails'>;
+const DOC_LABELS: Record<string, string> = {
+    plateId: "Plate ID",
+    insurance: "Insurance",
+    technicalVisit: "Technical Visit",
+    registration: "Registration",
+};
+
+const formatCapacity = (capacity?: string) => {
+    if (!capacity) return "—";
+    const trimmed = capacity.trim();
+    return /^\d+(\.\d+)?$/.test(trimmed) ? `${trimmed} Tons` : trimmed;
+};
+
+const isPdf = (uri: string) => /\.pdf(\?|$)/i.test(uri.trim());
+
+/* ── Reusable bits ─────────────────────────────── */
+
+const SectionCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <View className="bg-white rounded-2xl border border-gray-100 px-4 py-1 mb-4">
+        <Text className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mt-3 mb-1">
+            {title}
+        </Text>
+        {children}
+    </View>
+);
+
+const SpecRow: React.FC<{ label: string; value: string; first?: boolean }> = ({ label, value, first }) => (
+    <View className={`flex-row items-center justify-between py-3.5 ${first ? "" : "border-t border-gray-100"}`}>
+        <Text className="text-sm text-gray-500">{label}</Text>
+        <Text className="text-sm font-semibold text-gray-900 ml-4 flex-1 text-right" numberOfLines={1}>
+            {value}
+        </Text>
+    </View>
+);
+
+/* ── Screen ────────────────────────────────────── */
 
 const VehicleDetailsScreen = () => {
     const navigation = useNavigation<props>();
     const route = useRoute<RoutePropType>();
     const { vehicleId } = route.params;
     const [vehicle, setVehicle] = useState<Vehicle>();
-    const [previewUri, setPreviewUri] = useState<string | null>(null);
+    const [preview, setPreview] = useState<{ uri: string; title: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
 
@@ -44,18 +79,10 @@ const VehicleDetailsScreen = () => {
         }
     };
 
-    const handleEdit = () => {
-        navigation.navigate("UpdateVehicle", { vehicleId });
-    };
-
     const handleDelete = () => {
-        Alert.alert("Confirm", "Are you sure you want to delete this vehicle?", [
+        Alert.alert("Delete vehicle", "Are you sure you want to remove this vehicle?", [
             { text: "Cancel", style: "cancel" },
-            {
-                text: "Delete",
-                style: "destructive",
-                onPress: confirmDelete,
-            },
+            { text: "Delete", style: "destructive", onPress: confirmDelete },
         ]);
     };
 
@@ -63,9 +90,7 @@ const VehicleDetailsScreen = () => {
         try {
             setDeleting(true);
             await deleteVehicle(vehicleId);
-
-            Alert.alert("Success", "Vehicle removed successfully");
-            navigation.goBack(); // 🔥 important
+            navigation.goBack();
         } catch (err) {
             Alert.alert("Error", "Failed to delete vehicle");
         } finally {
@@ -73,117 +98,148 @@ const VehicleDetailsScreen = () => {
         }
     };
 
-    const documentSections = useMemo(() => {
-        if (!vehicle) return null;
-
-        const groups: Record<string, VehicleDocument[]> = {
-            plateId: [],
-            insurance: [],
-            technicalVisit: [],
-            registration: [],
-        };
-
-        vehicle.documents.forEach((doc) => {
-            if (groups[doc.type]) groups[doc.type].push(doc);
+    // Flatten documents into display rows, numbering when a type repeats.
+    const documents = useMemo(() => {
+        if (!vehicle) return [];
+        const byType: Record<string, VehicleDocument[]> = {};
+        vehicle.documents.forEach((d) => {
+            (byType[d.type] ||= []).push(d);
         });
 
-        return [
-            { label: "Plate ID", files: groups.plateId },
-            { label: "Insurance", files: groups.insurance },
-            { label: "Technical Visit", files: groups.technicalVisit },
-            { label: "Registration", files: groups.registration },
-        ];
+        const rows: { id: string; url: string; label: string; pdf: boolean }[] = [];
+        Object.entries(byType).forEach(([type, docs]) => {
+            docs.forEach((d, i) => {
+                const base = DOC_LABELS[type] || "Document";
+                rows.push({
+                    id: d.id,
+                    url: d.url,
+                    label: docs.length > 1 ? `${base} ${i + 1}` : base,
+                    pdf: isPdf(d.url),
+                });
+            });
+        });
+        return rows;
     }, [vehicle]);
 
     if (loading) {
         return (
-            <SafeAreaView className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#036BB4" />
+            <SafeAreaView className="flex-1 justify-center items-center bg-gray-50">
+                <ActivityIndicator size="large" color={PRIMARY} />
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
+        <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
             <AppHeader text="Vehicle Details" onpress={() => navigation.goBack()} />
 
-            <ScrollView className="px-4 py-4 space-y-4">
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ padding: 16, paddingBottom: 104 }}
+            >
+                {/* Photos */}
+                <VehicleImageCarousel images={vehicle?.images || []} />
 
-                {/* Vehicle Image Carousel */}
-                {vehicle?.images?.length! > 0 && (
-                    <FlatList
-                        data={vehicle?.images}
-                        horizontal
-                        pagingEnabled
-                        keyExtractor={(_, index) => `vehicle-image-${index}`}
-                        showsHorizontalScrollIndicator={false}
-                        renderItem={({ item }) => (
-                            <Image
-                                source={{ uri: item }}
-                                style={{ width: width - 32, height: 220, borderRadius: 12, marginRight: 8 }}
-                                resizeMode="cover"
-                            />
-                        )}
-                    />
+                {/* Identity */}
+                <View className="mt-4 mb-4">
+                    {!!vehicle?.type && (
+                        <Text className="text-[11px] font-bold tracking-wider uppercase" style={{ color: PRIMARY }}>
+                            {vehicle.type}
+                        </Text>
+                    )}
+                    <Text className="text-2xl font-bold text-gray-900 mt-1" numberOfLines={1}>
+                        {vehicle?.name || "Unnamed vehicle"}
+                    </Text>
+                    {!!vehicle?.plateNumber && (
+                        <Text className="text-sm text-gray-500 mt-0.5">Plate {vehicle.plateNumber}</Text>
+                    )}
+                </View>
+
+                {/* Specifications */}
+                <SectionCard title="Specifications">
+                    <SpecRow first label="Plate Number" value={vehicle?.plateNumber || "—"} />
+                    <SpecRow label="Vehicle Type" value={vehicle?.type || "—"} />
+                    <SpecRow label="Capacity" value={formatCapacity(vehicle?.capacity)} />
+                    <SpecRow label="Year Model" value={vehicle?.modelYear || "—"} />
+                </SectionCard>
+
+                {/* Documents */}
+                {documents.length > 0 && (
+                    <SectionCard title="Documents">
+                        {documents.map((doc, i) => (
+                            <TouchableOpacity
+                                key={doc.id}
+                                activeOpacity={0.7}
+                                onPress={() => setPreview({ uri: doc.url, title: doc.label })}
+                                className={`flex-row items-center py-3 ${i === 0 ? "" : "border-t border-gray-100"}`}
+                            >
+                                {/* Thumbnail / file glyph */}
+                                {doc.pdf ? (
+                                    <View className="w-11 h-11 rounded-lg bg-[#036BB4]/10 items-center justify-center">
+                                        <FileText size={20} color={PRIMARY} strokeWidth={2} />
+                                    </View>
+                                ) : (
+                                    <Image
+                                        source={{ uri: doc.url }}
+                                        className="w-11 h-11 rounded-lg bg-gray-100"
+                                        resizeMode="cover"
+                                    />
+                                )}
+
+                                <View className="flex-1 ml-3">
+                                    <Text className="text-sm font-semibold text-gray-900">{doc.label}</Text>
+                                    <Text className="text-xs text-gray-400 mt-0.5">
+                                        {doc.pdf ? "PDF document" : "Image"} · Tap to view
+                                    </Text>
+                                </View>
+
+                                <ChevronRight size={20} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        ))}
+                    </SectionCard>
                 )}
-
-                <Text className="text-black text-lg font-semibold mt-4 mb-2">Vehicle Details</Text>
-
-                {/* Vehicle Details Grid */}
-                <View className="flex-row flex-wrap justify-between gap-2">
-                    <VehicleDetailsDataCard label="Vehicle Name" data={vehicle?.name!} />
-                    <VehicleDetailsDataCard label="Plate Number" data={vehicle?.plateNumber!} />
-                    <VehicleDetailsDataCard label="Vehicle Type" data={vehicle?.type!} />
-                    <VehicleDetailsDataCard label="Capacity" data={vehicle?.capacity!} />
-                    <VehicleDetailsDataCard label="Year / Model" data={vehicle?.modelYear!} fullWidth />
-                </View>
-
-                {/* Documents Section */}
-                <View className="flex-row flex-wrap justify-between mt-4">
-                    {documentSections?.map((section, index) => {
-                        const isLast = index === documentSections.length - 1;
-
-                        return section.files.length > 0 ? (
-                            <DocumentGrid
-                                key={section.label}
-                                title={section.label}
-                                documents={section.files}
-                                onPreview={setPreviewUri}
-                                fullWidth={isLast}
-                            />
-                        ) : null;
-                    })}
-                </View>
-
-                <View className="flex-row gap-3 mb-6">
-                    <TouchableOpacity
-                        onPress={handleEdit}
-                        className="flex-1 border border-[#036BB4] py-3 rounded-full flex-row justify-center items-center gap-2"
-                    >
-                        <EditIcon height={18} width={18} />
-                        <Text className="font-medium  text-[#036BB4]">Edit</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        onPress={handleDelete}
-                        disabled={deleting}
-                        className="flex-1 border border-[#FF0000] py-3 rounded-full flex-row justify-center items-center gap-2 text-[#FF0000]"
-                    >
-                        {deleting ? (
-                            <ActivityIndicator color="white" />
-                        ) : (
-                            <>
-                                <DeleteIcon height={18} width={18} />
-                                <Text className="font-semibold text-[#FF0000]">Remove</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                </View>
             </ScrollView>
+
+            {/* Sticky action bar */}
+            <View
+                className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 flex-row items-center gap-3"
+                style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 12,
+                }}
+            >
+                <TouchableOpacity
+                    onPress={handleDelete}
+                    disabled={deleting}
+                    className="items-center justify-center rounded-full border"
+                    style={{ width: 52, height: 52, flexShrink: 0, borderColor: DANGER }}
+                >
+                    {deleting ? (
+                        <ActivityIndicator color={DANGER} />
+                    ) : (
+                        <Trash2 size={20} color={DANGER} strokeWidth={2} />
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("UpdateVehicle", { vehicleId })}
+                    activeOpacity={0.85}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-full"
+                    style={{ backgroundColor: PRIMARY, height: 52 }}
+                >
+                    <Pencil size={18} color="#fff" strokeWidth={2} />
+                    <Text className="text-white font-semibold text-base">Edit Vehicle</Text>
+                </TouchableOpacity>
+            </View>
+
             <DocsPreviewModal
-                visible={!!previewUri}
-                imageUri={previewUri!}
-                onClose={() => setPreviewUri(null)}
+                visible={!!preview}
+                imageUri={preview?.uri}
+                title={preview?.title}
+                onClose={() => setPreview(null)}
             />
         </SafeAreaView>
     );

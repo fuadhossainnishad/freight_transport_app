@@ -4,6 +4,7 @@ import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Wallet } from "lucide-react-native";
 import { EarningsStackParamList } from "../../../navigation/types";
 import { Earning } from "../types";
 import BalanceCard from "../components/BalanceCard";
@@ -14,11 +15,9 @@ type NavigationProp = NativeStackNavigationProp<EarningsStackParamList, "Earning
 const EarningsScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
 
-    const earnings = useMemo<Earning[]>(() => [
-        { id: "1", title: "Furniture Delivery", amount: 200000, status: "PENDING", date: "Aug 15, 2023" },
-        { id: "2", title: "Furniture Delivery", amount: 200000, status: "CONFIRMED", date: "Aug 14, 2023" },
-        { id: "3", title: "Furniture Delivery", amount: 200000, status: "CONFIRMED", date: "Aug 13, 2023" },
-    ], []);
+    // No earnings API endpoint exists yet. Render the real (empty) state instead
+    // of fabricated rows; swap this for the API data once the endpoint is added.
+    const earnings = useMemo<Earning[]>(() => [], []);
 
     const balance = useMemo(() =>
         earnings
@@ -46,9 +45,23 @@ const EarningsScreen: React.FC = () => {
                     onWithdraw={() => navigation.navigate("Withdraw")}
                 />
 
-                <View className="px-4">
-                    <EarningTable earnings={earnings} />
-                </View>
+                {earnings.length === 0 ? (
+                    <View className="items-center justify-center px-8 mt-16">
+                        <View className="w-20 h-20 rounded-full bg-[#E8F2FB] items-center justify-center">
+                            <Wallet size={36} color="#036BB4" />
+                        </View>
+                        <Text className="text-lg font-semibold text-gray-900 mt-5">
+                            No earnings yet
+                        </Text>
+                        <Text className="text-sm text-gray-500 text-center mt-2 leading-5">
+                            Once you complete deliveries, your earnings and withdrawals will appear here.
+                        </Text>
+                    </View>
+                ) : (
+                    <View className="px-4">
+                        <EarningTable earnings={earnings} />
+                    </View>
+                )}
 
             </ScrollView>
 

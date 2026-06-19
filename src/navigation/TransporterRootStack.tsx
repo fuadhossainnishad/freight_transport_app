@@ -47,20 +47,18 @@ export default function TransporterRootStack({ userId }: { userId: string }) {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-
-      {!profileComplete ? (
-        <Stack.Screen
-          name="ProfileWizard"
-          component={TransporterProfileWizard}
-        />
-      ) : (
-        <Stack.Screen
-          name="Tabs"
-          component={TransporterTab}
-        />
-      )}
-
+    <Stack.Navigator
+      initialRouteName={profileComplete ? "Tabs" : "ProfileWizard"}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen
+        name="ProfileWizard"
+        component={TransporterProfileWizard}
+      />
+      <Stack.Screen
+        name="Tabs"
+        component={TransporterTab}
+      />
     </Stack.Navigator>
   );
 }

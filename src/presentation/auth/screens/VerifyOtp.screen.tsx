@@ -6,14 +6,17 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
     ScrollView,
-    Alert
+    TouchableOpacity,
+    Alert,
 } from "react-native"
+import { useEffect, useState } from "react"
 
 import { SafeAreaView } from "react-native-safe-area-context"
-import { Controller, useForm } from "react-hook-form"
+import { ArrowLeft } from "lucide-react-native"
 
-import CustomInput from "../../../shared/components/CustomInput"
-import CustomButton from "../../../shared/components/CustomButton"
+import OtpInput from "../../../shared/components/OtpInput"
+import SubmitButton from "../../../shared/components/SubmitButton"
+import { MailVerifyIllustration } from "../components/AuthIllustrations"
 
 import { useNavigation, useRoute } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
@@ -21,133 +24,148 @@ import { RouteProp } from "@react-navigation/native"
 
 import { AuthParamList } from "../types"
 import { useVerifyOtp } from "../hooks/useVerifyOtp"
+import { useForgotPassword } from "../hooks/useForgotPassword"
 
 type NavigationProps = NativeStackNavigationProp<AuthParamList, "VerifyOtp">
 type RouteProps = RouteProp<AuthParamList, "VerifyOtp">
 
-interface OtpForm {
-    otp: string
-}
+const OTP_LENGTH = 6
+const RESEND_SECONDS = 60
 
 export default function VerifyOtpScreen() {
-
     const navigation = useNavigation<NavigationProps>()
     const route = useRoute<RouteProps>()
 
-    const { email, verificationToken } = route.params
+    const { email, verificationToken: initialToken } = route.params
 
     const { verify, loading } = useVerifyOtp()
+    const { requestOtp, loading: resending } = useForgotPassword()
 
-    const { control, handleSubmit } = useForm<OtpForm>()
+    const [otp, setOtp] = useState("")
+    const [error, setError] = useState(false)
+    const [token, setToken] = useState(initialToken)
+    const [cooldown, setCooldown] = useState(RESEND_SECONDS)
 
-    const onSubmit = async (data: OtpForm) => {
+    // Resend countdown.
+    useEffect(() => {
+        if (cooldown <= 0) return
+        const timer = setTimeout(() => setCooldown((s) => s - 1), 1000)
+        return () => clearTimeout(timer)
+    }, [cooldown])
 
-        try {
+    const onChangeOtp = (code: string) => {
+        if (error) setError(false)
+        setOtp(code)
+    }
 
-            const isVerified = await verify(email, data.otp)
-            console.log("VerifyOtpScreen:", email, data.otp)
-
-            if (!isVerified) {
-                throw new Error("OTP verification failed")
-            }
-
-            Alert.alert(
-                "Success",
-                "OTP verified successfully"
-            )
-
-            navigation.navigate("ResetPassword", { verificationToken })
-
-        } catch (error: any) {
-
-            Alert.alert(
-                "Verification Failed",
-                error?.response?.data?.message ||
-                error?.message ||
-                "Invalid OTP"
-            )
-
+    const onVerify = async () => {
+        if (otp.length < OTP_LENGTH) {
+            setError(true)
+            return
         }
 
+        try {
+            const isVerified = await verify(email, otp)
+            if (!isVerified) throw new Error("OTP verification failed")
+
+            navigation.navigate("ResetPassword", { verificationToken: token })
+        } catch (err: any) {
+            setError(true)
+            Alert.alert(
+                "Verification Failed",
+                err?.response?.data?.message || err?.message || "Invalid OTP",
+            )
+        }
+    }
+
+    const onResend = async () => {
+        if (cooldown > 0 || resending) return
+        try {
+            const res = await requestOtp(email)
+            setToken(res.verification_token)
+            setOtp("")
+            setError(false)
+            setCooldown(RESEND_SECONDS)
+            Alert.alert("Code sent", `A new verification code has been sent to ${email}.`)
+        } catch (err: any) {
+            Alert.alert("Error", err?.message || "Failed to resend code")
+        }
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
-
+        <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
             <KeyboardAvoidingView
                 className="flex-1"
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
-
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ flexGrow: 1 }}
                         keyboardShouldPersistTaps="handled"
                     >
+                        {/* Back button */}
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                            className="mt-2 ml-4 w-11 h-11 rounded-full items-center justify-center bg-gray-50 border border-gray-100"
+                        >
+                            <ArrowLeft size={22} color="#111" />
+                        </TouchableOpacity>
 
-                        <View className="flex-1 px-6 pt-16">
+                        <View className="flex-1 px-7 pt-6 items-center">
+                            {/* Illustration */}
+                            <MailVerifyIllustration size={176} />
 
-                            {/* HEADER */}
-                            <View className="mb-10">
-
-                                <Text className="text-3xl font-bold text-black">
-                                    Verify OTP
-                                </Text>
-
-                                <Text className="text-gray-500 mt-2">
-                                    Enter the OTP sent to your email
-                                </Text>
-
-                            </View>
-
-                            {/* OTP INPUT */}
-                            <Text className="mb-2">
-                                OTP Code
+                            {/* Header */}
+                            <Text className="text-2xl font-bold text-center text-gray-900 mt-5">
+                                Verify Your Email
+                            </Text>
+                            <Text className="text-gray-500 text-[15px] text-center mt-3 leading-6">
+                                Please enter the {OTP_LENGTH} digit code sent to{"\n"}
+                                <Text className="text-gray-800 font-semibold">{email}</Text>
                             </Text>
 
-                            <Controller
-                                control={control}
-                                name="otp"
-                                rules={{
-                                    required: "OTP is required",
-                                    minLength: {
-                                        value: 4,
-                                        message: "OTP must be 4 digits"
-                                    }
-                                }}
-                                render={({ field: { onChange, value } }) => (
-                                    <CustomInput
-                                        placeholder="Enter OTP"
-                                        keyboardType="number-pad"
-                                        value={value}
-                                        onChangeText={onChange}
-                                    />
+                            {/* OTP boxes */}
+                            <View className="w-full mt-9">
+                                <OtpInput
+                                    value={otp}
+                                    onChange={onChangeOtp}
+                                    length={OTP_LENGTH}
+                                    error={error}
+                                />
+                            </View>
+
+                            {/* Resend */}
+                            <View className="flex-row justify-center mt-7">
+                                <Text className="text-gray-500">Didn't receive the code? </Text>
+                                {cooldown > 0 ? (
+                                    <Text className="text-gray-400 font-medium">
+                                        Resend in {cooldown}s
+                                    </Text>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={onResend}
+                                        activeOpacity={0.7}
+                                        disabled={resending}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <Text className="font-semibold text-[#036BB4]">
+                                            {resending ? "Sending..." : "Resend code"}
+                                        </Text>
+                                    </TouchableOpacity>
                                 )}
-                            />
-
-                            {/* VERIFY BUTTON */}
-                            <CustomButton
-                                title="Verify OTP"
-                                loading={loading}
-                                onPress={handleSubmit(onSubmit)}
-                            />
-
-                            {/* BACK */}
-                            <CustomButton
-                                title="Back"
-                                onPress={() => navigation.goBack()}
-                            />
-
+                            </View>
                         </View>
 
+                        {/* Footer action — kept inside the scroll view so the
+                            keyboard never hides it */}
+                        <View className="px-7 pt-4 pb-4">
+                            <SubmitButton text="Verify" loading={loading} onSubmit={onVerify} />
+                        </View>
                     </ScrollView>
-
                 </TouchableWithoutFeedback>
-
             </KeyboardAvoidingView>
-
         </SafeAreaView>
     )
 }

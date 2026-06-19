@@ -3,6 +3,7 @@ export interface Driver {
   name: string;
   phone: string;
   email: string;
+  country?: string;
   avatar?: string;
   licenseFront?: string;
   licenseBack?: string;
@@ -55,6 +56,7 @@ export interface DriverEntity {
   name: string;
   phone: string;
   email: string;
-  idFront: string[];
-  idBack: string[];
+  country: string;
+  profilePicture: string[];
+  driverLicense: string[];
 }

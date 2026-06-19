@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Alert, Text } from "react-native";
+import { View, ActivityIndicator, Alert, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ReceiptText } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -22,6 +23,8 @@ const InvoicesScreen = () => {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(false);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+    const isSearching = search.trim().length > 0;
 
     const loadInvoices = async (searchTerm?: string) => {
         try {
@@ -77,15 +80,29 @@ const InvoicesScreen = () => {
                 </Text>
             </View>
 
-            <SearchInput
-                value={search}
-                onChange={setSearch}
-                placeholder="Search invoice"
-            />
+            {/* Search — only relevant once there are invoices (or an active search). */}
+            {!loading && (invoices.length > 0 || isSearching) && (
+                <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Search invoice"
+                />
+            )}
 
             {loading ? (
                 <View className="flex-1 justify-center items-center">
                     <ActivityIndicator size="large" color="#2563EB" />
+                </View>
+            ) : invoices.length === 0 && !isSearching ? (
+                // No invoices at all — no search bar / table header, just a clean empty state.
+                <View style={styles.fullEmpty}>
+                    <View style={styles.emptyIconWrap}>
+                        <ReceiptText size={34} color="#036BB4" />
+                    </View>
+                    <Text style={styles.emptyTitle}>No invoices yet</Text>
+                    <Text style={styles.emptySub}>
+                        Invoices appear here automatically once your shipments are completed and paid.
+                    </Text>
                 </View>
             ) : (
                 <InvoiceTable
@@ -97,5 +114,27 @@ const InvoicesScreen = () => {
         </SafeAreaView>
     );
 };
+
+const styles = StyleSheet.create({
+    fullEmpty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingBottom: 40 },
+    emptyIconWrap: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: "#EFF6FF",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 16,
+    },
+    emptyTitle: { fontSize: 17, fontWeight: "700", color: "#111827" },
+    emptySub: {
+        fontSize: 13.5,
+        color: "#6B7280",
+        textAlign: "center",
+        marginTop: 6,
+        lineHeight: 20,
+        maxWidth: 300,
+    },
+});
 
 export default InvoicesScreen;

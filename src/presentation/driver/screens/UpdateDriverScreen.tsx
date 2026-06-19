@@ -15,6 +15,12 @@ import { getDriverByIdsUseCase, UpdateDriverUseCase } from "../../../domain/usec
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../../../shared/components/AppHeader";
+import {
+  Country,
+  DEFAULT_COUNTRY,
+  isValidPhoneForCountry,
+  splitInternationalPhone,
+} from "../../../domain/constants/countries";
 
 type Nav = NativeStackNavigationProp<
   DriverStackParamList,
@@ -33,6 +39,11 @@ export default function UpdateDriverScreen() {
   const { driverId } = route.params;
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Selected country drives both the Country field and the phone prefix/flag.
+  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [phoneError, setPhoneError] = useState(false);
 
   const { control, watch, setValue, handleSubmit, reset } =
     useForm<DriverFormValues>({
@@ -40,8 +51,9 @@ export default function UpdateDriverScreen() {
         name: "",
         phone: "",
         email: "",
-        idFront: [],
-        idBack: [],
+        country: "",
+        profilePicture: [],
+        driverLicense: [],
       },
     });
 
@@ -54,12 +66,22 @@ export default function UpdateDriverScreen() {
         const res = await getDriverByIdsUseCase(driverId);
         console.log("fetchDriverById:", res)
 
+        // Restore the country + national number from the stored phone.
+        const { country: parsedCountry, national } = splitInternationalPhone(
+          res.phone,
+          res.country
+        );
+        setCountry(parsedCountry);
+
         reset({
           name: res.name,
-          phone: res.phone!,
+          phone: national,
           email: res.email,
-          idFront: res.licenseFront ? [res.licenseFront] : [],
-          idBack: res.licenseBack ? [res.licenseBack] : [],
+          country: res.country ?? parsedCountry.name,
+          profilePicture: res.avatar ? [res.avatar] : [],
+          driverLicense: [res.licenseFront, res.licenseBack].filter(
+            Boolean
+          ) as string[],
         });
 
       } catch (err) {
@@ -72,12 +94,34 @@ export default function UpdateDriverScreen() {
     fetchDriver();
   }, [driverId, reset]);
 
+  const handleCountryChange = (next: Country) => {
+    setCountry(next);
+    setPhoneError(false);
+    const maxDigits = Math.max(...next.phoneLengths);
+    const current = (watch("phone") ?? "").replace(/\D/g, "");
+    if (current.length > maxDigits) {
+      setValue("phone", current.slice(0, maxDigits));
+    }
+  };
+
   // ✅ UPDATE SUBMIT
   const onSubmit = handleSubmit(async (data) => {
-    try {
-      setLoading(true);
+    const national = (data.phone ?? "").replace(/\D/g, "").replace(/^0+/, "");
 
-      await UpdateDriverUseCase(driverId, data);
+    if (!isValidPhoneForCountry(country, national)) {
+      setPhoneError(true);
+      return;
+    }
+    setPhoneError(false);
+
+    try {
+      setSaving(true);
+
+      await UpdateDriverUseCase(driverId, {
+        ...data,
+        phone: `${country.dialCode}${national}`,
+        country: country.name,
+      });
 
       Alert.alert("Success", "Driver updated successfully");
 
@@ -86,7 +130,7 @@ export default function UpdateDriverScreen() {
       Alert.alert("Error", "Update failed");
       console.error(err);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   });
 
@@ -101,7 +145,7 @@ export default function UpdateDriverScreen() {
   return (
     <SafeAreaView
       edges={["top"]}
-      className="flex-1 bg-white p-4"
+      className="flex-1 bg-gray-50"
     >
       <AppHeader
         text="Edit Driver Details"
@@ -112,7 +156,12 @@ export default function UpdateDriverScreen() {
         control={control}
         watch={watch}
         setValue={setValue}
+        country={country}
+        onCountryChange={handleCountryChange}
+        phoneError={phoneError}
         onSubmit={onSubmit}
+        onCancel={() => navigation.goBack()}
+        loading={saving}
         isEdit
       />
     </SafeAreaView>

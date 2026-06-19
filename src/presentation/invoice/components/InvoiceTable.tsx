@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, FlatList } from "react-native";
+import { SearchX } from "lucide-react-native";
 import { InvoiceListItem } from "../../../data/services/invoiceService";
 import InvoiceItem from "./InvoiceItem";
 
@@ -38,8 +39,12 @@ const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload }) => {
           />
         )}
         ListEmptyComponent={
-          <View className="p-4">
-            <Text className="text-center text-gray-500">No invoices found</Text>
+          <View className="py-10 items-center px-6">
+            <SearchX size={26} color="#9CA3AF" />
+            <Text className="text-center text-gray-700 font-semibold mt-2">No matching invoices</Text>
+            <Text className="text-center text-gray-500 text-[13px] mt-1">
+              Try a different shipment title.
+            </Text>
           </View>
         }
       />

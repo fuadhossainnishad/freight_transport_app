@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Truck, ArrowRight } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -52,14 +53,14 @@ export default function TransporterHomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-gray-50">
       <HomeHeader
         onpressLogo={() => navigation.navigate("Home")}
         onpressNotification={() => navigation.navigate("Home")}
       />
 
       <ScrollView
-        className="px-5 mt-4"
+        className="flex-1 px-5 mt-4"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
       >
@@ -72,16 +73,55 @@ export default function TransporterHomeScreen() {
 
         {/* Active Shipments header */}
         <View className="flex-row justify-between items-center mt-6 mb-3">
-          <Text className="text-base font-bold text-gray-900">Active Shipments</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("ActiveShipments")}>
-            <Text className="text-sm font-semibold text-black">See All</Text>
-          </TouchableOpacity>
+          <Text className="text-lg font-bold text-gray-900">
+            Active Shipments
+          </Text>
+          {activeShipments.length > 0 && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate("ActiveShipments")}
+            >
+              <Text className="text-sm font-semibold text-[#036BB4]">
+                See All
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Carousel */}
         {activeShipments.length === 0 ? (
-          <View className="items-center py-10">
-            <Text className="text-gray-400 text-sm">No active shipments</Text>
+          <View
+            className="bg-white rounded-2xl border border-gray-100 items-center px-6 py-10"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.04,
+              shadowRadius: 8,
+              elevation: 1,
+            }}
+          >
+            <View className="w-[72px] h-[72px] rounded-full bg-blue-50 items-center justify-center mb-5">
+              <Truck size={32} color="#036BB4" strokeWidth={1.75} />
+            </View>
+            <Text className="text-base font-bold text-gray-900 mb-1.5">
+              No active shipments yet
+            </Text>
+            <Text className="text-sm text-gray-500 text-center leading-[20px] mb-6 max-w-[280px]">
+              Once you win a bid, your live shipments show up here. Browse
+              available loads to start hauling and grow your earnings.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() =>
+                (navigation.getParent() as any)?.navigate("AvailableBids")
+              }
+              className="flex-row items-center justify-center bg-[#036BB4] rounded-xl px-6 py-3.5 w-full"
+            >
+              <Text className="text-white font-semibold text-sm mr-2">
+                Browse Available Bids
+              </Text>
+              <ArrowRight size={16} color="#fff" />
+            </TouchableOpacity>
           </View>
         ) : (
           <ShipmentsCarousel

@@ -7,47 +7,39 @@ import { useAuth } from '../../../../app/context/Auth.context';
 
 import Location from '../../../../../assets/icons/location.svg'
 
-export default function StepBasicInfo({ back, onSuccess }: any) {
+export default function StepBasicInfo({ onSuccess }: any) {
 
-    const { setValue, getValues } = useFormContext()
+    const { setValue, watch, getValues } = useFormContext()
     const { setUser } = useUser()
     const { user: authUser } = useAuth()
 
     const [loading, setLoading] = useState(false)
+    const address = watch("company_address")
 
     const handleSubmit = async () => {
-
         const data = getValues()
-        console.log("StepBasicInfo:", data)
-        if (!data.company_address) {
-            Alert.alert("Company address required")
+        if (!data.company_address?.trim()) {
+            Alert.alert("Company address required", "Please enter your company address to finish.")
             return
         }
 
         try {
-
             setLoading(true)
 
             const payload = {
                 shipper_id: authUser?.shipper_id!,
                 ...data
             }
-            console.log("StepBasicInfo:", payload)
 
             const res = await CompleteShipperProfileUseCase.execute(payload)
 
             if (res?.success) {
-
-                // ✅ Update Global State
                 setUser(prev => ({
                     ...prev!,
                     shipperProfile: res.data
                 }))
-
-                // ✅ Let Wizard Handle Navigation
                 onSuccess?.()
             }
-
         } catch (error) {
             console.error("Profile submit error:", error)
             Alert.alert("Something went wrong")
@@ -57,42 +49,42 @@ export default function StepBasicInfo({ back, onSuccess }: any) {
     }
 
     return (
-        <View className="gap-4">
-
-            <Text className="font-semibold text-xl">
-                Company Address</Text>
-            <View
-                className="flex-row justify-between items-center gap-2 border border-black/10 px-4 py-2 font-semibold rounded-lg mb-4"
-            >
-                <TextInput
-                    placeholder="Enter company address"
-                    onChangeText={(text) =>
-                        setValue("company_address", text)
-                    }
-                />
-                <Location height={36} width={36} />
-            </View>
-            <TouchableOpacity
-                className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
-                onPress={back}>
-                <Text className="text-white text-center font-semibold">
-                    Back
+        <View className="gap-5">
+            <View>
+                <Text className="text-xl font-bold text-gray-900">
+                    Almost done!
                 </Text>
-                {/* <Arrow height={16} width={16} /> */}
-            </TouchableOpacity>
-            {loading ? (
-                <ActivityIndicator size="small" />
-            ) : (
-                <TouchableOpacity
-                    className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
-                    onPress={handleSubmit}>
-                    <Text className="text-white text-center font-semibold">
-                        Create
-                    </Text>
-                    {/* <Arrow height={16} width={16} /> */}
-                </TouchableOpacity>
-            )}
+                <Text className="text-sm text-gray-500 mt-1">
+                    Where is your company located?
+                </Text>
+            </View>
 
+            <View>
+                <Text className="text-sm font-semibold text-gray-700 mb-1.5">
+                    Company address
+                </Text>
+                <View className="flex-row items-center gap-2 border border-gray-300 rounded-xl px-4 h-[52px]">
+                    <TextInput
+                        className="flex-1 text-base text-gray-900 py-0"
+                        placeholder="Enter company address"
+                        placeholderTextColor="#9ca3af"
+                        value={address ?? ""}
+                        onChangeText={(text) => setValue("company_address", text)}
+                    />
+                    <Location height={26} width={26} />
+                </View>
+            </View>
+
+            <TouchableOpacity
+                className={`p-4 rounded-full flex-row items-center justify-center ${loading ? "bg-[#036BB4]/70" : "bg-[#036BB4]"}`}
+                onPress={handleSubmit}
+                disabled={loading}
+                activeOpacity={0.85}
+            >
+                {loading
+                    ? <ActivityIndicator color="#fff" />
+                    : <Text className="text-white text-center font-semibold text-base">Finish</Text>}
+            </TouchableOpacity>
         </View>
     )
 }

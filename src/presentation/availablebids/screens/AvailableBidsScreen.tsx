@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
     View,
     Text,
     FlatList,
     TextInput,
-    ActivityIndicator
+    ActivityIndicator,
+    TouchableOpacity,
+    RefreshControl,
+    Dimensions,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Search, X, PackageSearch } from "lucide-react-native";
 import { getAvailableBids } from "../../../data/services/bidService";
 import BidCard from "../../../shared/components/BidCard";
 import { AvailableBidsStackParamList } from "../../../navigation/types";
@@ -16,83 +20,120 @@ import { useNavigation } from "@react-navigation/native";
 
 type props = NativeStackNavigationProp<AvailableBidsStackParamList, 'AvailableBids'>;
 
+const BLUE = "#036BB4";
+const H_PADDING = 16;
+const GAP = 12;
+const CARD_W = (Dimensions.get("window").width - H_PADDING * 2 - GAP) / 2;
 
 export default function AvailableBidsScreen() {
     const navigation = useNavigation<props>()
 
     const [bids, setBids] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch] = useState("");
 
-    const fetchBids = async () => {
+    const fetchBids = useCallback(async () => {
         try {
-            setLoading(true);
-
-            const res = await getAvailableBids(search);
-
-            const apiBids = res?.data ?? [];
-            setBids(apiBids);
-
+            const res = await getAvailableBids();
+            setBids(res?.data ?? []);
         } catch (error) {
             console.log("Bid fetch error:", error);
             setBids([]);
-        } finally {
-            setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchBids();
     }, []);
 
+    useEffect(() => {
+        fetchBids().finally(() => setLoading(false));
+    }, [fetchBids]);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await fetchBids();
+        setRefreshing(false);
+    }, [fetchBids]);
+
+    // Client-side filtering (the backend feed ignores the search term).
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return bids;
+        return bids.filter((b) =>
+            [b?.shipment_title, b?.category, b?.pickup_address, b?.delivery_address]
+                .filter(Boolean)
+                .some((f: string) => f.toLowerCase().includes(q))
+        );
+    }, [bids, search]);
+
     return (
-        <SafeAreaView className="flex-1 bg-white">
-
-            <View className="px-5 pt-4 mb-28">
-
-                {/* Header */}
-                <View className='bg-white flex-row w-full p-4  items-center px-4'>
-                    <Text className='text-center text-lg font-semibold text-black w-full'>
-                        Available Bids
-                    </Text>
-                </View>
+        <SafeAreaView edges={["top"]} className="flex-1 bg-[#F7F9FB]">
+            {/* Header */}
+            <View className="px-4 pt-3 pb-2 bg-[#F7F9FB]">
+                <Text className="text-xl font-extrabold text-[#0F172A]">Available Bids</Text>
+                <Text className="text-sm text-gray-500 mt-0.5">
+                    Browse open shipments and place your bid
+                </Text>
 
                 {/* Search */}
-                <TextInput
-                    placeholder="Search bids..."
-                    value={search}
-                    onChangeText={setSearch}
-                    onSubmitEditing={fetchBids}
-                    className="border border-gray-300 rounded-xl px-4 py-3 mb-5"
-                />
-
-                {/* List */}
-                {loading ? (
-                    <ActivityIndicator size="large" />
-                ) : (
-                    <FlatList
-                        data={bids}
-                        keyExtractor={(item) => item._id}
-                        showsVerticalScrollIndicator={false}
-                        columnWrapperStyle={{
-                            justifyContent: "space-between",
-                        }}
-                        numColumns={2}
-                        renderItem={({ item }) => (
-                            <BidCard bid={item} onPress={() => navigation.navigate('ShipmentDetails', { shipmentId: item._id })} />
-                        )}
-                        ListEmptyComponent={
-                            <View className="items-center mt-20">
-                                <Text className="text-gray-500">
-                                    No bids available
-                                </Text>
-                            </View>
-                        }
+                <View className="flex-row items-center bg-white rounded-2xl px-3.5 mt-4 border border-gray-200"
+                    style={{ height: 48 }}>
+                    <Search size={18} color="#94A3B8" />
+                    <TextInput
+                        placeholder="Search by title or location"
+                        placeholderTextColor="#9AA0A6"
+                        value={search}
+                        onChangeText={setSearch}
+                        returnKeyType="search"
+                        className="flex-1 ml-2 text-[15px] text-gray-900"
+                        style={{ paddingVertical: 0 }}
                     />
-                )}
-
+                    {search.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearch("")} hitSlop={8}>
+                            <X size={18} color="#9AA0A6" />
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
 
+            {/* List */}
+            {loading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color={BLUE} />
+                </View>
+            ) : (
+                <FlatList
+                    data={filtered}
+                    keyExtractor={(item) => item._id}
+                    numColumns={2}
+                    showsVerticalScrollIndicator={false}
+                    columnWrapperStyle={{ gap: GAP, paddingHorizontal: H_PADDING }}
+                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 28, gap: GAP }}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[BLUE]} tintColor={BLUE} />
+                    }
+                    renderItem={({ item }) => (
+                        <BidCard
+                            bid={item}
+                            width={CARD_W}
+                            onPress={() => navigation.navigate('ShipmentDetails', { shipmentId: item._id })}
+                        />
+                    )}
+                    ListEmptyComponent={
+                        <View className="items-center mt-24 px-10">
+                            <View className="w-16 h-16 rounded-full bg-[#EAF2FB] items-center justify-center mb-4">
+                                <PackageSearch size={30} color={BLUE} />
+                            </View>
+                            <Text className="text-base font-bold text-gray-800">
+                                {search ? "No matching bids" : "No bids available"}
+                            </Text>
+                            <Text className="text-sm text-gray-500 text-center mt-1.5 leading-5">
+                                {search
+                                    ? "Try a different shipment title or location."
+                                    : "New open shipments will appear here. Pull down to refresh."}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
         </SafeAreaView>
     );
 }

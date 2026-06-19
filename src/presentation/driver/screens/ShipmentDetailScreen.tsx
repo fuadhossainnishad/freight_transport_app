@@ -6,131 +6,167 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-// If you don't have Lucide, you can use any icon library or a simple Text "←"
-import { ArrowLeft } from 'lucide-react-native'; 
-import { formatCurrency } from '../helper/format-price.helper';
+import { ArrowLeft, Navigation } from 'lucide-react-native';
+import { formatPriceRange } from '../helper/format-price.helper';
+
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  PENDING: { label: 'Pending', color: '#F59E0B' },
+  IN_PROGRESS: { label: 'In Progress', color: '#0071BC' },
+  IN_TRANSIT: { label: 'In Transit', color: '#8B5CF6' },
+  COMPLETED: { label: 'Completed', color: '#22C55E' },
+};
+
+const truckPlaceholder = require('../../../../assets/images/truck.png');
+
+// Empty fields shouldn't render as blank gaps — fall back to an em dash.
+const show = (v?: string | number | null) => {
+  const s = v == null ? '' : String(v).trim();
+  return s.length ? s : '—';
+};
 
 const ShipmentDetailScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation();
-  
+  const insets = useSafeAreaInsets();
+
   const { shipment } = route.params;
-  console.log("From Shipment Details: ", shipment);
-  
+
+  const status = STATUS_CONFIG[shipment.status] ?? {
+    label: shipment.status ?? 'Unknown',
+    color: '#94A3B8',
+  };
+  // PENDING / IN_PROGRESS → not started yet, offer to start.
+  // IN_TRANSIT → already on the road, offer to re-open the live map.
+  // COMPLETED → no action.
+  const action =
+    shipment.status === 'IN_TRANSIT'
+      ? { label: 'Continue Tracking', showMapIcon: true }
+      : shipment.status === 'PENDING' || shipment.status === 'IN_PROGRESS'
+        ? { label: 'Start Shipment', showMapIcon: false }
+        : null;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#000" />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <ArrowLeft size={22} color="#1A1C1E" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Shipment Detail</Text>
-        <View style={{ width: 40 }} /> 
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* STATUS BADGE */}
-        <View style={styles.badgeContainer}>
-          <View style={styles.pendingBadge}>
-            <View style={styles.whiteDot} />
-            <Text style={styles.badgeText}>Pending</Text>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 40 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* SHIPMENT IMAGE with status badge overlay */}
+        <View style={styles.imageWrap}>
+          <Image
+            source={shipment.imageUrl ? { uri: shipment.imageUrl } : truckPlaceholder}
+            style={styles.mainImage}
+            resizeMode="cover"
+          />
+          <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>{status.label}</Text>
           </View>
         </View>
-
-        {/* SHIPMENT IMAGE */}
-        <Image 
-          source={{ uri: shipment.imageUrl }} 
-          style={styles.mainImage} 
-        />
 
         {/* SECTION: BASIC INFORMATION */}
         <Text style={styles.sectionTitle}>Basic Information</Text>
         <View style={styles.gridBox}>
           <View style={styles.gridRow}>
             <View style={[styles.gridCell, styles.borderRight]}>
-              <Text style={styles.label}>Shipment title</Text>
-              <Text style={styles.value}>{shipment.title}</Text>
+              <Text style={styles.label}>Shipment Title</Text>
+              <Text style={styles.value}>{show(shipment.title)}</Text>
             </View>
             <View style={styles.gridCell}>
               <Text style={styles.label}>Category</Text>
-              <Text style={styles.value}>{shipment.commodity}</Text>
+              <Text style={styles.value}>{show(shipment.commodity)}</Text>
             </View>
           </View>
-          
+
           <View style={[styles.gridCellFull, styles.borderTop]}>
             <Text style={styles.label}>Description</Text>
-            <Text style={styles.value}>{shipment.description}</Text>
+            <Text style={styles.value}>{show(shipment.description)}</Text>
           </View>
 
           <View style={[styles.gridRow, styles.borderTop]}>
             <View style={[styles.gridCell, styles.borderRight]}>
               <Text style={styles.label}>Weight</Text>
-              <Text style={styles.value}>{shipment.weight}</Text>
+              <Text style={styles.value}>{show(shipment.weight)}</Text>
             </View>
             <View style={styles.gridCell}>
-              <Text style={[styles.label, { color: '#FF3B30' }]}>Dimensions (L/W/H) (kg)</Text>
-              <Text style={[styles.value, { color: '#FF3B30' }]}>{shipment.dimensions}</Text>
+              <Text style={styles.label}>Dimensions (L/W/H)</Text>
+              <Text style={styles.value}>{show(shipment.dimensions)}</Text>
             </View>
           </View>
 
           <View style={[styles.gridCellFull, styles.borderTop]}>
-            <Text style={styles.label}>Type of packaging</Text>
-            <Text style={styles.value}>{shipment.packaging}</Text>
+            <Text style={styles.label}>Type of Packaging</Text>
+            <Text style={styles.value}>{show(shipment.packaging)}</Text>
           </View>
         </View>
 
         {/* SECTION: PICKUP & DELIVERY DETAILS */}
-        <Text style={styles.sectionTitle}>Pickup & Delivery Details</Text>
+        <Text style={styles.sectionTitle}>Pickup & Delivery</Text>
         <View style={styles.gridBox}>
           <View style={styles.gridRow}>
             <View style={[styles.gridCell, styles.borderRight]}>
               <Text style={styles.label}>Pickup Address</Text>
-              <Text style={styles.value}>{shipment.pickupAddress}</Text>
+              <Text style={styles.value}>{show(shipment.pickupAddress)}</Text>
             </View>
             <View style={styles.gridCell}>
               <Text style={styles.label}>Time Window</Text>
-              <Text style={styles.value}>{shipment.timeWindow}</Text>
+              <Text style={styles.value}>{show(shipment.timeWindow)}</Text>
             </View>
           </View>
           <View style={[styles.gridRow, styles.borderTop]}>
             <View style={[styles.gridCell, styles.borderRight]}>
               <Text style={styles.label}>Delivery Address</Text>
-              <Text style={styles.value}>{shipment.deliveryAddress}</Text>
+              <Text style={styles.value}>{show(shipment.deliveryAddress)}</Text>
             </View>
             <View style={styles.gridCell}>
               <Text style={styles.label}>Contact Person</Text>
-              <Text style={styles.value}>{shipment.contactPerson}</Text>
+              <Text style={styles.value}>{show(shipment.contactPerson)}</Text>
             </View>
-          </View>
-          <View style={[styles.gridCellFull, styles.borderTop]}>
-            <Text style={styles.label}>Date Preference</Text>
-            <Text style={styles.value}>Flexible within 2 days</Text>
           </View>
         </View>
 
         {/* SECTION: AMOUNT */}
         <Text style={styles.sectionTitle}>Amount</Text>
         <View style={styles.amountBox}>
-          <Text style={styles.label}>Price</Text>
-          <Text style={styles.priceValue}>{formatCurrency(200000)}</Text>
+          <Text style={styles.amountLabel}>Agreed Price</Text>
+          <Text style={styles.priceValue}>
+            {formatPriceRange(shipment.priceMin, shipment.priceMax)}
+          </Text>
         </View>
 
-        {/* START SHIPMENT BUTTON */}
-       <TouchableOpacity
-        style={styles.primaryButton}
-        activeOpacity={0.8}
-        onPress={() => (navigation as any).navigate('LiveTracking', { shipment })}
-      >
-        <Text style={styles.buttonText}>Start Shipment</Text>
-      </TouchableOpacity>
-
+        {/* ACTION BUTTON — start the shipment, or re-open the live map when in transit */}
+        {action && (
+          <TouchableOpacity
+            style={styles.primaryButton}
+            activeOpacity={0.85}
+            onPress={() => (navigation as any).navigate('LiveTracking', { shipment })}
+          >
+            {action.showMapIcon && (
+              <Navigation size={18} color="#FFFFFF" strokeWidth={2.2} />
+            )}
+            <Text style={styles.buttonText}>{action.label}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -139,124 +175,168 @@ const ShipmentDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    paddingTop: StatusBar.currentHeight || 0,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 56,
+    paddingHorizontal: 12,
+    height: 54,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#000',
+    color: '#1A1C1E',
   },
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 18,
     paddingBottom: 40,
   },
-  badgeContainer: {
-    marginTop: 10,
-    flexDirection: 'row',
-  },
-  pendingBadge: {
-    backgroundColor: '#FF6B00',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  whiteDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFF',
-    marginRight: 6,
-  },
-  badgeText: {
-    color: '#FFF',
-    fontWeight: '700',
-    fontSize: 12,
+  imageWrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   mainImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 16,
-    marginTop: 15,
+    height: 190,
+    backgroundColor: '#F3F4F6',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    marginRight: 6,
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
+    letterSpacing: 0.2,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 25,
-    marginBottom: 12,
-    color: '#000',
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 24,
+    marginBottom: 10,
+    color: '#1A1C1E',
+    letterSpacing: -0.2,
   },
   gridBox: {
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
+    borderColor: '#EEF1F4',
+    borderRadius: 14,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0A4E80',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: { elevation: 1 },
+    }),
   },
   gridRow: {
     flexDirection: 'row',
   },
   gridCell: {
     flex: 1,
-    padding: 12,
+    padding: 14,
   },
   gridCellFull: {
     width: '100%',
-    padding: 12,
+    padding: 14,
   },
   borderRight: {
     borderRightWidth: 1,
-    borderRightColor: '#E5E5E5',
+    borderRightColor: '#EEF1F4',
   },
   borderTop: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: '#EEF1F4',
   },
   label: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 4,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: 5,
   },
   value: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: '600',
+    color: '#1A1C1E',
+    lineHeight: 20,
   },
   amountBox: {
+    backgroundColor: '#E9F3F9',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
+    borderColor: '#D6E8F8',
+    borderRadius: 14,
     padding: 16,
   },
+  amountLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#036BB4',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
   priceValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    marginTop: 4,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#036BB4',
+    letterSpacing: -0.3,
   },
   primaryButton: {
     backgroundColor: '#0071BC',
-    height: 56,
-    borderRadius: 28,
+    height: 54,
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0071BC',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: { elevation: 4 },
+    }),
   },
   buttonText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });
 

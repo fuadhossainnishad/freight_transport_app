@@ -1,50 +1,47 @@
-import { View, Text, TouchableOpacity, Dimensions } from "react-native"
+import { View, Text, Dimensions } from "react-native"
 import { useFormContext } from "react-hook-form"
-import Employee from '../../../../../assets/icons/employee.svg'
+import { User, Users, UsersRound, Building, Building2, Factory } from "lucide-react-native"
+import WizardOptionCard from "../WizardOptionCard"
+
+const ICON = "#036BB4"
 
 const options = [
-  { label: "1 - 5 ", value: "1-5" },
-  { label: "6 - 20 ", value: "6-20" },
-  { label: "21 - 50 ", value: "21-50" },
-  { label: "51 - 200 ", value: "51-200" },
-  { label: "201 - 200 ", value: "201-500" },
-  { label: "More than 500 ", value: "500_Plus" }
+  { label: "1 - 5", value: "1-5", icon: <User size={26} color={ICON} /> },
+  { label: "6 - 20", value: "6-20", icon: <Users size={26} color={ICON} /> },
+  { label: "21 - 50", value: "21-50", icon: <UsersRound size={26} color={ICON} /> },
+  { label: "51 - 200", value: "51-200", icon: <Building size={26} color={ICON} /> },
+  { label: "201 - 500", value: "201-500", icon: <Building2 size={26} color={ICON} /> },
+  { label: "More than 500", value: "500_Plus", icon: <Factory size={26} color={ICON} /> }
 ]
 
-export default function StepCompanySize({ next }: any) {
+const cardWidth = (Dimensions.get("window").width - 52) / 2
 
-  const { setValue } = useFormContext()
-  const cardWidth = (Dimensions.get("window").width - 48) / 2
+export default function StepCompanySize({ next }: any) {
+  const { setValue, watch } = useFormContext()
+  const current = watch("employee_size")
 
   return (
-    <View className="gap-4">
-      <Text className="font-semibold text-xl">
-        What is the size of the company?
+    <View className="gap-5">
+      <Text className="text-xl font-bold text-gray-900">
+        What is the size of your company?
       </Text>
-      <View className="flex-row flex-wrap justify-between ">
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {options.map((item) => (
-          <TouchableOpacity
-            key={item.label}
+          <WizardOptionCard
+            key={item.value}
+            label={item.label}
+            sublabel="employees"
+            selected={current === item.value}
+            icon={item.icon}
+            style={{ width: cardWidth }}
             onPress={() => {
               setValue("employee_size", item.value)
               next()
             }}
-            style={{ width: cardWidth }}
-
-            className="border border-black/10 p-4 flex-col items-center bg-black/10 rounded-lg mb-4"
-          >
-            <Employee width={35} height={35} />
-            <Text className="font-semibold mt-3 text-center">
-              {item.label}
-            </Text>
-
-            {/* Employees text BELOW label */}
-            <Text className="text-gray-500 text-sm mt-1 text-center">
-              employees
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </View>
-    </View >
+    </View>
   )
 }

@@ -46,14 +46,20 @@ axiosClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
 
+    const status = error.response?.status
+
+    const message =
+      status === 413
+        ? "The files you're uploading are too large. Please choose smaller images and try again."
+        : (error.response?.data as any)?.message ||
+          error.message ||
+          "Something went wrong"
+
     const formattedError = {
       status: "error",
-      message:
-        (error.response?.data as any)?.message ||
-        error.message ||
-        "Something went wrong",
+      message,
       data: error.response?.data,
-      statusCode: error.response?.status,
+      statusCode: status,
     }
 
     console.log("API ERROR:", formattedError)

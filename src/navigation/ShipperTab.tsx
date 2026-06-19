@@ -1,7 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
-import { RouteProp } from '@react-navigation/native';
+import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CreditCard } from 'lucide-react-native';
 
 
 import Home from '../../assets/icons/home.svg';
@@ -17,86 +18,91 @@ import ShipperHomeStack from './ShipperHomeStack';
 import SettingsStack from './SettingsStack';
 import ShipperShipmentsStack from './ShipperShipmentsStack';
 import InvoiceStack from './InvoiceStack';
+import PaymentsStack from './PaymentsStack';
+import { PaymentRequestsProvider, usePaymentRequests } from '../presentation/payment/PaymentRequestsContext';
 
-type TabIconProps = {
-  routeName: keyof ShipperTabParamList;
-  focused: boolean;
-};
+const BLUE = '#036BB4';
 
-function TabIcon({ routeName, focused }: TabIconProps) {
-  let IconComponent: React.FC<any> | null = null;
-  let label = '';
+type SvgIcon = React.FC<{ width?: number; height?: number }>;
 
-  switch (routeName) {
-    case 'HomeStack':
-      IconComponent = focused ? Home : HomeInline;
-      label = 'Home';
-      break;
-    case 'Shipments':
-      IconComponent = focused ? Shipments : ShipmentsInline;
-      label = 'Shipments';
-      break;
-    case 'Invoices':
-      IconComponent = focused ? Invoice : InvoiceInline;
-      label = 'Invoices';
-      break;
-    case 'Settings':
-      IconComponent = focused ? Settings : SettingsInline;
-      label = 'Settings';
-      break;
-  }
-
-  return (
-    <View
-      className={` items-center justify-center rounded-full px-4 w-32 leading-5`}
-    >
-      {IconComponent && <IconComponent width={24} height={24} />}
-      <Text className={`${focused ? "text-[#036BB4]" : "text-black"} text-sm font-medium`}>{label}</Text>
-    </View>
-  );
-}
-
-function renderTabIcon(
-  route: RouteProp<ShipperTabParamList, keyof ShipperTabParamList>,
-) {
+function svgTabIcon(Active: SvgIcon, Inactive: SvgIcon) {
   return function IconRenderer({ focused }: { focused: boolean }) {
-    return <TabIcon routeName={route.name} focused={focused} />;
+    const Icon = focused ? Active : Inactive;
+    return <Icon width={22} height={22} />;
   };
 }
 
 const Tab = createBottomTabNavigator<ShipperTabParamList>();
 
-export default function ShipperTabs() {
+function ShipperTabsInner() {
+  const { pendingCount } = usePaymentRequests();
+  const insets = useSafeAreaInsets();
+  // insets.bottom is unreliable here (reports 0 on this device), so floor it.
+  const bottomPad = Math.max(insets.bottom, 16);
+
   return (
     <Tab.Navigator
       initialRouteName="HomeStack"
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
-        tabBarIcon: renderTabIcon(route),
-      })}
+        tabBarActiveTintColor: BLUE,
+        tabBarInactiveTintColor: '#111827',
+        tabBarLabelStyle: styles.label,
+        tabBarStyle: [
+          styles.tabBar,
+          { height: 58 + bottomPad, paddingBottom: bottomPad },
+        ],
+      }}
     >
-      <Tab.Screen name="HomeStack" component={ShipperHomeStack} />
-      <Tab.Screen name="Shipments" component={ShipperShipmentsStack} />
-      <Tab.Screen name="Invoices" component={InvoiceStack} />
-      <Tab.Screen name="Settings" component={SettingsStack} />
-      {/* <Tab.Screen name="Home" component={() => <Text>Home</Text>} />
-      <Tab.Screen name="Home" component={() => <Text>Home</Text>} /> */}
+      <Tab.Screen
+        name="HomeStack"
+        component={ShipperHomeStack}
+        options={{ tabBarLabel: 'Home', tabBarIcon: svgTabIcon(Home, HomeInline) }}
+      />
+      <Tab.Screen
+        name="Shipments"
+        component={ShipperShipmentsStack}
+        options={{ tabBarLabel: 'Shipments', tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
+      />
+      <Tab.Screen
+        name="Invoices"
+        component={InvoiceStack}
+        options={{ tabBarLabel: 'Invoices', tabBarIcon: svgTabIcon(Invoice, InvoiceInline) }}
+      />
+      <Tab.Screen
+        name="Payments"
+        component={PaymentsStack}
+        options={{
+          tabBarLabel: 'Payments',
+          tabBarBadge: pendingCount > 0 ? (pendingCount > 9 ? '9+' : pendingCount) : undefined,
+          tabBarIcon: ({ focused }) => (
+            <CreditCard width={22} height={22} color={focused ? BLUE : '#1f2937'} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsStack}
+        options={{ tabBarLabel: 'Settings', tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
+      />
     </Tab.Navigator>
+  );
+}
+
+export default function ShipperTabs() {
+  return (
+    <PaymentRequestsProvider>
+      <ShipperTabsInner />
+    </PaymentRequestsProvider>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 50,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#fff',
-    height: 100,
   },
+  label: { fontSize: 11, fontWeight: '500' },
 });

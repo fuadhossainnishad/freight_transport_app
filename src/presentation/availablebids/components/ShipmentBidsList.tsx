@@ -16,6 +16,7 @@ import { AvailableBidsStackParamList } from "../../../navigation/types";
 import { useAuth } from "../../../app/context/Auth.context";
 import { useUser } from "../../../app/context/User.context";
 import { ArrowRight } from "lucide-react-native";
+import { normalizeImageUrl } from "../../../shared/utils/normalizeImageUrl";
 
 type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList>;
 
@@ -27,7 +28,7 @@ function MyBidRow({ name, logo, amount }: { name: string; logo?: string; amount:
         <View style={[row.container, row.myContainer]}>
             <View style={row.avatarWrap}>
                 {logo ? (
-                    <Image source={{ uri: logo }} style={row.avatar} />
+                    <Image source={{ uri: normalizeImageUrl(logo) }} style={row.avatar} />
                 ) : (
                     <View style={[row.avatar, row.avatarFallback]}>
                         <Text style={row.avatarInitial}>{name[0]?.toUpperCase() ?? "T"}</Text>

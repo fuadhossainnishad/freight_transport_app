@@ -1,60 +1,42 @@
-import { View, Text, TouchableOpacity, Dimensions } from "react-native"
+import { View, Text } from "react-native"
 import { useFormContext } from "react-hook-form"
-import National from '../../../../../assets/icons/national2.svg'
-import Regional from '../../../../../assets/icons/national.svg'
-import International from '../../../../../assets/icons/international.svg'
+import { MapPin, Flag, Globe } from "lucide-react-native"
+import WizardOptionCard from "../WizardOptionCard"
+
+const ICON = "#036BB4"
 
 const options = [
-  "Regional",
-  "National",
-  "International"
+  { label: "Regional", sublabel: "Within your region", icon: <MapPin size={24} color={ICON} /> },
+  { label: "National", sublabel: "Across the country", icon: <Flag size={24} color={ICON} /> },
+  { label: "International", sublabel: "Across borders", icon: <Globe size={24} color={ICON} /> },
 ]
 
-export default function StepRegion({ next, back }: any) {
-
-  const { setValue } = useFormContext()
-  const cardWidth = (Dimensions.get("window").width - 48) / 2
+export default function StepRegion({ next }: any) {
+  const { setValue, watch } = useFormContext()
+  const current = watch("shipping_marchandise_at")
 
   return (
-    <View className="gap-4">
+    <View className="gap-5">
+      <Text className="text-xl font-bold text-gray-900">
+        Where do you ship?
+      </Text>
 
-      <Text className="font-semibold text-xl">
-        Where do you ship?</Text>
-
-      <View className="flex-row flex-wrap justify-between ">
-
+      <View style={{ gap: 12 }}>
         {options.map((item) => (
-          <TouchableOpacity
-            key={item}
+          <WizardOptionCard
+            key={item.label}
+            layout="row"
+            label={item.label}
+            sublabel={item.sublabel}
+            selected={current === item.label}
+            icon={item.icon}
             onPress={() => {
-              setValue("shipping_marchandise_at", item)
+              setValue("shipping_marchandise_at", item.label)
               next()
             }}
-            style={{ width: cardWidth }}
-
-            className="border border-black/10 p-4 flex-col items-center bg-black/10 rounded-lg mb-4"
-          >
-            {item === 'National' ? (
-              <National width={35} height={35} />
-            ) : item === 'Regional' ? (
-              <Regional width={35} height={35} />) : (
-              <International width={35} height={35} />
-            )}
-            <Text className="font-semibold mt-2 text-center">
-              {item}
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </View>
-
-      <TouchableOpacity
-        className="bg-[#036BB4] p-4 rounded-full flex-row items-center justify-center "
-        onPress={back}>
-        <Text className="text-white text-center font-semibold">
-          Back
-        </Text>
-        {/* <Arrow height={16} width={16} /> */}
-      </TouchableOpacity>
     </View>
   )
 }

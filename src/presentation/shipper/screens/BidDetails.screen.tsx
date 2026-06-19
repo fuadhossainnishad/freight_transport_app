@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import { ShipperHomeStackParamList } from "../../../navigation/types"
 import { getShipmentBids, fetchShipmentDetails } from "../../../data/services/shipmentService"
+import { normalizeImageUrl } from "../../../shared/utils/normalizeImageUrl"
 
 const BLUE = '#036BB4';
 
@@ -76,7 +77,7 @@ export default function BidDetails() {
                     <View style={s.card}>
                         {shipment?.shipment_images?.[0] ? (
                             <Image
-                                source={{ uri: shipment.shipment_images[0] }}
+                                source={{ uri: normalizeImageUrl(shipment.shipment_images[0]) }}
                                 style={StyleSheet.absoluteFill}
                                 resizeMode="cover"
                             />

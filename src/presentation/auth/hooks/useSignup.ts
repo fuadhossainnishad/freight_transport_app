@@ -11,12 +11,15 @@ export const useSignup = () => {
             setLoading(true);
             console.log("data:", data)
 
+            // Await the registration so `loading` stays true for the whole
+            // request — returning the promise unawaited would let `finally`
+            // reset it immediately, hiding the spinner.
             switch (data.role) {
                 case "TRANSPORTER":
-                    return registerTransporter(data);
+                    return await registerTransporter(data);
 
                 case "SHIPPER":
-                    return registerShipper(data);
+                    return await registerShipper(data);
 
                 default:
                     throw new Error("Invalid role");
@@ -25,7 +28,6 @@ export const useSignup = () => {
             setLoading(false);
         }
     };
-    console.log("signup:", signup)
 
     return { signup, loading };
 };

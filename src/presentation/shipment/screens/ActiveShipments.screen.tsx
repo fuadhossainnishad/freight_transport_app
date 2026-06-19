@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ArrowLeft, Map, Search } from "lucide-react-native";
+import { ArrowLeft, Map, Search, Truck, SearchX, ArrowRight } from "lucide-react-native";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { Shipment } from "../../../domain/entities/shipment.entity";
@@ -86,6 +86,53 @@ function ShipmentCard({
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
+  );
+}
+
+// ── Empty state ─────────────────────────────────────────────────────────────
+function EmptyState({
+  searching,
+  onAction,
+}: {
+  searching: boolean;
+  onAction?: () => void;
+}) {
+  if (searching) {
+    return (
+      <View style={styles.empty}>
+        <View style={styles.emptyIconWrap}>
+          <SearchX size={32} color="#0071BC" strokeWidth={1.75} />
+        </View>
+        <Text style={styles.emptyTitle}>No matching shipments</Text>
+        <Text style={styles.emptySubtitle}>
+          We couldn’t find any shipments for that search. Try a different
+          keyword.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.empty}>
+      <View style={styles.emptyIconWrap}>
+        <Truck size={32} color="#0071BC" strokeWidth={1.75} />
+      </View>
+      <Text style={styles.emptyTitle}>No active shipments yet</Text>
+      <Text style={styles.emptySubtitle}>
+        Once you win a bid, your live shipments show up here. Browse available
+        loads to start hauling and grow your earnings.
+      </Text>
+      {onAction && (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onAction}
+          style={styles.emptyCta}
+        >
+          <Text style={styles.emptyCtaText}>Browse Available Bids</Text>
+          <ArrowRight size={16} color="#fff" />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
@@ -169,8 +216,11 @@ const ActiveShipmentsScreen = () => {
           data={filtered}
           keyExtractor={(item) => item.id}
           numColumns={2}
-          columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={filtered.length ? styles.row : undefined}
+          contentContainerStyle={[
+            styles.listContent,
+            filtered.length === 0 && styles.listContentEmpty,
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -188,11 +238,15 @@ const ActiveShipmentsScreen = () => {
             />
           )}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>
-                {search ? "No shipments match your search" : "No active shipments"}
-              </Text>
-            </View>
+            <EmptyState
+              searching={!!search.trim()}
+              onAction={
+                user?.role === "TRANSPORTER"
+                  ? () =>
+                      (navigation.getParent() as any)?.navigate("AvailableBids")
+                  : undefined
+              }
+            />
           }
         />
       )}
@@ -261,6 +315,9 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 8,
     gap: 16,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
   },
   row: {
     gap: 16,
@@ -345,11 +402,48 @@ const styles = StyleSheet.create({
   },
   empty: {
     flex: 1,
-    paddingTop: 60,
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+    paddingBottom: 40,
   },
-  emptyText: {
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  emptySubtitle: {
     fontSize: 14,
-    color: "#9CA3AF",
+    lineHeight: 20,
+    color: "#6B7280",
+    textAlign: "center",
+    maxWidth: 300,
+  },
+  emptyCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#036BB4",
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    marginTop: 24,
+    gap: 8,
+  },
+  emptyCtaText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import LinearGradient from 'react-native-linear-gradient';
 import { SvgProps } from "react-native-svg";
+import { Check } from "lucide-react-native";
 
 export interface RoleSelectorProps {
     role: string;
@@ -8,58 +8,98 @@ export interface RoleSelectorProps {
     onRoleChange: (role: string) => void;
     Icon: React.FC<SvgProps>[]
     theme: string
+    title?: string
 }
 
-export default function RoleSelector({ role, selected, onRoleChange, Icon, theme }: RoleSelectorProps) {
+const BLUE = "#036BB4";
+
+export default function RoleSelector({ role, selected, onRoleChange, Icon, theme, title }: RoleSelectorProps) {
     const ActiveIcon = Icon[0]
     const InactiveIcon = Icon[1]
-    const Wrapper = (selected ? LinearGradient : View) as React.ElementType;
+
     return (
         <TouchableOpacity
-            className="flex-1 gap-2"
+            style={[styles.card, selected ? styles.cardSelected : styles.cardDefault]}
+            activeOpacity={0.85}
             onPress={() => onRoleChange(role)}
         >
-            <Wrapper
-                {...(selected
-                    ? {
-                        colors: ['#E6F0F7', '#E6F0F7', '#036BB4'],
-                        start: { y: 0, x: 0, },
-                        end: { x: 0, y: 1 },
-                    }
-                    : {})}
-                style={[
-                    styles.card,
-                    !selected && styles.normalCard,
-                ]}
-            >
-                <View className={` p-4 rounded-full  ${selected ? "border border-[#036BB4] bg-transparent" : "bg-black/10"}`}>
-                    {selected ? <ActiveIcon height={24} width={24} /> : <InactiveIcon height={24} width={24} />}
-                </View>
-                <Text className="text-black w-full font-xs font-semibold mt-2">I’m a {role}</Text>
-                <Text className="text-black w-full text-xs">{theme}</Text>
-            </Wrapper>
-        </TouchableOpacity >
+            {/* Persistent selection indicator — empty ring when unselected,
+                filled blue check when selected (keeps both cards balanced). */}
+            <View style={[styles.badge, selected ? styles.badgeSelected : styles.badgeDefault]}>
+                {selected && <Check size={13} color="#fff" strokeWidth={3} />}
+            </View>
+
+            <View style={[styles.iconCircle, selected ? styles.iconCircleSelected : styles.iconCircleDefault]}>
+                {selected ? <ActiveIcon height={22} width={22} /> : <InactiveIcon height={22} width={22} />}
+            </View>
+
+            <Text style={[styles.title, selected && { color: BLUE }]}>
+                {title ?? `I'm a ${role}`}
+            </Text>
+            <Text style={styles.subtitle}>{theme}</Text>
+        </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
     card: {
         flex: 1,
-        padding: 10,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1.5,
+        minHeight: 124,
+        justifyContent: "flex-start",
     },
-    normalCard: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        backgroundColor: '#0000001A'
+    cardDefault: {
+        backgroundColor: "#F9FAFB",
+        borderColor: "#E5E7EB",
+    },
+    cardSelected: {
+        backgroundColor: "#EFF6FF",
+        borderColor: BLUE,
+    },
+    badge: {
+        position: "absolute",
+        top: 12,
+        right: 12,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    badgeDefault: {
+        borderWidth: 1.5,
+        borderColor: "#D1D5DB",
+        backgroundColor: "transparent",
+    },
+    badgeSelected: {
+        backgroundColor: BLUE,
+    },
+    iconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 12,
+    },
+    iconCircleDefault: {
+        backgroundColor: "#E5E7EB",
+    },
+    iconCircleSelected: {
+        backgroundColor: "#fff",
+        borderWidth: 1.5,
+        borderColor: BLUE,
     },
     title: {
-        marginTop: 10,
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#111827",
+    },
+    subtitle: {
+        fontSize: 12,
+        color: "#6B7280",
+        marginTop: 2,
     },
 });

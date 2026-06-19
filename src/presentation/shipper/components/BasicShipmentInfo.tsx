@@ -1,28 +1,14 @@
-/**
- * BasicShipmentInfo.tsx
- *
- * Fix: removed the duplicate upload-trigger button.
- * Previously both an "Upload Images" zone (shown when empty) AND a
- * standalone Add button (always shown) were rendered simultaneously,
- * which confused the UI. Now:
- *   - Empty state: shows a full dashed upload zone.
- *   - Has images: shows the image grid + a small "Add more" button below.
- */
-
 import React, { useState } from "react"
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { Image, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Control, Controller, UseFormSetValue } from "react-hook-form"
 import { Asset } from "react-native-image-picker"
-
-import Upload from "../../../../assets/icons/upload.svg"
-import Add from "../../../../assets/icons/create.svg"
+import { ImagePlus, X } from "lucide-react-native"
 
 import SelectField from "../../../shared/components/SelectField"
 import OptionSelectorModal from "../../../shared/components/OptionSelectorModal"
 
 type Props = {
     control: Control<any>
-    onNext: () => void
     setValue: UseFormSetValue<any>
     onPickImages: () => void
     images: Asset[]
@@ -45,9 +31,17 @@ const PACKAGING_OPTIONS = [
     "Loose Cargo",
 ]
 
+const Label = ({ children, required }: { children: string; required?: boolean }) => (
+    <Text className="text-sm font-semibold text-gray-700 mb-1.5">
+        {children}
+        {required && <Text className="text-red-500"> *</Text>}
+    </Text>
+)
+
+const inputClass = "border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-gray-900 mb-4"
+
 export default function BasicShipmentInfo({
     control,
-    onNext,
     setValue,
     onPickImages,
     images,
@@ -57,17 +51,19 @@ export default function BasicShipmentInfo({
     const [packagingVisible, setPackagingVisible] = useState(false)
 
     return (
-        <View style={styles.container}>
+        <View className="px-5">
+            <Text className="text-sm text-gray-500 mb-5">Tell us what you're shipping.</Text>
 
             {/* Shipment title */}
-            <Text style={styles.label}>Shipment title</Text>
+            <Label required>Shipment title</Label>
             <Controller
                 control={control}
                 name="shipment_title"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
-                        style={styles.input}
+                        className={inputClass}
                         placeholder="Ship 12 Pallets of Rice"
+                        placeholderTextColor="#9ca3af"
                         value={value}
                         onChangeText={onChange}
                     />
@@ -75,121 +71,137 @@ export default function BasicShipmentInfo({
             />
 
             <SelectField
-                label="Category"
+                label="Category *"
                 name="category"
                 placeholder="Select category"
                 control={control}
                 onPress={() => setCategoryVisible(true)}
             />
 
-            <Text style={styles.label}>Description</Text>
+            <Label required>Description</Label>
             <Controller
                 control={control}
                 name="discription"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
                         multiline
-                        style={[styles.input, styles.multiline]}
-                        placeholder="Description"
+                        className={`${inputClass} min-h-[90px]`}
+                        style={{ textAlignVertical: "top" }}
+                        placeholder="Describe the goods, handling notes, etc."
+                        placeholderTextColor="#9ca3af"
                         value={value}
                         onChangeText={onChange}
                     />
                 )}
             />
 
-            <Text style={styles.label}>Weight</Text>
-            <Controller
-                control={control}
-                name="weight"
-                render={({ field: { onChange, value } }) => (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="2300 KG"
-                        value={value}
-                        onChangeText={onChange}
-                        keyboardType="number-pad"
+            {/* Weight + Packaging side by side */}
+            <View className="flex-row gap-3">
+                <View className="flex-1">
+                    <Label required>Weight</Label>
+                    <Controller
+                        control={control}
+                        name="weight"
+                        render={({ field: { onChange, value } }) => (
+                            <TextInput
+                                className={inputClass}
+                                placeholder="2300 KG"
+                                placeholderTextColor="#9ca3af"
+                                value={value}
+                                onChangeText={onChange}
+                            />
+                        )}
                     />
-                )}
-            />
+                </View>
+                <View className="flex-1">
+                    <SelectField
+                        label="Packaging *"
+                        name="type_of_packaging"
+                        placeholder="Select"
+                        control={control}
+                        onPress={() => setPackagingVisible(true)}
+                    />
+                </View>
+            </View>
 
-            <SelectField
-                label="Packaging Type"
-                name="type_of_packaging"
-                placeholder="Select packaging type"
-                control={control}
-                onPress={() => setPackagingVisible(true)}
-            />
-
-            <Text style={styles.label}>Dimensions</Text>
+            <Label>Dimensions (optional)</Label>
             <Controller
                 control={control}
                 name="dimensions"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
-                        style={styles.input}
+                        className={inputClass}
                         placeholder="120 / 100 / 160 cm"
+                        placeholderTextColor="#9ca3af"
                         value={value}
                         onChangeText={onChange}
-                        keyboardType="numeric"
                     />
                 )}
             />
 
-            {/* ── Image upload area ─────────────────────────── */}
+            {/* ── Image upload ─────────────────────────── */}
+            <Label>Shipment images (optional)</Label>
             {images.length === 0 ? (
-                // Empty state — full upload zone
                 <TouchableOpacity
                     onPress={onPickImages}
-                    style={styles.uploadZone}
                     activeOpacity={0.7}
+                    className="border border-dashed border-gray-300 bg-gray-50 rounded-2xl py-8 items-center"
                 >
-                    <Upload height={36} width={36} />
-                    <Text style={styles.uploadText}>Tap to upload images</Text>
-                    <Text style={styles.uploadSubtext}>JPG, PNG supported</Text>
+                    <View className="w-12 h-12 rounded-full bg-[#036BB4]/10 items-center justify-center">
+                        <ImagePlus size={24} color="#036BB4" />
+                    </View>
+                    <Text className="text-sm font-medium text-gray-700 mt-3">Tap to upload images</Text>
+                    <Text className="text-xs text-gray-400 mt-1">JPG, PNG supported</Text>
                 </TouchableOpacity>
             ) : (
-                // Has images — grid + add more button
-                <View style={styles.imageSection}>
-                    <View style={styles.imageGrid}>
-                        {images.map((img, index) => (
+                <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+                    {images.map((img, index) => (
+                        <View key={index} style={{ width: 80, height: 80 }}>
+                            <Image
+                                source={{ uri: img.uri }}
+                                style={{ width: 80, height: 80, borderRadius: 12 }}
+                                resizeMode="cover"
+                            />
                             <TouchableOpacity
-                                key={index}
                                 onPress={() => onRemoveImage(index)}
                                 activeOpacity={0.8}
+                                style={{
+                                    position: "absolute",
+                                    top: -6,
+                                    right: -6,
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 12,
+                                    backgroundColor: "#ef4444",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
                             >
-                                <View style={styles.imageWrapper}>
-                                    <Image
-                                        source={{ uri: img.uri }}
-                                        style={styles.thumbnail}
-                                    />
-                                    {/* Remove badge */}
-                                    <View style={styles.removeBadge}>
-                                        <Text style={styles.removeBadgeText}>✕</Text>
-                                    </View>
-                                </View>
+                                <X size={13} color="#fff" strokeWidth={3} />
                             </TouchableOpacity>
-                        ))}
-                    </View>
+                        </View>
+                    ))}
 
-                    {/* Add more */}
+                    {/* Add more tile */}
                     <TouchableOpacity
                         onPress={onPickImages}
-                        style={styles.addMoreButton}
                         activeOpacity={0.7}
+                        style={{
+                            width: 80,
+                            height: 80,
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderStyle: "dashed",
+                            borderColor: "#036BB4",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
                     >
-                        <Add height={22} width={22} />
-                        <Text style={styles.addMoreText}>Add more images</Text>
+                        <ImagePlus size={22} color="#036BB4" />
+                        <Text className="text-[10px] text-[#036BB4] mt-1 font-medium">Add</Text>
                     </TouchableOpacity>
                 </View>
             )}
-
-            <TouchableOpacity
-                onPress={onNext}
-                style={styles.nextButton}
-                activeOpacity={0.85}
-            >
-                <Text style={styles.nextText}>Next</Text>
-            </TouchableOpacity>
 
             <OptionSelectorModal
                 visible={categoryVisible}
@@ -213,119 +225,3 @@ export default function BasicShipmentInfo({
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        padding: 16,
-    },
-    label: {
-        fontWeight: "600",
-        marginBottom: 6,
-        color: "#1a1a1a",
-        fontSize: 14,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: "#AEAEAE",
-        paddingHorizontal: 12,
-        paddingVertical: 12,
-        borderRadius: 10,
-        marginBottom: 16,
-        fontSize: 14,
-        color: "#1a1a1a",
-        backgroundColor: "#fff",
-    },
-    multiline: {
-        minHeight: 80,
-        textAlignVertical: "top",
-    },
-
-    // Upload
-    uploadZone: {
-        borderWidth: 1.5,
-        borderStyle: "dashed",
-        borderColor: "#AEAEAE",
-        borderRadius: 12,
-        paddingVertical: 32,
-        alignItems: "center",
-        gap: 8,
-        marginBottom: 20,
-        backgroundColor: "#fafafa",
-    },
-    uploadText: {
-        fontSize: 14,
-        color: "#555",
-        fontWeight: "500",
-    },
-    uploadSubtext: {
-        fontSize: 12,
-        color: "#9ca3af",
-    },
-
-    // Image grid
-    imageSection: {
-        marginBottom: 20,
-    },
-    imageGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 10,
-        marginBottom: 12,
-    },
-    imageWrapper: {
-        position: "relative",
-    },
-    thumbnail: {
-        width: 80,
-        height: 80,
-        borderRadius: 10,
-    },
-    removeBadge: {
-        position: "absolute",
-        top: -6,
-        right: -6,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: "#ef4444",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    removeBadgeText: {
-        color: "#fff",
-        fontSize: 9,
-        fontWeight: "700",
-    },
-    addMoreButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        borderWidth: 1.5,
-        borderStyle: "dashed",
-        borderColor: "#036BB4",
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        alignSelf: "flex-start",
-    },
-    addMoreText: {
-        color: "#036BB4",
-        fontSize: 13,
-        fontWeight: "500",
-    },
-
-    // Next
-    nextButton: {
-        backgroundColor: "#036BB4",
-        paddingVertical: 15,
-        borderRadius: 30,
-        alignItems: "center",
-        marginTop: 4,
-    },
-    nextText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "600",
-        letterSpacing: 0.3,
-    },
-})

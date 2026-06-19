@@ -29,6 +29,18 @@ const carosoul = [
     "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg"
 ]
 
+// Status values mirror the backend ShipmentStatus enum
+// (Shipment/shipment.type.ts): PENDING, BIDDING, IN_PROGRESS,
+// IN_TRANSIT, COMPLETED, CANCELLED.
+const STATUS_CONFIG: Record<string, { label: string; bg: string }> = {
+    PENDING: { label: "Pending", bg: "#64748B" },
+    BIDDING: { label: "Bidding", bg: "#0EA5E9" },
+    IN_PROGRESS: { label: "In Progress", bg: "#F97316" },
+    IN_TRANSIT: { label: "In Transit", bg: "#8B5CF6" },
+    COMPLETED: { label: "Completed", bg: "#22C55E" },
+    CANCELLED: { label: "Cancelled", bg: "#EF4444" },
+};
+
 type RoutePropType = RouteProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
 type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
 
@@ -102,15 +114,22 @@ export default function ShipmentDetailsScreen() {
         price,
         driver,
         vehicle,
+        status,
     } = shipmentData;
 
+    // Bidding is only open while the shipment is in the BIDDING stage.
+    // Outside of it, transporters should see no bid UI (place your bid / bid list).
+    const isBidding = status === "BIDDING";
+    const statusInfo = STATUS_CONFIG[status] ?? { label: status ?? "Unknown", bg: "#64748B" };
+
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-white">
             <AppHeader text="Shipment Detail" onpress={() => navigation.goBack()} />
             {/* 🔹 Image Carousel */}
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                className="px-4 ">
+                className="flex-1 px-4"
+                contentContainerStyle={{ paddingBottom: 24 }}>
                 <ScrollView
                     horizontal
                     pagingEnabled
@@ -129,9 +148,17 @@ export default function ShipmentDetailsScreen() {
                 <View className="flex-row justify-between items-start my-5">
                     <View className="flex-1 pr-3">
                         <Text className="text-xl font-bold">{title}</Text>
+                        <View
+                            className="self-start mt-2 px-3 py-1 rounded-full"
+                            style={{ backgroundColor: statusInfo.bg }}
+                        >
+                            <Text className="text-xs font-semibold text-white">
+                                {statusInfo.label}
+                            </Text>
+                        </View>
                         <Text className="text-gray-600 mt-1">{description}</Text>
                     </View>
-                    {viewMode === "details" ? (
+                    {isBidding && (viewMode === "details" ? (
                         <TouchableOpacity
                             onPress={() => setViewMode("bids")}
                             className="bg-white px-5 py-2 rounded-xl items-center justify-center border border-black/10  flex-row gap-2"
@@ -158,10 +185,10 @@ export default function ShipmentDetailsScreen() {
                                 Back to Details
                             </Text>
                         </TouchableOpacity>
-                    )}
+                    ))}
                 </View>
                 {/* 🔹 Content */}
-                {viewMode === "details" && (
+                {(!isBidding || viewMode === "details") && (
                     <View
                         className="py-4">
                         {/* Header */}
@@ -218,7 +245,7 @@ export default function ShipmentDetailsScreen() {
                         )}
                     </View>
                 )}
-                {viewMode === "bids" && (
+                {isBidding && viewMode === "bids" && (
                     <View className="flex-1">
                         <ShipmentBidsList shipmentId={shipmentId} />
                     </View>

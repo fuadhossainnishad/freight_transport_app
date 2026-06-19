@@ -14,6 +14,10 @@ export const formatPriceRange = (min: number, max: number): string => {
   const formattedMin = formatter.format(min);
   const formattedMax = formatter.format(max);
 
+  // A single fixed price comes through as min === max — show it once, not as a
+  // "$2,500 - $2,500" range.
+  if (min === max) return formattedMin;
+
   return `${formattedMin} - ${formattedMax}`;
 };
 
