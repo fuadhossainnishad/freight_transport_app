@@ -1,97 +1,724 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🚚 Freight Transport App
 
-# Getting Started
+A scalable, enterprise-grade freight and logistics management platform built with React Native and TypeScript.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+The platform enables Shippers, Transporters, and Drivers to collaborate efficiently throughout the shipment lifecycle—from shipment creation and bidding to transportation, tracking, invoicing, and payment processing.
 
-## Step 1: Start Metro
+The application is designed using Clean Architecture principles, Domain-Driven Design concepts, and a feature-based modular structure to support long-term maintainability, scalability, and rapid product evolution.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+# 📖 Table of Contents
 
-```sh
-# Using npm
+* Overview
+* Business Objectives
+* Core Features
+* Technology Stack
+* System Design
+* Mobile Architecture
+* Project Structure
+* Data Flow
+* Authentication Flow
+* Shipment Lifecycle
+* Real-Time Tracking
+* Payment Architecture
+* Fleet Management
+* Environment Setup
+* Installation
+* Running the Application
+* Coding Standards
+* Scalability Strategy
+* Monitoring & Observability
+* Security
+* Future Roadmap
+* Contributors
+
+---
+
+# 🌍 Overview
+
+Freight Transport App digitizes freight transportation operations by providing a unified mobile experience for all stakeholders within the logistics ecosystem.
+
+The platform streamlines:
+
+* Shipment Management
+* Freight Bidding
+* Driver Management
+* Vehicle Management
+* Live Tracking
+* Invoice Generation
+* Payment Processing
+* Business Profile Management
+
+---
+
+# 🎯 Business Objectives
+
+The application aims to:
+
+* Reduce manual freight operations
+* Improve transporter utilization
+* Enable transparent shipment bidding
+* Provide real-time shipment visibility
+* Accelerate payment processing
+* Improve operational efficiency
+* Create a scalable logistics ecosystem
+
+---
+
+# ✨ Core Features
+
+## Authentication
+
+* User Registration
+* Login
+* OTP Verification
+* Password Recovery
+* Password Reset
+* Role-Based Access Control
+
+---
+
+## Shipper Portal
+
+* Create Shipments
+* Manage Shipments
+* Review Bids
+* Select Transporters
+* Track Active Shipments
+* Monitor Shipment Status
+
+---
+
+## Transporter Portal
+
+* Fleet Management
+* Driver Management
+* Bid Management
+* Shipment Assignment
+* Revenue Tracking
+* Operational Dashboard
+
+---
+
+## Driver Portal
+
+* Assigned Shipments
+* Route Tracking
+* Delivery Updates
+* Shipment Status Updates
+* Real-Time Location Sharing
+
+---
+
+## Payments
+
+* Payment Requests
+* Online Payment Processing
+* Payment Verification
+* Transaction Tracking
+* Invoice Management
+
+---
+
+## Settings & Administration
+
+* Profile Management
+* Company Information
+* Bank Details
+* Issue Reporting
+* FAQ Management
+* Account Settings
+
+---
+
+# 🛠 Technology Stack
+
+## Mobile
+
+* React Native
+* TypeScript
+
+## Navigation
+
+* React Navigation
+
+## Networking
+
+* Axios
+
+## Real-Time Communication
+
+* Socket.IO
+
+## Forms & Validation
+
+* React Hook Form
+
+## State Management
+
+* React Context API
+* Custom Hooks
+
+## Storage
+
+* Async Storage
+
+## Mapping & Location
+
+* Google Maps
+* Geolocation Services
+
+## Payment Integration
+
+* Payment Gateway APIs
+
+---
+
+# 🏗 System Design
+
+## High-Level Architecture
+
+```text
+┌──────────────────────────────┐
+│      Mobile Applications     │
+│                              │
+│  Shipper                     │
+│  Transporter                 │
+│  Driver                      │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│         API Gateway          │
+│                              │
+│ Authentication               │
+│ Authorization                │
+│ Validation                   │
+│ Rate Limiting                │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      Business Services       │
+│                              │
+│ Auth Service                 │
+│ Shipment Service             │
+│ Driver Service               │
+│ Vehicle Service              │
+│ Payment Service              │
+│ Notification Service         │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│         Data Layer           │
+│                              │
+│ PostgreSQL / MySQL           │
+│ Redis Cache                  │
+│ File Storage                 │
+└──────────────────────────────┘
+```
+
+---
+
+# 🧠 Mobile Application Architecture
+
+The application follows a modified Clean Architecture pattern.
+
+```text
+Presentation Layer
+        │
+        ▼
+Domain Layer
+        │
+        ▼
+Data Layer
+        │
+        ▼
+External Services
+```
+
+## Presentation Layer
+
+Responsible for:
+
+* Screens
+* Components
+* Navigation
+* UI Logic
+* Hooks
+
+## Domain Layer
+
+Responsible for:
+
+* Business Rules
+* Entities
+* Use Cases
+* Domain Constants
+
+## Data Layer
+
+Responsible for:
+
+* API Services
+* DTO Mapping
+* Socket Communication
+* Data Transformation
+
+## Shared Layer
+
+Responsible for:
+
+* Reusable Components
+* Utilities
+* Configurations
+* Common Hooks
+
+---
+
+# 📁 Project Structure
+
+```text
+src
+│
+├── app
+│
+├── data
+│   ├── mapper
+│   ├── services
+│   └── socket
+│
+├── domain
+│   ├── auth
+│   ├── constants
+│   ├── entities
+│   └── usecases
+│
+├── navigation
+│
+├── presentation
+│   ├── auth
+│   ├── shipper
+│   ├── transporter
+│   ├── driver
+│   ├── vehicle
+│   ├── shipment
+│   ├── payment
+│   ├── earnings
+│   ├── invoice
+│   ├── settings
+│   └── profile_completion
+│
+└── shared
+    ├── api
+    ├── components
+    ├── config
+    ├── hooks
+    ├── storage
+    └── utils
+```
+
+---
+
+# 🔄 Data Flow
+
+```text
+Screen
+  │
+  ▼
+Hook
+  │
+  ▼
+Use Case
+  │
+  ▼
+Service
+  │
+  ▼
+Axios Client
+  │
+  ▼
+Backend API
+```
+
+Example:
+
+```text
+CreateShipmentScreen
+        │
+        ▼
+useShipment()
+        │
+        ▼
+shipment.usecase.ts
+        │
+        ▼
+shipmentService.ts
+        │
+        ▼
+Backend API
+```
+
+---
+
+# 🔐 Authentication Flow
+
+```text
+User
+ │
+ ▼
+Login Screen
+ │
+ ▼
+Auth Service
+ │
+ ▼
+Backend Authentication
+ │
+ ▼
+JWT Token
+ │
+ ▼
+Secure Storage
+ │
+ ▼
+Protected Navigation
+```
+
+### Security Features
+
+* JWT Authentication
+* Token Persistence
+* Route Guards
+* Request Interceptors
+* Session Management
+
+---
+
+# 📦 Shipment Lifecycle
+
+```text
+Shipment Created
+        │
+        ▼
+Published
+        │
+        ▼
+Transporter Bidding
+        │
+        ▼
+Bid Selection
+        │
+        ▼
+Driver Assignment
+        │
+        ▼
+Vehicle Assignment
+        │
+        ▼
+In Transit
+        │
+        ▼
+Delivered
+        │
+        ▼
+Invoice Generated
+        │
+        ▼
+Payment Completed
+```
+
+---
+
+# 📡 Real-Time Tracking Architecture
+
+```text
+Driver Device
+      │
+      ▼
+GPS Location
+      │
+      ▼
+Socket Client
+      │
+      ▼
+Socket Server
+      │
+      ▼
+Subscribers
+      │
+      ▼
+Transporter Dashboard
+      │
+      ▼
+Shipper Dashboard
+```
+
+### Real-Time Events
+
+* Shipment Updates
+* Driver Location Updates
+* Bid Notifications
+* Payment Updates
+* Assignment Updates
+
+---
+
+# 💳 Payment Architecture
+
+```text
+User
+ │
+ ▼
+Payment Request
+ │
+ ▼
+Payment Service
+ │
+ ▼
+Payment Gateway
+ │
+ ▼
+Verification
+ │
+ ▼
+Transaction Storage
+ │
+ ▼
+Invoice Update
+```
+
+### Payment Features
+
+* Secure Payment Processing
+* Transaction Verification
+* Payment Completion Workflow
+* Invoice Synchronization
+
+---
+
+# 🚛 Fleet Management
+
+## Vehicle Management
+
+* Vehicle Registration
+* Vehicle Documents
+* Vehicle Images
+* Vehicle Status Tracking
+
+## Driver Management
+
+* Driver Profiles
+* Driver Documents
+* Driver Assignment
+* Driver Availability Tracking
+
+---
+
+# 🌐 Environment Setup
+
+Create a `.env` file:
+
+```env
+API_BASE_URL=https://api.example.com
+
+SOCKET_URL=https://socket.example.com
+
+GOOGLE_MAPS_API_KEY=YOUR_API_KEY
+```
+
+---
+
+# ⚙️ Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+
+cd freight_transport_app
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+---
+
+# ▶️ Running the Application
+
+Start Metro:
+
+```bash
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
+Run Android:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+```bash
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+Run iOS:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+```bash
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+# 📐 Coding Standards
 
-## Step 3: Modify your app
+## Naming Conventions
 
-Now that you have successfully run the app, let's make changes!
+### Components
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+```text
+VehicleCard.tsx
+DriverForm.tsx
+```
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Screens
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+```text
+VehicleDetails.screen.tsx
+DriverHome.screen.tsx
+```
 
-## Congratulations! :tada:
+### Hooks
 
-You've successfully run and modified your React Native App. :partying_face:
+```text
+useDriver.ts
+useShipment.ts
+```
 
-### Now what?
+### Services
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+```text
+driverService.ts
+shipmentService.ts
+```
 
-# Troubleshooting
+### Use Cases
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+```text
+driver.usecase.ts
+shipment.usecase.ts
+```
 
-# Learn More
+---
 
-To learn more about React Native, take a look at the following resources:
+# 📈 Scalability Strategy
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Mobile
+
+* Modular Feature Structure
+* Reusable UI Components
+* Shared Utility Layer
+* Lazy Navigation Loading
+
+## Backend
+
+* Stateless Services
+* Horizontal Scaling
+* API Gateway
+* Redis Caching
+
+## Database
+
+* Query Optimization
+* Proper Indexing
+* Audit Logging
+* Data Partitioning
+
+---
+
+# 📊 Monitoring & Observability
+
+## Mobile
+
+* Crash Reporting
+* Error Tracking
+* Performance Monitoring
+* API Diagnostics
+
+## Backend
+
+* Health Checks
+* Structured Logging
+* Metrics Collection
+* Payment Auditing
+
+---
+
+# 🔒 Security
+
+* JWT Authentication
+* HTTPS Communication
+* Secure Token Storage
+* API Request Validation
+* Role-Based Authorization
+* Protected Navigation
+* Secure Payment Verification
+
+---
+
+# 🚀 Future Roadmap
+
+### Phase 1
+
+* Push Notifications
+* Background Tracking
+* Improved Analytics
+
+### Phase 2
+
+* Offline Mode
+* Data Synchronization
+* Enhanced Reporting
+
+### Phase 3
+
+* AI Route Optimization
+* Predictive Shipment Matching
+* Dynamic Pricing Engine
+
+### Phase 4
+
+* Fleet Intelligence Platform
+* Machine Learning Insights
+* Advanced Operational Analytics
+
+---
+
+# 👨‍💻 Engineering Principles
+
+The project is built following:
+
+* Clean Architecture
+* SOLID Principles
+* Separation of Concerns
+* Domain-Oriented Design
+* Reusable Component Design
+* Feature-Based Modularization
+* Scalable Mobile Architecture
+
+---
+
+# 🤝 Contributors
+
+Freight Transport Engineering Team
+
+---
+
+# 📄 License
+
+Private Proprietary Software
+
+Copyright © Freight Transport App
+
+All rights reserved.
