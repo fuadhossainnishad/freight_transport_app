@@ -17,6 +17,11 @@ import { ActiveShipmentsStackParamList } from '../../../navigation/types';
 import AppHeader from '../../../shared/components/AppHeader';
 import ShipmentMapRoute from '../../transporter/components/ShipmentMapRoute';
 import { getShipmentDetailsUseCase } from '../../../domain/usecases/shipment.usecase';
+import RequestPaymentModal from '../../transporter/components/RequestPaymentModal';
+import { canRequestPayment } from '../../../domain/entities/transporterPayment.entity';
+import { useShipmentPaymentRequest } from '../../transporter/hooks/useShipmentPaymentRequest';
+import { useAuth } from '../../../app/context/Auth.context';
+import { formatPrice } from '../../../shared/utils/price';
 import DocsIcon from '../../../../assets/icons/docs.svg';
 import ArrowRightIcon from '../../../../assets/icons/Arrow_right.svg';
 
@@ -50,12 +55,14 @@ function ExpandIcon() {
 export default function ActiveShipmentDetailsScreen() {
   const navigation = useNavigation<NavigationPropType>();
   const route = useRoute<RoutePropType>();
+  const { user } = useAuth();
   const { shipmentId } = route.params;
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [payModalVisible, setPayModalVisible] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -70,6 +77,13 @@ export default function ActiveShipmentDetailsScreen() {
     };
     load();
   }, [shipmentId]);
+
+  // Only transporters can request payment, and only for IN_PROGRESS/COMPLETED
+  // shipments — so only look up an existing request when it could matter.
+  const paymentEligible =
+    user?.role === 'TRANSPORTER' && canRequestPayment(data?.status);
+  const { pendingRequest, refresh: refreshPaymentRequest } =
+    useShipmentPaymentRequest(shipmentId, paymentEligible);
 
   if (loading) {
     return (
@@ -88,6 +102,10 @@ export default function ActiveShipmentDetailsScreen() {
   }
 
   const { title, description, pickup, delivery, pickupCoord, deliveryCoord, contactPerson, driver, vehicle, images } = data;
+
+  // A pending request means the backend would 409 on a second one, so show its
+  // state instead of a button that cannot succeed.
+  const showRequestPayment = paymentEligible && !pendingRequest;
 
   const vehicleImageUri: string | null = vehicle?.images?.[0] ?? null;
   const shipmentImages: string[] = images?.length ? images : [];
@@ -312,6 +330,44 @@ export default function ActiveShipmentDetailsScreen() {
             </View>
           </View>
 
+          {/* Request payment button */}
+          {showRequestPayment && (
+            <TouchableOpacity
+              className="bg-[#036BB4] rounded-full py-4 items-center justify-center mb-3"
+              onPress={() => setPayModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Text className="text-white font-bold text-sm">Request Payment</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Already requested — the backend would reject a second one. */}
+          {paymentEligible && pendingRequest && (
+            <View className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl px-4 py-3 mb-3">
+              <Text className="text-[#036BB4] font-bold text-sm">
+                Payment requested — awaiting approval
+              </Text>
+              <Text className="text-gray-500 text-xs mt-1">
+                {formatPrice(pendingRequest.amount)} · {pendingRequest.method} · {pendingRequest.shortId}
+              </Text>
+              {pendingRequest.paydunyaUrl ? (
+                <TouchableOpacity
+                  className="mt-3 border border-[#036BB4] rounded-full py-2.5 items-center"
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    (navigation as any).navigate('PayWebView', {
+                      paymentId: pendingRequest.id,
+                      url: pendingRequest.paydunyaUrl,
+                      title: 'Complete Payment',
+                    })
+                  }
+                >
+                  <Text className="text-[#036BB4] font-bold text-xs">Open payment page</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          )}
+
           {/* View full details button */}
           <TouchableOpacity
             className="border border-gray-300 rounded-full py-4 flex-row items-center justify-center gap-2"
@@ -322,6 +378,15 @@ export default function ActiveShipmentDetailsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <RequestPaymentModal
+        visible={payModalVisible}
+        shipmentId={shipmentId}
+        shipmentTitle={title}
+        price={data.price}
+        onClose={() => setPayModalVisible(false)}
+        onSubmitted={refreshPaymentRequest}
+      />
     </SafeAreaView>
   );
 }

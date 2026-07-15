@@ -7,6 +7,7 @@ import ActiveShipmentDetailsScreen from "../presentation/availablebids/screens/A
 import ShipmentTrackingScreen from "../presentation/shipment/screens/ShipmentTrackingScreen";
 import TransporterHomeScreen2 from "../presentation/transporter/screens/TransporterHome.screen2";
 import AssignVehicleDriverScreen from "../presentation/availablebids/screens/AssignVehicleDriverScreen";
+import PayWebViewScreen from "../presentation/payment/screens/PayWebView.screen";
 
 const Stack = createNativeStackNavigator<TransporterHomeStackParamList>();
 
@@ -41,6 +42,11 @@ export default function TransporterHomeStack() {
       <Stack.Screen
         name='AssignVehicleDriver'
         component={AssignVehicleDriverScreen}
+      />
+      {/* PayDunya checkout for a transporter payment request. */}
+      <Stack.Screen
+        name='PayWebView'
+        component={PayWebViewScreen}
       />
     </Stack.Navigator>
   );

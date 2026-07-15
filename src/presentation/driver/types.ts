@@ -37,8 +37,10 @@ export interface Shipment {
   driverId?: string;
   transporterId?: string;
   imageUrl?: string;
-  priceMin: number;
-  priceMax: number;
+  // null until a price is agreed (no accepted bid yet) — render via
+  // formatPriceRange(), which shows "—" rather than "$0".
+  priceMin: number | null;
+  priceMax: number | null;
   origin?: string;
   destination?: string;
   commodity?: string;
