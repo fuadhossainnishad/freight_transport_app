@@ -46,3 +46,10 @@ export function usePaymentRequests() {
   if (!ctx) throw new Error("usePaymentRequests must be used within PaymentRequestsProvider");
   return ctx;
 }
+
+/** Same context, but returns undefined instead of throwing when there is no
+ *  provider. For screens shared with the transporter stack, which has no
+ *  shipper payment-request list to keep in sync. */
+export function usePaymentRequestsOptional() {
+  return useContext(PaymentRequestsContext);
+}

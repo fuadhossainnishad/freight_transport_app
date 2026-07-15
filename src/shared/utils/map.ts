@@ -18,7 +18,7 @@ export const generateRoute = (start: any, end: any, steps = 20) => {
 };
 
 
-export const getRouteFromDirectionsAPI = async (origin, destination) => {
+export const getRouteFromDirectionsAPI = async (origin:any, destination:any) => {
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=${AppConfig.map_key}`;
 
     const res = await fetch(url);

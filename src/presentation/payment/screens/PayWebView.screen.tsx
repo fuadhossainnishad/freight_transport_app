@@ -7,7 +7,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { X } from "lucide-react-native";
 
 import { PaymentsStackParamList } from "../../../navigation/types";
-import { usePaymentRequests } from "../PaymentRequestsContext";
+import { usePaymentRequestsOptional } from "../PaymentRequestsContext";
 
 type Rt = RouteProp<PaymentsStackParamList, "PayWebView">;
 type Nav = NativeStackNavigationProp<PaymentsStackParamList, "PayWebView">;
@@ -22,7 +22,8 @@ const isCancelUrl = (url: string) => /payment\/(cancel|bank-cancel)/i.test(url);
 export default function PayWebViewScreen() {
   const route = useRoute<Rt>();
   const navigation = useNavigation<Nav>();
-  const { refresh } = usePaymentRequests();
+  // Absent in the transporter stack, which has no shipper request list to sync.
+  const paymentRequests = usePaymentRequestsOptional();
   const { url, title } = route.params;
 
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ export default function PayWebViewScreen() {
     if (handled.current) return;
     handled.current = true;
     // The authoritative status comes from the server webhook; just refresh.
-    refresh();
+    paymentRequests?.refresh();
     navigation.goBack();
     if (outcome === "success") {
       Alert.alert("Payment submitted", "We'll confirm your payment shortly.");

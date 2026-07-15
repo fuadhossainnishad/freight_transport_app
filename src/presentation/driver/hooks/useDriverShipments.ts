@@ -28,8 +28,10 @@ const mapApiShipment = (s: any): Shipment => ({
   driverId: s.driver_id,
   transporterId: s.transporter_id,
   imageUrl: normalizeImageUrl(s.shipment_images?.[0]) || undefined,
-  priceMin: s.price ?? 0,
-  priceMax: s.price ?? 0,
+  // Null until a bid is accepted. Don't coerce to 0 — the card would show a
+  // real-looking "$0" quote instead of "no price yet".
+  priceMin: s.price ?? null,
+  priceMax: s.price ?? null,
   origin: s.pickup_address,
   destination: s.delivery_address,
   commodity: s.category,

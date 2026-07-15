@@ -81,7 +81,8 @@ export interface Shipment {
   delivery: string;
   timeWindow: string;
   datePreference: string;
-  price: number;
+  // null until a price is agreed (e.g. no accepted bid yet) — render via formatPrice().
+  price: number | null;
   driverId?: string;
   vehicleId?: string;
   status: string
@@ -108,7 +109,7 @@ export const mapShipments = (res: any): Shipment[] => {
     deliveryCoord: fromGeoJsonPoint(shipment.delivery_location),
     timeWindow: shipment.time_window,
     datePreference: shipment.date_preference,
-    price: shipment.price,
+    price: shipment.price ?? null,
     driverId: shipment.driver_id,
     vehicleId: shipment.vehicle_id,
     status: shipment.status,

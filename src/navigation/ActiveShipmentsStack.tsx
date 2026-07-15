@@ -6,6 +6,7 @@ import CreateShipmentScreen from '../presentation/transporter/screens/CreateShip
 import ShipmentDetailsScreen from '../presentation/shipment/screens/ShipmentDetails.screen';
 import ShipmentTrackingScreen from '../presentation/shipment/screens/ShipmentTrackingScreen';
 import ActiveShipmentDetailsScreen from '../presentation/availablebids/screens/ActiveShipmentDetailsScreen';
+import PayWebViewScreen from '../presentation/payment/screens/PayWebView.screen';
 
 const Stack = createNativeStackNavigator<ActiveShipmentsStackParamList>();
 
@@ -32,6 +33,9 @@ export default function ActiveShipmentsStack() {
         name="ShipmentTracking"
         component={ShipmentTrackingScreen}
       />
+
+      {/* PayDunya checkout for a transporter payment request. */}
+      <Stack.Screen name="PayWebView" component={PayWebViewScreen} />
     </Stack.Navigator>
   );
 }
