@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import type { ParseKeys } from 'i18next';
 import { ArrowLeft, MapPin, Navigation, CheckCircle, Truck, WifiOff, X, Upload, Plus, Check, AlertTriangle } from 'lucide-react-native';
 import Geolocation from '@react-native-community/geolocation';
 import { Asset } from 'react-native-image-picker';
@@ -53,11 +55,12 @@ const { width, height } = Dimensions.get('window');
 // isValidCoord, haversineKm, sanitizePath, pushPoint) now live in
 // src/shared/utils/tracking.ts and are shared with the shipper/transporter map.
 
-const STATUS_LABEL: Record<string, string> = {
-  IN_PROGRESS: 'In Progress',
-  IN_TRANSIT: 'In Transit',
-  COMPLETED: 'Completed',
-  PENDING: 'Pending',
+// Keys are backend enums — never translate them. Only the label is translated.
+const STATUS_LABEL: Record<string, ParseKeys> = {
+  IN_PROGRESS: 'driver.status.inProgress',
+  IN_TRANSIT: 'driver.status.inTransit',
+  COMPLETED: 'driver.status.completed',
+  PENDING: 'driver.status.pending',
 };
 const STATUS_COLOR: Record<string, string> = {
   IN_PROGRESS: '#F97316',
@@ -85,6 +88,7 @@ const STARTED_STATUSES = new Set(['IN_TRANSIT', 'COMPLETED']);
 const LiveTrackingScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { shipment }: { shipment: Shipment } = route.params;
 
@@ -227,20 +231,20 @@ const LiveTrackingScreen = () => {
         const active = list.find(
           s => s.status === 'IN_TRANSIT' && s._id !== shipment.id,
         );
-        if (active) setActiveRideTitle(active.shipment_title ?? 'another shipment');
+        if (active) setActiveRideTitle(active.shipment_title ?? t('driver.tracking.anotherShipment'));
       })
       .catch(() => {
         // Non-fatal — the backend still rejects a second concurrent ride.
       });
-  }, [user?.driver_id, shipment.id, rideAlreadyStarted]);
+  }, [user?.driver_id, shipment.id, rideAlreadyStarted, t]);
 
   // Switch from "heading to pickup" into the live pickup → delivery ride.
   const startRide = () => {
     // Hard stop: can't start a second ride while another is in transit.
     if (activeRideTitle) {
       Alert.alert(
-        'Finish your active delivery first',
-        `You already have "${activeRideTitle}" in transit. Complete that delivery before starting this one.`,
+        t('driver.tracking.activeRideAlertTitle'),
+        t('driver.tracking.activeRideAlertMessage', { title: activeRideTitle }),
       );
       return;
     }
@@ -261,10 +265,10 @@ const LiveTrackingScreen = () => {
         startedRides.delete(shipment.id);
         setPhase('TO_PICKUP');
         phaseRef.current = 'TO_PICKUP';
-        setActiveRideTitle(prev => prev ?? 'another shipment');
+        setActiveRideTitle(prev => prev ?? t('driver.tracking.anotherShipment'));
         Alert.alert(
-          'Finish your active delivery first',
-          'You already have a shipment in transit. Complete that delivery before starting this one.',
+          t('driver.tracking.activeRideAlertTitle'),
+          t('driver.tracking.activeRideAlertGeneric'),
         );
       } else {
         console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message);
@@ -310,8 +314,8 @@ const LiveTrackingScreen = () => {
       console.log('⚠️ Failed to complete with proof:', err?.message);
       setSubmittingProof(false);
       Alert.alert(
-        'Upload failed',
-        "Couldn't submit the delivery proof. Please check your connection and try again.",
+        t('driver.tracking.proofFailedTitle'),
+        t('driver.tracking.proofFailedMessage'),
       );
     }
   };
@@ -350,8 +354,8 @@ const LiveTrackingScreen = () => {
           if (isValidCoord(dropoff)) setDropoffCoord(dropoff);
           setLocationError(
             !isValidCoord(pickup)
-              ? "This shipment's pickup location isn't available yet."
-              : "This shipment's delivery location isn't available yet.",
+              ? t('driver.tracking.pickupLocationMissing')
+              : t('driver.tracking.deliveryLocationMissing'),
           );
           return;
         }
@@ -362,14 +366,14 @@ const LiveTrackingScreen = () => {
         const routePts = await fetchRoute(pickup, dropoff);
         setPlannedRoute(routePts.length > 0 ? routePts : [pickup, dropoff]);
       } catch {
-        setLocationError("Couldn't load this shipment's route. Please try again.");
+        setLocationError(t('driver.tracking.routeLoadFailed'));
       } finally {
         setResolving(false);
       }
     };
 
     init();
-  }, [shipment.pickupAddress, shipment.deliveryAddress, shipment.pickupCoord, shipment.deliveryCoord]);
+  }, [shipment.pickupAddress, shipment.deliveryAddress, shipment.pickupCoord, shipment.deliveryCoord, t]);
 
   // ── Effect 2: REST — last-known position + driven history ────────────────
   useEffect(() => {
@@ -493,7 +497,9 @@ const LiveTrackingScreen = () => {
     return () => clearInterval(interval);
   }, [shipment.id, shipment.status]);
 
-  const statusLabel = STATUS_LABEL[shipment.status] ?? shipment.status;
+  // Unmapped statuses still fall back to the raw backend enum, as before.
+  const statusLabelKey = STATUS_LABEL[shipment.status];
+  const statusLabel = statusLabelKey ? t(statusLabelKey) : shipment.status;
   const statusColor = STATUS_COLOR[shipment.status] ?? '#94A3B8';
   const fillWidth = `${Math.min(progressPercent, 100)}%` as any;
   const distanceToPickup =
@@ -548,7 +554,7 @@ const LiveTrackingScreen = () => {
 
         {/* Pickup pin */}
         {pickupCoord && (
-          <Marker coordinate={pickupCoord} title="Pickup" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <Marker coordinate={pickupCoord} title={t('driver.tracking.pickup')} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
             <View style={styles.pinPickup}>
               <MapPin size={16} color="#FFF" />
             </View>
@@ -557,7 +563,7 @@ const LiveTrackingScreen = () => {
 
         {/* Dropoff pin — green on arrival (only once the ride has started) */}
         {phase === 'IN_TRANSIT' && dropoffCoord && (
-          <Marker coordinate={dropoffCoord} title="Dropoff" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <Marker coordinate={dropoffCoord} title={t('driver.tracking.dropoff')} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
             <View style={[styles.pinDropoff, arrived && styles.pinArrived]}>
               <MapPin size={16} color="#FFF" />
             </View>
@@ -568,7 +574,7 @@ const LiveTrackingScreen = () => {
         {truckCoord && (
           <Marker
             coordinate={truckCoord}
-            title="Driver"
+            title={t('driver.tracking.driver')}
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges={!truckMarkerReady}
           >
@@ -600,18 +606,17 @@ const LiveTrackingScreen = () => {
             <View style={styles.locationErrorIcon}>
               <MapPin size={28} color="#EF4444" />
             </View>
-            <Text style={styles.locationErrorTitle}>Location unavailable</Text>
+            <Text style={styles.locationErrorTitle}>{t('driver.tracking.locationUnavailable')}</Text>
             <Text style={styles.locationErrorText}>{locationError}</Text>
             <Text style={styles.locationErrorHint}>
-              This shipment is missing precise map coordinates. Please contact
-              support or try again once it's updated.
+              {t('driver.tracking.locationHint')}
             </Text>
             <TouchableOpacity
               style={styles.locationErrorBtn}
               activeOpacity={0.85}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.locationErrorBtnText}>Go Back</Text>
+              <Text style={styles.locationErrorBtnText}>{t('driver.tracking.goBack')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -635,7 +640,7 @@ const LiveTrackingScreen = () => {
       {!socketConnected && (
         <View style={styles.reconnectBanner}>
           <WifiOff size={14} color="#92400E" />
-          <Text style={styles.reconnectText}>Reconnecting…</Text>
+          <Text style={styles.reconnectText}>{t('driver.tracking.reconnecting')}</Text>
           <ActivityIndicator size="small" color="#92400E" style={{ marginLeft: 6 }} />
         </View>
       )}
@@ -644,7 +649,7 @@ const LiveTrackingScreen = () => {
       {almostThere && (
         <View style={styles.almostBanner}>
           <Navigation size={15} color="#1D4ED8" />
-          <Text style={styles.almostText}>Almost there — approaching destination</Text>
+          <Text style={styles.almostText}>{t('driver.tracking.almostThere')}</Text>
         </View>
       )}
 
@@ -652,7 +657,7 @@ const LiveTrackingScreen = () => {
       {arrived && (
         <View style={styles.arrivalBanner}>
           <CheckCircle size={16} color="#22C55E" />
-          <Text style={styles.arrivalText}>Driver has arrived at destination</Text>
+          <Text style={styles.arrivalText}>{t('driver.tracking.arrived')}</Text>
         </View>
       )}
 
@@ -666,14 +671,14 @@ const LiveTrackingScreen = () => {
               <Navigation size={18} color="#F97316" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.addressLabel}>Heading to pickup</Text>
+              <Text style={styles.addressLabel}>{t('driver.tracking.headingToPickup')}</Text>
               <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
             </View>
             {distanceToPickup != null && (
               <Text style={styles.pickupDistance}>
                 {distanceToPickup < 1
-                  ? `${Math.round(distanceToPickup * 1000)} m`
-                  : `${distanceToPickup.toFixed(1)} km`}
+                  ? t('driver.tracking.distanceMeters', { value: Math.round(distanceToPickup * 1000) })
+                  : t('driver.tracking.distanceKm', { value: distanceToPickup.toFixed(1) })}
               </Text>
             )}
           </View>
@@ -685,33 +690,32 @@ const LiveTrackingScreen = () => {
               <View style={styles.activeRideWarn}>
                 <AlertTriangle size={18} color="#B45309" />
                 <Text style={styles.activeRideWarnText}>
-                  You already have an active delivery (“{activeRideTitle}”) in
-                  transit. Finish it before starting this shipment.
+                  {t('driver.tracking.activeRideWarning', { title: activeRideTitle })}
                 </Text>
               </View>
               <View style={[styles.endTripBtn, styles.startRideBtnDisabled]}>
-                <Text style={styles.endTripText}>Start Ride</Text>
+                <Text style={styles.endTripText}>{t('driver.tracking.startRide')}</Text>
               </View>
             </>
           ) : nearPickup ? (
             <>
               <View style={styles.nearPickupHint}>
                 <CheckCircle size={16} color="#22C55E" />
-                <Text style={styles.nearPickupText}>You've reached the pickup location</Text>
+                <Text style={styles.nearPickupText}>{t('driver.tracking.reachedPickup')}</Text>
               </View>
               <TouchableOpacity
                 style={[styles.endTripBtn, styles.startRideBtn]}
                 activeOpacity={0.85}
                 onPress={startRide}
               >
-                <Text style={styles.endTripText}>Start Ride</Text>
+                <Text style={styles.endTripText}>{t('driver.tracking.startRide')}</Text>
               </TouchableOpacity>
             </>
           ) : (
             <View style={styles.headingHint}>
               <Navigation size={15} color="#F97316" />
               <Text style={styles.headingText}>
-                Drive to the pickup location — the "Start Ride" button will appear when you arrive.
+                {t('driver.tracking.driveToPickup')}
               </Text>
             </View>
           )}
@@ -732,11 +736,11 @@ const LiveTrackingScreen = () => {
             </View>
             <View style={styles.routeAddresses}>
               <View style={styles.addressBlock}>
-                <Text style={styles.addressLabel}>Pickup</Text>
+                <Text style={styles.addressLabel}>{t('driver.tracking.pickup')}</Text>
                 <Text style={styles.addressValue} numberOfLines={2}>{shipment.pickupAddress}</Text>
               </View>
               <View style={[styles.addressBlock, { marginTop: 8 }]}>
-                <Text style={styles.addressLabel}>Delivery</Text>
+                <Text style={styles.addressLabel}>{t('driver.tracking.delivery')}</Text>
                 <Text style={styles.addressValue} numberOfLines={2}>{shipment.deliveryAddress}</Text>
               </View>
             </View>
@@ -748,13 +752,13 @@ const LiveTrackingScreen = () => {
               <View style={styles.infoRow}>
                 {shipment.contactPerson && (
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Contact</Text>
+                    <Text style={styles.infoLabel}>{t('driver.tracking.contact')}</Text>
                     <Text style={styles.infoValue}>{shipment.contactPerson}</Text>
                   </View>
                 )}
                 {shipment.timeWindow && (
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Time Window</Text>
+                    <Text style={styles.infoLabel}>{t('driver.tracking.timeWindow')}</Text>
                     <Text style={styles.infoValue}>{shipment.timeWindow}</Text>
                   </View>
                 )}
@@ -770,9 +774,11 @@ const LiveTrackingScreen = () => {
               {/* Distance covered */}
               <View style={styles.progressStat}>
                 <Navigation size={12} color="#94A3B8" style={{ marginBottom: 2 }} />
-                <Text style={styles.progressStatLabel}>Covered</Text>
+                <Text style={styles.progressStatLabel}>{t('driver.tracking.covered')}</Text>
                 <Text style={styles.progressStatValue}>
-                  {distanceCovered > 0 ? `${distanceCovered.toFixed(1)} km` : '--'}
+                  {distanceCovered > 0
+                    ? t('driver.tracking.distanceKm', { value: distanceCovered.toFixed(1) })
+                    : '--'}
                 </Text>
               </View>
 
@@ -787,12 +793,12 @@ const LiveTrackingScreen = () => {
                     ]}>
                       {progressPercent}%
                     </Text>
-                    <Text style={styles.progressPercentLabel}>complete</Text>
+                    <Text style={styles.progressPercentLabel}>{t('driver.tracking.complete')}</Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.progressPercentUnknown}>--</Text>
-                    <Text style={styles.progressPercentLabel}>in progress</Text>
+                    <Text style={styles.progressPercentLabel}>{t('driver.tracking.inProgress')}</Text>
                   </>
                 )}
               </View>
@@ -800,9 +806,11 @@ const LiveTrackingScreen = () => {
               {/* Total distance */}
               <View style={[styles.progressStat, { alignItems: 'flex-end' }]}>
                 <MapPin size={12} color="#0071BC" style={{ marginBottom: 2 }} />
-                <Text style={styles.progressStatLabel}>Total</Text>
+                <Text style={styles.progressStatLabel}>{t('driver.tracking.total')}</Text>
                 <Text style={styles.progressStatValue}>
-                  {totalDistance != null ? `${totalDistance.toFixed(1)} km` : '? km'}
+                  {totalDistance != null
+                    ? t('driver.tracking.distanceKm', { value: totalDistance.toFixed(1) })
+                    : t('driver.tracking.distanceUnknown')}
                 </Text>
               </View>
             </View>
@@ -826,13 +834,17 @@ const LiveTrackingScreen = () => {
             {/* ETA — hidden when N/A or not yet received */}
             {!etaIsUnknown && (
               <View style={styles.etaRow}>
-                <Text style={styles.etaLabel}>Estimated Arrival</Text>
+                <Text style={styles.etaLabel}>{t('driver.tracking.estimatedArrival')}</Text>
                 <Text style={[
                   styles.etaValue,
                   arrived && styles.etaValueArrived,
                   almostThere && styles.etaValueAlmost,
                 ]}>
-                  {arrived ? 'Arrived' : almostThere ? 'Arriving soon' : eta}
+                  {arrived
+                    ? t('driver.tracking.arrivedShort')
+                    : almostThere
+                      ? t('driver.tracking.arrivingSoon')
+                      : eta}
                 </Text>
               </View>
             )}
@@ -844,15 +856,15 @@ const LiveTrackingScreen = () => {
             activeOpacity={0.85}
             onPress={openProofModal}
           >
-            <Text style={styles.endTripText}>Arrival at Destination</Text>
+            <Text style={styles.endTripText}>{t('driver.tracking.arrivalAtDestination')}</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.headingHint}>
             <Navigation size={15} color="#0071BC" />
             <Text style={styles.headingText}>
               {almostThere
-                ? 'Almost there — the complete button appears when you reach the destination.'
-                : 'Drive to the destination — the "Arrival at Destination" button will appear when you arrive.'}
+                ? t('driver.tracking.almostThereHint')
+                : t('driver.tracking.driveToDestination')}
             </Text>
           </View>
         )}
@@ -870,7 +882,7 @@ const LiveTrackingScreen = () => {
           <View style={styles.proofCard}>
             {/* Header */}
             <View style={styles.proofHeader}>
-              <Text style={styles.proofTitle}>Upload Delivery Proof</Text>
+              <Text style={styles.proofTitle}>{t('driver.tracking.proofTitle')}</Text>
               <TouchableOpacity
                 style={styles.proofClose}
                 onPress={() => !submittingProof && setShowProofModal(false)}
@@ -882,7 +894,7 @@ const LiveTrackingScreen = () => {
 
             <View style={styles.proofDivider} />
 
-            <Text style={styles.proofLabel}>Upload images</Text>
+            <Text style={styles.proofLabel}>{t('driver.tracking.proofLabel')}</Text>
 
             {/* First-pick / empty state */}
             {proofImages.length === 0 ? (
@@ -892,7 +904,7 @@ const LiveTrackingScreen = () => {
                 onPress={addProofImages}
               >
                 <Upload size={26} color="#94A3B8" />
-                <Text style={styles.proofUploadText}>Upload</Text>
+                <Text style={styles.proofUploadText}>{t('driver.tracking.proofUpload')}</Text>
               </TouchableOpacity>
             ) : (
               <ScrollView

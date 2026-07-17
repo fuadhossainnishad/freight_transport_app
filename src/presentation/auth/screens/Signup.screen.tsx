@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
 import { TRUCK_TYPES } from "../../../domain/constants/truckTypes";
@@ -48,6 +49,7 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function SignupScreen() {
+  const { t } = useTranslation();
   const { signup, loading } = useSignup();
   const navigation = useNavigation<props>();
 
@@ -82,23 +84,26 @@ export default function SignupScreen() {
     if (!isValidPhoneForCountry(country, nationalNumber)) {
       setPhoneError(true);
       Alert.alert(
-        "Invalid phone number",
-        `A ${country.name} phone number must be ${country.phoneLengths.join(" or ")} digits.`,
+        t("auth.signup.invalidPhoneTitle"),
+        t("auth.signup.invalidPhoneMessage", {
+          country: country.name,
+          lengths: country.phoneLengths.join(t("common.or")),
+        }),
       );
       return;
     }
     setPhoneError(false);
 
     if ((data.password ?? "").length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
+      Alert.alert(t("common.error"), t("validation.passwordMinLength", { min: 6 }));
       return;
     }
     if (data.password !== data.confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      Alert.alert(t("common.error"), t("validation.passwordsDoNotMatch"));
       return;
     }
     if (!data.acceptTerms) {
-      Alert.alert("Error", "You must accept the general terms and conditions");
+      Alert.alert(t("common.error"), t("validation.acceptTermsRequired"));
       return;
     }
 
@@ -114,9 +119,9 @@ export default function SignupScreen() {
       if (response) {
         navigation.navigate("SignIn");
       }
-      Alert.alert("Success", "Account created successfully");
+      Alert.alert(t("common.success"), t("auth.signup.accountCreated"));
     } catch (error: any) {
-      Alert.alert("Signup Failed", error?.message || "Something went wrong");
+      Alert.alert(t("auth.signup.failedTitle"), error?.message || t("common.somethingWentWrong"));
     }
   };
 
@@ -139,26 +144,26 @@ export default function SignupScreen() {
               </View>
               <View>
                 <Text className="text-2xl text-center font-bold text-gray-900">
-                  Create Account
+                  {t("auth.signup.title")}
                 </Text>
                 <Text className="text-gray-500 mt-1.5 text-sm text-center">
-                  Join thousands of businesses and transporters
+                  {t("auth.signup.subtitle")}
                 </Text>
               </View>
 
               <View className="flex-row w-full flex-1 gap-3 mt-6">
                 <RoleSelector
                   role="SHIPPER"
-                  title="I'm a shipper"
-                  theme="I need to ship goods"
+                  title={t("auth.roles.shipperTitle")}
+                  theme={t("auth.roles.shipperTagline")}
                   selected={selectedRole === "SHIPPER"}
                   onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
                   Icon={[Box, Box2]}
                 />
                 <RoleSelector
                   role="TRANSPORTER"
-                  title="I'm a Transporter"
-                  theme="I have trucks to offer"
+                  title={t("auth.roles.transporterTitle")}
+                  theme={t("auth.roles.transporterTagline")}
                   selected={selectedRole === "TRANSPORTER"}
                   onRoleChange={(role) => setValue("role", role as "TRANSPORTER" | "SHIPPER")}
                   Icon={[Truck, Truck2]}
@@ -168,17 +173,17 @@ export default function SignupScreen() {
 
             <View>
               <Text className="text-lg font-bold text-gray-900 mb-4">
-                Basic information
+                {t("auth.signup.basicInformation")}
               </Text>
 
               {/* Company name */}
-              <Label>Company name</Label>
+              <Label>{t("auth.signup.companyNameLabel")}</Label>
               <Controller
                 control={control}
                 name="companyName"
                 render={({ field: { onChange, value } }) => (
                   <CustomInput
-                    placeholder="Enter company name"
+                    placeholder={t("auth.signup.companyNamePlaceholder")}
                     value={value}
                     onChangeText={onChange}
                   />
@@ -186,13 +191,13 @@ export default function SignupScreen() {
               />
 
               {/* Email */}
-              <Label>Email address</Label>
+              <Label>{t("auth.signup.emailLabel")}</Label>
               <Controller
                 control={control}
                 name="email"
                 render={({ field: { onChange, value } }) => (
                   <CustomInput
-                    placeholder="Your email address"
+                    placeholder={t("auth.signup.emailPlaceholder")}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={value}
@@ -202,7 +207,7 @@ export default function SignupScreen() {
               />
 
               {/* Phone — prefix/flag driven by selected country */}
-              <Label>Phone number</Label>
+              <Label>{t("auth.signup.phoneLabel")}</Label>
               <Controller
                 control={control}
                 name="phone"
@@ -211,9 +216,9 @@ export default function SignupScreen() {
                     <PhoneNumberInput
                       country={country}
                       value={value ?? ""}
-                      onChangeText={(t) => {
+                      onChangeText={(text) => {
                         if (phoneError) setPhoneError(false);
-                        onChange(t);
+                        onChange(text);
                       }}
                       onCountryChange={handleCountryChange}
                       error={phoneError}
@@ -223,7 +228,7 @@ export default function SignupScreen() {
               />
 
               {/* Country — selecting updates the phone prefix automatically */}
-              <Label>Country</Label>
+              <Label>{t("auth.signup.countryLabel")}</Label>
               <View style={{ marginBottom: 14 }}>
                 <CountryPicker value={country} onChange={handleCountryChange} />
               </View>
@@ -231,13 +236,13 @@ export default function SignupScreen() {
               {selectedRole === "TRANSPORTER" && (
                 <View>
                   {/* Number of Trucks */}
-                  <Label>Number of trucks</Label>
+                  <Label>{t("auth.signup.numberOfTrucksLabel")}</Label>
                   <Controller
                     control={control}
                     name="numberOfTrucks"
                     render={({ field: { onChange, value } }) => (
                       <CustomInput
-                        placeholder="Number of trucks"
+                        placeholder={t("auth.signup.numberOfTrucksPlaceholder")}
                         keyboardType="numeric"
                         value={value?.toString()}
                         onChangeText={onChange}
@@ -246,14 +251,14 @@ export default function SignupScreen() {
                   />
 
                   {/* Truck Type */}
-                  <Label>Truck type</Label>
+                  <Label>{t("auth.signup.truckTypeLabel")}</Label>
                   <View style={{ marginBottom: 14 }}>
                     <Controller
                       control={control}
                       name="truckType"
                       render={({ field: { onChange, value } }) => (
                         <TruckTypeSelect
-                          placeholder="Select truck type"
+                          placeholder={t("auth.signup.truckTypePlaceholder")}
                           value={value}
                           data={TRUCK_TYPES}
                           onChange={onChange}
@@ -265,14 +270,14 @@ export default function SignupScreen() {
               )}
 
               {/* Password */}
-              <Label>Password</Label>
+              <Label>{t("auth.signup.passwordLabel")}</Label>
               <Controller
                 control={control}
                 name="password"
                 render={({ field: { onChange, value } }) => (
                   <View className="border border-gray-300 rounded-xl px-4 mb-3.5 h-[52px] justify-center">
                     <PasswordInput
-                      placeholder="Minimum 6 characters"
+                      placeholder={t("auth.signup.passwordPlaceholder")}
                       value={value ?? ""}
                       onChangeText={onChange}
                     />
@@ -281,14 +286,14 @@ export default function SignupScreen() {
               />
 
               {/* Confirm Password */}
-              <Label>Confirm Password</Label>
+              <Label>{t("auth.signup.confirmPasswordLabel")}</Label>
               <Controller
                 control={control}
                 name="confirmPassword"
                 render={({ field: { onChange, value } }) => (
                   <View className="border border-gray-300 rounded-xl px-4 mb-3.5 h-[52px] justify-center">
                     <PasswordInput
-                      placeholder="Re-enter your password"
+                      placeholder={t("auth.signup.confirmPasswordPlaceholder")}
                       value={value ?? ""}
                       onChangeText={onChange}
                     />
@@ -305,7 +310,7 @@ export default function SignupScreen() {
                     <Checkbox
                       checked={!!value}
                       onToggle={() => onChange(!value)}
-                      label="I have read and I accept the general terms and conditions"
+                      label={t("auth.signup.acceptTerms")}
                     />
                   )}
                 />
@@ -317,7 +322,7 @@ export default function SignupScreen() {
                     <Checkbox
                       checked={!!value}
                       onToggle={() => onChange(!value)}
-                      label="I understood that Lawapan Truck is a service dedicated to professionals"
+                      label={t("auth.signup.servicePolicy")}
                     />
                   )}
                 />
@@ -326,16 +331,16 @@ export default function SignupScreen() {
 
             <View style={styles.buttonWrapper}>
               <SubmitButton
-                text="Create"
+                text={t("auth.signup.create")}
                 loading={loading}
                 onSubmit={handleSubmit(onSubmit)}
               />
             </View>
 
             <View className="flex-row justify-center items-center mt-4">
-              <Text className="text-gray-600 text-sm">Already have an account? </Text>
+              <Text className="text-gray-600 text-sm">{t("auth.signup.haveAccount")}</Text>
               <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
-                <Text className="text-[#036BB4] font-semibold text-sm">Log In</Text>
+                <Text className="text-[#036BB4] font-semibold text-sm">{t("auth.signup.logIn")}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

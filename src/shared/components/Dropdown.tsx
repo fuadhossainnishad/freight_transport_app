@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Picker } from "@react-native-picker/picker";
 
 interface Props {
@@ -15,6 +16,8 @@ export default function Dropdown({
     data,
     onChange,
 }: Props) {
+    const { t } = useTranslation();
+
     return (
         <View style={styles.container}>
             <Picker
@@ -22,7 +25,7 @@ export default function Dropdown({
                 onValueChange={(itemValue) => onChange(itemValue)}
 
             >
-                <Picker.Item label={placeholder || "Select"} value="" />
+                <Picker.Item label={placeholder || t("components.dropdown.placeholder")} value="" />
                 {data.map((item) => (
                     <Picker.Item
                         key={item.value}

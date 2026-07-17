@@ -115,7 +115,9 @@ export type SettingsStackParamList = {
     Hiring: undefined
     Carrier: undefined
     Faq: undefined
-    Info: { type: InfoType; title: string }; // type-safe
+    // The header title is derived from `type` inside Info.screen so it follows
+    // the active language; passing it as a param froze it at navigation time.
+    Info: { type: InfoType };
 
 
 };

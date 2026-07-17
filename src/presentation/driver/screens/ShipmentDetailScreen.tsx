@@ -11,14 +11,17 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import type { ParseKeys } from 'i18next';
 import { ArrowLeft, Navigation } from 'lucide-react-native';
 import { formatPriceRange } from '../helper/format-price.helper';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pending', color: '#F59E0B' },
-  IN_PROGRESS: { label: 'In Progress', color: '#0071BC' },
-  IN_TRANSIT: { label: 'In Transit', color: '#8B5CF6' },
-  COMPLETED: { label: 'Completed', color: '#22C55E' },
+// Keys are backend enums — never translate them. Only labelKey is translated.
+const STATUS_CONFIG: Record<string, { labelKey: ParseKeys; color: string }> = {
+  PENDING: { labelKey: 'driver.status.pending', color: '#F59E0B' },
+  IN_PROGRESS: { labelKey: 'driver.status.inProgress', color: '#0071BC' },
+  IN_TRANSIT: { labelKey: 'driver.status.inTransit', color: '#8B5CF6' },
+  COMPLETED: { labelKey: 'driver.status.completed', color: '#22C55E' },
 };
 
 const truckPlaceholder = require('../../../../assets/images/truck.png');
@@ -30,24 +33,29 @@ const show = (v?: string | number | null) => {
 };
 
 const ShipmentDetailScreen = () => {
+  const { t } = useTranslation();
   const route = useRoute<any>();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   const { shipment } = route.params;
 
-  const status = STATUS_CONFIG[shipment.status] ?? {
-    label: shipment.status ?? 'Unknown',
-    color: '#94A3B8',
+  const statusConfig = STATUS_CONFIG[shipment.status];
+  // Unmapped statuses still fall back to the raw backend enum, as before.
+  const status = {
+    label: statusConfig
+      ? t(statusConfig.labelKey)
+      : shipment.status ?? t('driver.status.unknown'),
+    color: statusConfig?.color ?? '#94A3B8',
   };
   // PENDING / IN_PROGRESS → not started yet, offer to start.
   // IN_TRANSIT → already on the road, offer to re-open the live map.
   // COMPLETED → no action.
   const action =
     shipment.status === 'IN_TRANSIT'
-      ? { label: 'Continue Tracking', showMapIcon: true }
+      ? { label: t('driver.shipmentDetail.continueTracking'), showMapIcon: true }
       : shipment.status === 'PENDING' || shipment.status === 'IN_PROGRESS'
-        ? { label: 'Start Shipment', showMapIcon: false }
+        ? { label: t('driver.shipmentDetail.startShipment'), showMapIcon: false }
         : null;
 
   return (
@@ -63,7 +71,7 @@ const ShipmentDetailScreen = () => {
         >
           <ArrowLeft size={22} color="#1A1C1E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Shipment Detail</Text>
+        <Text style={styles.headerTitle}>{t('driver.shipmentDetail.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -85,70 +93,70 @@ const ShipmentDetailScreen = () => {
         </View>
 
         {/* SECTION: BASIC INFORMATION */}
-        <Text style={styles.sectionTitle}>Basic Information</Text>
+        <Text style={styles.sectionTitle}>{t('driver.shipmentDetail.basicInformation')}</Text>
         <View style={styles.gridBox}>
           <View style={styles.gridRow}>
             <View style={[styles.gridCell, styles.borderRight]}>
-              <Text style={styles.label}>Shipment Title</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.shipmentTitle')}</Text>
               <Text style={styles.value}>{show(shipment.title)}</Text>
             </View>
             <View style={styles.gridCell}>
-              <Text style={styles.label}>Category</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.category')}</Text>
               <Text style={styles.value}>{show(shipment.commodity)}</Text>
             </View>
           </View>
 
           <View style={[styles.gridCellFull, styles.borderTop]}>
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>{t('driver.shipmentDetail.description')}</Text>
             <Text style={styles.value}>{show(shipment.description)}</Text>
           </View>
 
           <View style={[styles.gridRow, styles.borderTop]}>
             <View style={[styles.gridCell, styles.borderRight]}>
-              <Text style={styles.label}>Weight</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.weight')}</Text>
               <Text style={styles.value}>{show(shipment.weight)}</Text>
             </View>
             <View style={styles.gridCell}>
-              <Text style={styles.label}>Dimensions (L/W/H)</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.dimensions')}</Text>
               <Text style={styles.value}>{show(shipment.dimensions)}</Text>
             </View>
           </View>
 
           <View style={[styles.gridCellFull, styles.borderTop]}>
-            <Text style={styles.label}>Type of Packaging</Text>
+            <Text style={styles.label}>{t('driver.shipmentDetail.packaging')}</Text>
             <Text style={styles.value}>{show(shipment.packaging)}</Text>
           </View>
         </View>
 
         {/* SECTION: PICKUP & DELIVERY DETAILS */}
-        <Text style={styles.sectionTitle}>Pickup & Delivery</Text>
+        <Text style={styles.sectionTitle}>{t('driver.shipmentDetail.pickupAndDelivery')}</Text>
         <View style={styles.gridBox}>
           <View style={styles.gridRow}>
             <View style={[styles.gridCell, styles.borderRight]}>
-              <Text style={styles.label}>Pickup Address</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.pickupAddress')}</Text>
               <Text style={styles.value}>{show(shipment.pickupAddress)}</Text>
             </View>
             <View style={styles.gridCell}>
-              <Text style={styles.label}>Time Window</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.timeWindow')}</Text>
               <Text style={styles.value}>{show(shipment.timeWindow)}</Text>
             </View>
           </View>
           <View style={[styles.gridRow, styles.borderTop]}>
             <View style={[styles.gridCell, styles.borderRight]}>
-              <Text style={styles.label}>Delivery Address</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.deliveryAddress')}</Text>
               <Text style={styles.value}>{show(shipment.deliveryAddress)}</Text>
             </View>
             <View style={styles.gridCell}>
-              <Text style={styles.label}>Contact Person</Text>
+              <Text style={styles.label}>{t('driver.shipmentDetail.contactPerson')}</Text>
               <Text style={styles.value}>{show(shipment.contactPerson)}</Text>
             </View>
           </View>
         </View>
 
         {/* SECTION: AMOUNT */}
-        <Text style={styles.sectionTitle}>Amount</Text>
+        <Text style={styles.sectionTitle}>{t('driver.shipmentDetail.amount')}</Text>
         <View style={styles.amountBox}>
-          <Text style={styles.amountLabel}>Agreed Price</Text>
+          <Text style={styles.amountLabel}>{t('driver.shipmentDetail.agreedPrice')}</Text>
           <Text style={styles.priceValue}>
             {formatPriceRange(shipment.priceMin, shipment.priceMax)}
           </Text>

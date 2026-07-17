@@ -11,12 +11,15 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Lock, LogOut, UserCircle, FileText } from 'lucide-react-native';
 import { useAuth } from '../../../app/context/Auth.context';
+import LanguageSwitcher from '../../../shared/components/LanguageSwitcher';
 import useDriver from '../hooks/useDriver';
 import PreviewModal from '../components/PreviewModal';
 
 const ProfileScreen = () => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { data: driver, status, error, refresh } = useDriver(user?.driver_id);
   const [showLicense, setShowLicense] = useState(false);
@@ -25,10 +28,10 @@ const ProfileScreen = () => {
   const licenseImage = driver?.licenseBack || driver?.licenseFront;
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('driver.profile.logOut'), t('driver.profile.logoutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Log Out',
+        text: t('driver.profile.logOut'),
         style: 'destructive',
         // Setting the user to null flips RootNavigation back to the
         // AuthStack, which lands on the Sign In screen.
@@ -43,14 +46,14 @@ const ProfileScreen = () => {
 
       <View style={styles.header}>
         <View style={{ width: 44 }} />
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>{t('driver.profile.title')}</Text>
         <TouchableOpacity style={styles.lockButton} activeOpacity={0.7}>
           <Lock size={20} color="#666" strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Profile Detail</Text>
+        <Text style={styles.sectionTitle}>{t('driver.profile.sectionTitle')}</Text>
 
         {loading ? (
           <ActivityIndicator
@@ -61,10 +64,10 @@ const ProfileScreen = () => {
         ) : error ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>
-              {error || "Couldn't load your profile."}
+              {error || t('driver.profile.loadFailed')}
             </Text>
             <TouchableOpacity onPress={refresh} activeOpacity={0.8}>
-              <Text style={styles.retryText}>Tap to retry</Text>
+              <Text style={styles.retryText}>{t('driver.profile.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -78,17 +81,17 @@ const ProfileScreen = () => {
             </View>
 
             <View style={styles.infoCard}>
-              <Text style={styles.label}>User Name</Text>
+              <Text style={styles.label}>{t('driver.profile.nameLabel')}</Text>
               <Text style={styles.value}>{driver?.name || '—'}</Text>
             </View>
 
             <View style={styles.infoCard}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('driver.profile.emailLabel')}</Text>
               <Text style={styles.value}>{driver?.email || '—'}</Text>
             </View>
 
             <View style={styles.infoCard}>
-              <Text style={styles.label}>Contact no</Text>
+              <Text style={styles.label}>{t('driver.profile.phoneLabel')}</Text>
               <Text style={styles.value}>{driver?.phone || '—'}</Text>
             </View>
 
@@ -98,11 +101,11 @@ const ProfileScreen = () => {
               disabled={!licenseImage}
               onPress={() => licenseImage && setShowLicense(true)}
             >
-              <Text style={styles.label}>Driving License</Text>
+              <Text style={styles.label}>{t('driver.details.drivingLicense')}</Text>
               {licenseImage ? (
                 <View style={styles.licenseRow}>
                   <FileText size={20} color="#036BB4" strokeWidth={1.8} />
-                  <Text style={styles.licenseText}>View document</Text>
+                  <Text style={styles.licenseText}>{t('driver.details.viewDocument')}</Text>
                 </View>
               ) : (
                 <Text style={styles.value}>—</Text>
@@ -111,13 +114,21 @@ const ProfileScreen = () => {
           </>
         )}
 
+        {/* Drivers have no Settings tab (DriverStack has no SettingsStack), so
+            this is their only way to switch language. Kept outside the
+            loading/error branch above: a driver whose profile fails to load must
+            still be able to change it. */}
+        <View style={styles.languageSection}>
+          <LanguageSwitcher />
+        </View>
+
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.8}
           onPress={handleLogout}
         >
           <LogOut size={20} color="#FF3B30" strokeWidth={2} />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t('driver.profile.logOut')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -228,6 +239,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1A1C1E',
+  },
+  languageSection: {
+    // The card above already carries marginBottom: 16; the logout button below
+    // carries marginTop: 20. Nothing extra needed.
+    marginTop: 0,
   },
   logoutButton: {
     marginTop: 20,

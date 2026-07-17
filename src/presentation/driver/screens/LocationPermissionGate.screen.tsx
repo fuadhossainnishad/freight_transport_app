@@ -8,8 +8,11 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
-// Note: I'm using hex colors that match the standard iOS system blue and grays 
+import { BRAND_NAME } from "../../../domain/constants/brand";
+
+// Note: I'm using hex colors that match the standard iOS system blue and grays
 // seen in the permission dialog.
 
 type Props = {
@@ -21,6 +24,7 @@ const LocationPermissionGateScreen = memo(function LocationPermissionGate({
   onRequest,
   onDeny,
 }: Props) {
+  const { t } = useTranslation();
   const [accuracy, setAccuracy] = useState<"precise" | "approximate">("precise");
 
   return (
@@ -38,7 +42,7 @@ const LocationPermissionGateScreen = memo(function LocationPermissionGate({
           </View>
           
           <Text style={styles.titleText}>
-            Allow My App to access this device's precise location?
+            {t("driver.permission.title", { brand: BRAND_NAME })}
           </Text>
         </View>
 
@@ -68,7 +72,7 @@ const LocationPermissionGateScreen = memo(function LocationPermissionGate({
                   <View style={styles.blueDotPin} />
                 </View>
               </View>
-              <Text style={styles.mapLabel}>Precise</Text>
+              <Text style={styles.mapLabel}>{t("driver.permission.precise")}</Text>
             </TouchableOpacity>
 
             {/* Approximate Option */}
@@ -85,8 +89,11 @@ const LocationPermissionGateScreen = memo(function LocationPermissionGate({
                  <View style={styles.approximateCircle} />
                  <View style={styles.approximateDot} />
               </View>
-              {/* Keeping the typo from your screenshot "Apprximate" as requested for pixel-perfect match */}
-              <Text style={styles.mapLabel}>Apprximate</Text>
+              {/* The English copy keeps the "Apprximate" typo that was requested
+                  for a pixel-perfect match with the reference screenshot; the
+                  French translation spells it correctly. Fix the English key in
+                  en.json if the typo was not intentional. */}
+              <Text style={styles.mapLabel}>{t("driver.permission.approximate")}</Text>
             </TouchableOpacity>
 
           </View>
@@ -98,14 +105,14 @@ const LocationPermissionGateScreen = memo(function LocationPermissionGate({
             style={styles.actionButton} 
             onPress={() => onRequest(accuracy)}
           >
-            <Text style={styles.actionButtonText}>While using the app</Text>
+            <Text style={styles.actionButtonText}>{t("driver.permission.whileUsing")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.actionButton} 
             onPress={onDeny}
           >
-            <Text style={styles.actionButtonText}>Don’t allow</Text>
+            <Text style={styles.actionButtonText}>{t("driver.permission.deny")}</Text>
           </TouchableOpacity>
         </View>
 

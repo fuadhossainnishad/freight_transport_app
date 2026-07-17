@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const BG = require("../../../../assets/images/earning_bg.png");
 
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const BalanceCard: React.FC<Props> = ({ balance, onWithdraw }) => {
+    const { t } = useTranslation();
+
     return (
         <ImageBackground
             source={BG}
@@ -16,7 +19,7 @@ const BalanceCard: React.FC<Props> = ({ balance, onWithdraw }) => {
             className="mx-4 mt-4 rounded-2xl overflow-hidden"
         >
             <View className="p-5">
-                <Text className="text-white text-sm opacity-80">Your Balance</Text>
+                <Text className="text-white text-sm opacity-80">{t("earnings.balance.label")}</Text>
                 <Text className="text-white text-3xl font-bold mt-1">
                     ${balance.toLocaleString()}
                 </Text>
@@ -27,7 +30,7 @@ const BalanceCard: React.FC<Props> = ({ balance, onWithdraw }) => {
                     className={`mt-4 bg-transparent rounded-full border py-3 px-8 self-start ${balance <= 0 ? "border-white/40" : "border-white"}`}
                 >
                     <Text className={`font-normal text-sm ${balance <= 0 ? "text-white/40" : "text-white"}`}>
-                        Withdraw
+                        {t("earnings.balance.withdraw")}
                     </Text>
                 </TouchableOpacity>
             </View>

@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react"
 
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useTranslation } from "react-i18next"
 import { ArrowLeft } from "lucide-react-native"
 
 import OtpInput from "../../../shared/components/OtpInput"
@@ -33,6 +34,7 @@ const OTP_LENGTH = 6
 const RESEND_SECONDS = 60
 
 export default function VerifyOtpScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<NavigationProps>()
     const route = useRoute<RouteProps>()
 
@@ -66,14 +68,14 @@ export default function VerifyOtpScreen() {
 
         try {
             const isVerified = await verify(email, otp)
-            if (!isVerified) throw new Error("OTP verification failed")
+            if (!isVerified) throw new Error(t("auth.verifyOtp.verificationFailed"))
 
             navigation.navigate("ResetPassword", { verificationToken: token })
         } catch (err: any) {
             setError(true)
             Alert.alert(
-                "Verification Failed",
-                err?.response?.data?.message || err?.message || "Invalid OTP",
+                t("auth.verifyOtp.failedTitle"),
+                err?.response?.data?.message || err?.message || t("auth.verifyOtp.invalidOtp"),
             )
         }
     }
@@ -86,9 +88,12 @@ export default function VerifyOtpScreen() {
             setOtp("")
             setError(false)
             setCooldown(RESEND_SECONDS)
-            Alert.alert("Code sent", `A new verification code has been sent to ${email}.`)
+            Alert.alert(
+                t("auth.verifyOtp.codeSentTitle"),
+                t("auth.verifyOtp.codeSentMessage", { email }),
+            )
         } catch (err: any) {
-            Alert.alert("Error", err?.message || "Failed to resend code")
+            Alert.alert(t("common.error"), err?.message || t("auth.verifyOtp.resendFailed"))
         }
     }
 
@@ -119,10 +124,10 @@ export default function VerifyOtpScreen() {
 
                             {/* Header */}
                             <Text className="text-2xl font-bold text-center text-gray-900 mt-5">
-                                Verify Your Email
+                                {t("auth.verifyOtp.title")}
                             </Text>
                             <Text className="text-gray-500 text-[15px] text-center mt-3 leading-6">
-                                Please enter the {OTP_LENGTH} digit code sent to{"\n"}
+                                {t("auth.verifyOtp.subtitle", { length: OTP_LENGTH })}{"\n"}
                                 <Text className="text-gray-800 font-semibold">{email}</Text>
                             </Text>
 
@@ -138,10 +143,10 @@ export default function VerifyOtpScreen() {
 
                             {/* Resend */}
                             <View className="flex-row justify-center mt-7">
-                                <Text className="text-gray-500">Didn't receive the code? </Text>
+                                <Text className="text-gray-500">{t("auth.verifyOtp.noCode")}</Text>
                                 {cooldown > 0 ? (
                                     <Text className="text-gray-400 font-medium">
-                                        Resend in {cooldown}s
+                                        {t("auth.verifyOtp.resendIn", { seconds: cooldown })}
                                     </Text>
                                 ) : (
                                     <TouchableOpacity
@@ -151,7 +156,7 @@ export default function VerifyOtpScreen() {
                                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                     >
                                         <Text className="font-semibold text-[#036BB4]">
-                                            {resending ? "Sending..." : "Resend code"}
+                                            {resending ? t("common.sending") : t("auth.verifyOtp.resendCode")}
                                         </Text>
                                     </TouchableOpacity>
                                 )}
@@ -161,7 +166,7 @@ export default function VerifyOtpScreen() {
                         {/* Footer action — kept inside the scroll view so the
                             keyboard never hides it */}
                         <View className="px-7 pt-4 pb-4">
-                            <SubmitButton text="Verify" loading={loading} onSubmit={onVerify} />
+                            <SubmitButton text={t("auth.verifyOtp.verify")} loading={loading} onSubmit={onVerify} />
                         </View>
                     </ScrollView>
                 </TouchableWithoutFeedback>

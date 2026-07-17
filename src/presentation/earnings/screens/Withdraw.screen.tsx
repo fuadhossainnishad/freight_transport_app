@@ -5,6 +5,7 @@ import {
     View, ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import AppHeader from "../../../shared/components/AppHeader";
 import FormInput from "../components/FormInput";
 import CountryPickerModal from "../components/CountryPickerModal";
@@ -17,6 +18,7 @@ import ArrowIcon from "../../../../assets/icons/arrow_down.svg"
 type NavigationProp = NativeStackNavigationProp<EarningsStackParamList, "Withdraw">;
 
 const WithdrawScreen: React.FC = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<NavigationProp>();
 
     const [amount, setAmount] = useState("");
@@ -25,23 +27,23 @@ const WithdrawScreen: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const validate = (): string | null => {
-        if (!amount.trim()) return "Amount is required";
-        if (isNaN(Number(amount)) || Number(amount) <= 0) return "Enter a valid amount";
-        if (!countryName) return "Please select a region";
+        if (!amount.trim()) return t("validation.amountRequired");
+        if (isNaN(Number(amount)) || Number(amount) <= 0) return t("validation.amountInvalid");
+        if (!countryName) return t("validation.regionRequired");
         return null;
     };
 
     const handleSubmit = async () => {
         const error = validate();
-        if (error) { Alert.alert("Validation Error", error); return; }
+        if (error) { Alert.alert(t("validation.validationError"), error); return; }
         try {
             setLoading(true);
             console.log("Withdraw payload:", { amount, region: countryName });
-            Alert.alert("Success", "Withdraw request submitted");
+            Alert.alert(t("common.success"), t("earnings.withdraw.requestSubmitted"));
             navigation.goBack();
         } catch (err) {
             console.error(err);
-            Alert.alert("Error", "Something went wrong. Please try again.");
+            Alert.alert(t("common.error"), t("common.tryAgain"));
         } finally {
             setLoading(false);
         }
@@ -49,7 +51,7 @@ const WithdrawScreen: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <AppHeader text="Withdraw Request" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("earnings.withdraw.title")} onpress={() => navigation.goBack()} />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -63,23 +65,23 @@ const WithdrawScreen: React.FC = () => {
                 >
                     {/* Amount */}
                     <FormInput
-                        label="Amount"
+                        label={t("earnings.withdraw.amountLabel")}
                         value={amount}
-                        placeholder="Enter amount"
+                        placeholder={t("earnings.withdraw.amountPlaceholder")}
                         keyboardType="numeric"
                         onChange={setAmount}
                     />
 
                     {/* Region */}
                     <View className="mb-4">
-                        <Text className="text-gray-600 mb-2">Region</Text>
+                        <Text className="text-gray-600 mb-2">{t("earnings.withdraw.regionLabel")}</Text>
                         <TouchableOpacity
                             onPress={() => setPickerOpen(true)}
                             activeOpacity={0.75}
                             className="flex-row items-center border border-gray-200 rounded-xl bg-gray-50 px-4 py-4"
                         >
                             <Text className={`flex-1 text-base ${countryName ? "text-gray-800" : "text-gray-400"}`}>
-                                {countryName || "Select region"}
+                                {countryName || t("earnings.withdraw.regionPlaceholder")}
                             </Text>
                             <ArrowIcon height={24} width={24} />
                         </TouchableOpacity>
@@ -94,7 +96,7 @@ const WithdrawScreen: React.FC = () => {
                             }`}
                     >
                         <Text className="text-white font-bold text-base">
-                            {loading ? "Submitting..." : "Submit Request"}
+                            {loading ? t("common.submitting") : t("earnings.withdraw.submitRequest")}
                         </Text>
                     </TouchableOpacity>
                 </ScrollView>

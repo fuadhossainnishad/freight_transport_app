@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import FormInput from "../../../shared/components/FormInput";
 import AppHeader from "../../../shared/components/AppHeader";
 import { useUpdateProfile } from "../hooks/useUpdateProfile";
@@ -20,6 +21,7 @@ import ProfileImagePicker from "../../../shared/components/ProfileImagePicker";
 type props = NativeStackNavigationProp<SettingsStackParamList, 'EditProfile'>;
 
 export default function EditProfileScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<props>()
     const { updateProfile, loading } = useUpdateProfile();
     const { profile, loading: profileLoading } = useProfile();
@@ -59,14 +61,14 @@ export default function EditProfileScreen() {
             await updateProfile(data);
 
             Alert.alert(
-                "Success",
-                "Profile updated successfully"
+                t("common.success"),
+                t("settings.profile.updated")
             );
 
         } catch {
             Alert.alert(
-                "Error",
-                "Failed to update profile"
+                t("common.error"),
+                t("settings.profile.updateFailed")
             );
         }
     };
@@ -74,7 +76,7 @@ export default function EditProfileScreen() {
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
 
-            <AppHeader text="Edit Profile" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("settings.profile.title")} onpress={() => navigation.goBack()} />
 
             {profileLoading ? (
                 <View className="flex-1 items-center justify-center">
@@ -89,21 +91,21 @@ export default function EditProfileScreen() {
                 <FormInput
                     control={control}
                     name="name"
-                    label="User Name"
-                    placeholder="Enter name"
-                    rules={{ required: "Name is required" }}
+                    label={t("settings.profile.nameLabel")}
+                    placeholder={t("settings.profile.namePlaceholder")}
+                    rules={{ required: t("validation.nameRequired") }}
                 />
 
                 <FormInput
                     control={control}
                     name="email"
-                    label="Email"
-                    placeholder="Enter email"
+                    label={t("settings.profile.emailLabel")}
+                    placeholder={t("settings.profile.emailPlaceholder")}
                     rules={{
-                        required: "Email is required",
+                        required: t("validation.emailRequired"),
                         pattern: {
                             value: /\S+@\S+\.\S+/,
-                            message: "Invalid email",
+                            message: t("validation.emailInvalid"),
                         },
                     }}
                 />
@@ -111,14 +113,14 @@ export default function EditProfileScreen() {
                 <FormInput
                     control={control}
                     name="phone"
-                    label="Contact No"
-                    placeholder="Enter phone"
-                    rules={{ required: "Phone number required" }}
+                    label={t("settings.profile.phoneLabel")}
+                    placeholder={t("settings.profile.phonePlaceholder")}
+                    rules={{ required: t("validation.phoneRequired") }}
                 />
 
 
                 <SubmitButton
-                    text="Save & Change"
+                    text={t("settings.profile.save")}
                     loading={loading}
                     onSubmit={handleSubmit(onSubmit)}
                 />

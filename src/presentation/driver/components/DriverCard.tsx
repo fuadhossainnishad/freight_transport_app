@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
+import { useTranslation } from "react-i18next";
 import { UserCircle } from "lucide-react-native";
 import PhoneIcon from "../../../../assets/icons/phone.svg";
 import EyeIcon from "../../../../assets/icons/view2.svg";
@@ -21,6 +22,8 @@ export default function DriverCard({
     onEdit,
     onDelete,
 }: Props) {
+    const { t } = useTranslation();
+
     return (
         <View className="bg-white p-4 rounded-2xl border border-gray-100">
 
@@ -42,7 +45,7 @@ export default function DriverCard({
                         className="text-base font-semibold text-gray-900"
                         numberOfLines={1}
                     >
-                        {driver.name || "Unnamed driver"}
+                        {driver.name || t("driver.list.unnamed")}
                     </Text>
 
                     <View className="flex-row items-center mt-1 gap-1.5">

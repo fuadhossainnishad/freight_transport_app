@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { UserCircle, FileText } from "lucide-react-native";
 import { DriverStackParamList } from "../../../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +32,7 @@ type Nav = NativeStackNavigationProp<
 type RouteType = RouteProp<DriverStackParamList, "DriverProfileDetails">;
 
 export default function DriverProfileDetailsScreen() {
+  const { t } = useTranslation();
   const route = useRoute<RouteType>();
   const navigation = useNavigation<Nav>();
 
@@ -53,7 +55,7 @@ export default function DriverProfileDetailsScreen() {
       const res = await getDriverByIdsUseCase(driverId);
       setDriver(res);
     } catch (err) {
-      Alert.alert("Error", "Failed to load driver");
+      Alert.alert(t("common.error"), t("driver.update.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -64,10 +66,10 @@ export default function DriverProfileDetailsScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert("Confirm", "Are you sure you want to remove this driver?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("driver.details.confirmTitle"), t("driver.details.confirmMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Remove",
+        text: t("driver.details.remove"),
         style: "destructive",
         onPress: confirmDelete,
       },
@@ -79,10 +81,10 @@ export default function DriverProfileDetailsScreen() {
       setDeleting(true);
       await deleteDriver(driverId);
 
-      Alert.alert("Success", "Driver removed successfully");
+      Alert.alert(t("common.success"), t("driver.details.removed"));
       navigation.goBack();
     } catch (err) {
-      Alert.alert("Error", "Failed to remove driver");
+      Alert.alert(t("common.error"), t("driver.details.removeFailed"));
     } finally {
       setDeleting(false);
     }
@@ -91,7 +93,7 @@ export default function DriverProfileDetailsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <AppHeader
-        text="Driver Profile Details"
+        text={t("driver.details.title")}
         onpress={() => navigation.goBack()}
       />
 
@@ -117,28 +119,28 @@ export default function DriverProfileDetailsScreen() {
                 <UserCircle size={96} color="#C7C7CC" strokeWidth={1} />
               )}
               <Text className="mt-3 text-lg font-bold text-[#1A1C1E]">
-                {driver?.name || "Driver"}
+                {driver?.name || t("driver.details.fallbackName")}
               </Text>
             </View>
 
             {/* INFO CARDS */}
             <View className="px-4 gap-3">
               <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">Driver Name</Text>
+                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.nameLabel")}</Text>
                 <Text className="text-[#1A1C1E] text-base font-semibold">
                   {driver?.name || "—"}
                 </Text>
               </View>
 
               <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">Phone Number</Text>
+                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.phoneLabel")}</Text>
                 <Text className="text-[#1A1C1E] text-base font-semibold">
                   {driver?.phone || "—"}
                 </Text>
               </View>
 
               <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">Email</Text>
+                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.emailLabel")}</Text>
                 <Text className="text-[#1A1C1E] text-base font-semibold">
                   {driver?.email || "—"}
                 </Text>
@@ -151,13 +153,13 @@ export default function DriverProfileDetailsScreen() {
                 className="p-4 rounded-2xl border border-gray-200 bg-white"
               >
                 <Text className="text-gray-400 text-sm mb-2">
-                  Driving License
+                  {t("driver.details.drivingLicense")}
                 </Text>
                 {licenseImage ? (
                   <View className="flex-row items-center gap-2">
                     <FileText size={20} color="#036BB4" strokeWidth={1.8} />
                     <Text className="text-[#036BB4] text-base font-semibold">
-                      View document
+                      {t("driver.details.viewDocument")}
                     </Text>
                   </View>
                 ) : (
@@ -176,7 +178,7 @@ export default function DriverProfileDetailsScreen() {
               className="flex-1 border border-[#036BB4] py-3 rounded-full flex-row justify-center items-center gap-2"
             >
               <EditIcon height={18} width={18} />
-              <Text className="font-semibold text-[#036BB4]">Edit</Text>
+              <Text className="font-semibold text-[#036BB4]">{t("common.edit")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -189,7 +191,7 @@ export default function DriverProfileDetailsScreen() {
               ) : (
                 <>
                   <DeleteIcon height={18} width={18} />
-                  <Text className="font-semibold text-[#FF3B30]">Remove</Text>
+                  <Text className="font-semibold text-[#FF3B30]">{t("driver.details.remove")}</Text>
                 </>
               )}
             </TouchableOpacity>

@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 
 import Home from '../../assets/icons/home.svg';
@@ -35,6 +36,7 @@ function svgTabIcon(Active: SvgIcon, Inactive: SvgIcon) {
 const Tab = createBottomTabNavigator<TransporterTabParamList>();
 
 export default function TransporterTabs() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   // insets.bottom is unreliable here (reports 0 on this device), so floor it.
   const bottomPad = Math.max(insets.bottom, 16);
@@ -56,27 +58,27 @@ export default function TransporterTabs() {
       <Tab.Screen
         name="HomeStack"
         component={TransporterHomeStack}
-        options={{ tabBarLabel: 'Home', tabBarIcon: svgTabIcon(Home, HomeInline) }}
+        options={{ tabBarLabel: t('nav.tabs.home'), tabBarIcon: svgTabIcon(Home, HomeInline) }}
       />
       <Tab.Screen
         name="AvailableBids"
         component={AvailableBidsStack}
-        options={{ tabBarLabel: 'Bids', tabBarIcon: svgTabIcon(AvailableBids, AvailableBidsInline) }}
+        options={{ tabBarLabel: t('nav.tabs.bids'), tabBarIcon: svgTabIcon(AvailableBids, AvailableBidsInline) }}
       />
       <Tab.Screen
         name="Shipments"
         component={ActiveShipmentsStack}
-        options={{ tabBarLabel: 'Shipments', tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
+        options={{ tabBarLabel: t('nav.tabs.shipments'), tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
       />
       <Tab.Screen
         name="Earning"
         component={EarningsStack}
-        options={{ tabBarLabel: 'Earning', tabBarIcon: svgTabIcon(Earning, EarningInline) }}
+        options={{ tabBarLabel: t('nav.tabs.earning'), tabBarIcon: svgTabIcon(Earning, EarningInline) }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsStack}
-        options={{ tabBarLabel: 'Settings', tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
+        options={{ tabBarLabel: t('nav.tabs.settings'), tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
       />
     </Tab.Navigator>
   );

@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 import {
   Truck,
   Package,
@@ -18,7 +20,8 @@ import {
 } from "lucide-react-native";
 
 export interface TruckTypeOption {
-  label: string;
+  /** Translation key — `value` stays the untranslated API enum. */
+  labelKey: ParseKeys;
   value: string;
 }
 
@@ -45,10 +48,12 @@ export default function TruckTypeSelect({
   value,
   data,
   onChange,
-  placeholder = "Select truck type",
+  placeholder,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selected = data.find((d) => d.value === value);
+  const resolvedPlaceholder = placeholder ?? t("components.truckTypeSelect.placeholder");
 
   return (
     <>
@@ -60,7 +65,7 @@ export default function TruckTypeSelect({
         <View style={styles.row}>
           {iconFor(value ?? "", selected ? "#036BB4" : "#9ca3af")}
           <Text style={selected ? styles.valueText : styles.placeholder}>
-            {selected ? selected.label : placeholder}
+            {selected ? t(selected.labelKey) : resolvedPlaceholder}
           </Text>
         </View>
         <ChevronDown size={20} color="#6b7280" />
@@ -71,7 +76,7 @@ export default function TruckTypeSelect({
           <Pressable style={styles.backdrop} onPress={() => setOpen(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Truck type</Text>
+              <Text style={styles.sheetTitle}>{t("components.truckTypeSelect.title")}</Text>
               <TouchableOpacity onPress={() => setOpen(false)} hitSlop={10}>
                 <X size={22} color="#111827" />
               </TouchableOpacity>
@@ -92,7 +97,7 @@ export default function TruckTypeSelect({
                     }}
                   >
                     {iconFor(item.value, isSel ? "#036BB4" : "#374151")}
-                    <Text style={styles.optionLabel}>{item.label}</Text>
+                    <Text style={styles.optionLabel}>{t(item.labelKey)}</Text>
                     {isSel && <Check size={18} color="#036BB4" />}
                   </TouchableOpacity>
                 );

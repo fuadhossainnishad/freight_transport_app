@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { logger } from "../../../shared/utils/logger"
 import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase"
 import { Driver } from "../types"
@@ -14,6 +15,7 @@ export type UseStatResult = {
 
 export default function useDriver(driverId: string | undefined): UseStatResult {
 
+    const { t } = useTranslation();
     const [data, setData] = useState<Driver | null>(null);
     const [status, setStatus] = useState<StatStatus>('idle');
     const [trigger, setTrigger] = useState<number>(0)
@@ -54,7 +56,7 @@ export default function useDriver(driverId: string | undefined): UseStatResult {
                 const message =
                     err instanceof Error
                         ? err.message
-                        : (err as any)?.message || 'Unknown error';
+                        : (err as any)?.message || t('driver.profile.unknownError');
                 if (cancelled || currentId !== requestIdRef.current) return
                 setError(message);
                 setStatus('error');
@@ -66,7 +68,7 @@ export default function useDriver(driverId: string | undefined): UseStatResult {
         run()
         return () => { cancelled = true }
 
-    }, [driverId, trigger])
+    }, [driverId, trigger, t])
 
 
     return { data, status, error, refresh }

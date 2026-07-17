@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { RefreshCw } from "lucide-react-native";
 import { EmptyShipmentsIllustration } from "./DriverIllustrations";
 
@@ -9,15 +10,14 @@ interface Props {
 }
 
 export const EmptyShipments = ({ onRefresh, refreshing = false }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.wrapper}>
       <EmptyShipmentsIllustration size={184} />
 
-      <Text style={styles.title}>No deliveries yet</Text>
-      <Text style={styles.subtitle}>
-        When a transporter assigns you a shipment, it shows up here. Pull down to
-        refresh anytime.
-      </Text>
+      <Text style={styles.title}>{t("driver.empty.title")}</Text>
+      <Text style={styles.subtitle}>{t("driver.empty.subtitle")}</Text>
 
       <TouchableOpacity
         style={styles.button}
@@ -27,7 +27,7 @@ export const EmptyShipments = ({ onRefresh, refreshing = false }: Props) => {
       >
         <RefreshCw size={16} color="#036BB4" strokeWidth={2.4} />
         <Text style={styles.buttonText}>
-          {refreshing ? "Refreshing…" : "Refresh"}
+          {refreshing ? t("driver.empty.refreshing") : t("driver.empty.refresh")}
         </Text>
       </TouchableOpacity>
     </View>

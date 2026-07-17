@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Bank, BankPayload } from "../../../domain/entities/bank.entity";
 import FormInput from "../../../shared/components/FormInput";
 import SubmitButton from "../../../shared/components/SubmitButton";
@@ -43,6 +44,7 @@ const InfoCard = ({ label, value }: { label: string; value?: string }) => (
 );
 
 const BankDetailsScreen = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<props>();
     const { user } = useAuth();
     const role: BankRole = user?.role === "TRANSPORTER" ? "transporter" : "shipper";
@@ -92,14 +94,14 @@ const BankDetailsScreen = () => {
             setSaving(true);
             if (editingId) {
                 await updateBankDetails(role, editingId, formData);
-                Alert.alert("Success", "Bank details updated successfully!");
+                Alert.alert(t("common.success"), t("settings.bank.updated"));
             } else {
                 await addBankDetails(role, formData);
-                Alert.alert("Success", "Bank details added successfully!");
+                Alert.alert(t("common.success"), t("settings.bank.added"));
             }
             await fetchBankDetails();
         } catch (error: any) {
-            Alert.alert("Error", error?.message || "Something went wrong");
+            Alert.alert(t("common.error"), error?.message || t("common.somethingWentWrong"));
         } finally {
             setSaving(false);
         }
@@ -107,17 +109,17 @@ const BankDetailsScreen = () => {
 
     const onDelete = (bank: Bank) => {
         if (!bank._id) return;
-        Alert.alert("Delete account", "Remove this bank account?", [
-            { text: "Cancel", style: "cancel" },
+        Alert.alert(t("settings.bank.deleteTitle"), t("settings.bank.deleteMessage"), [
+            { text: t("common.cancel"), style: "cancel" },
             {
-                text: "Delete",
+                text: t("common.delete"),
                 style: "destructive",
                 onPress: async () => {
                     try {
                         await deleteBankDetails(role, bank._id!);
                         await fetchBankDetails();
                     } catch (e: any) {
-                        Alert.alert("Error", e?.message || "Failed to delete");
+                        Alert.alert(t("common.error"), e?.message || t("settings.bank.deleteFailed"));
                     }
                 },
             },
@@ -135,7 +137,7 @@ const BankDetailsScreen = () => {
 
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
-            <AppHeader text="Bank Details" onpress={handleBack} />
+            <AppHeader text={t("settings.bank.title")} onpress={handleBack} />
 
             {loading ? (
                 <View className="flex-1 items-center justify-center">
@@ -151,24 +153,26 @@ const BankDetailsScreen = () => {
                         <View key={bank._id ?? index} className="mt-2">
                             <View className="flex-row items-center justify-between mb-2">
                                 <Text className="text-lg font-bold text-black">
-                                    {banks.length > 1 ? `Account ${index + 1}` : "Account Details"}
+                                    {banks.length > 1
+                                        ? t("settings.bank.accountNumbered", { number: index + 1 })
+                                        : t("settings.bank.accountDetails")}
                                 </Text>
                                 <View className="flex-row items-center">
                                     <TouchableOpacity onPress={() => startEdit(bank)}>
-                                        <Text className="text-[#036BB4] font-medium">Edit</Text>
+                                        <Text className="text-[#036BB4] font-medium">{t("common.edit")}</Text>
                                     </TouchableOpacity>
                                     <Text className="text-gray-300 mx-2">|</Text>
                                     <TouchableOpacity onPress={() => onDelete(bank)}>
-                                        <Text className="text-[#FF0702] font-medium">Delete</Text>
+                                        <Text className="text-[#FF0702] font-medium">{t("common.delete")}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <InfoCard label="Account Number" value={bank.account_number} />
-                            <InfoCard label="Routing Number" value={bank.routing_number} />
-                            <InfoCard label="Bank Name" value={bank.bank_name} />
-                            <InfoCard label="Bank holder Name" value={bank.bankholder_name} />
-                            <InfoCard label="Bank Adress" value={bank.bank_address} />
+                            <InfoCard label={t("settings.bank.accountNumberLabel")} value={bank.account_number} />
+                            <InfoCard label={t("settings.bank.routingNumberLabel")} value={bank.routing_number} />
+                            <InfoCard label={t("settings.bank.bankNameLabel")} value={bank.bank_name} />
+                            <InfoCard label={t("settings.bank.holderNameLabel")} value={bank.bankholder_name} />
+                            <InfoCard label={t("settings.bank.addressLabel")} value={bank.bank_address} />
                         </View>
                     ))}
 
@@ -180,7 +184,7 @@ const BankDetailsScreen = () => {
                             <Text className="text-white text-base leading-5">+</Text>
                         </View>
                         <Text className="text-white text-center font-semibold">
-                            Add Account
+                            {t("settings.bank.addAccount")}
                         </Text>
                     </TouchableOpacity>
                 </ScrollView>
@@ -194,46 +198,46 @@ const BankDetailsScreen = () => {
                     <FormInput
                         control={control}
                         name="account_number"
-                        label="Account Number"
-                        placeholder="Enter your account number"
-                        rules={{ required: "Account number is required" }}
+                        label={t("settings.bank.accountNumberLabel")}
+                        placeholder={t("settings.bank.accountNumberPlaceholder")}
+                        rules={{ required: t("validation.accountNumberRequired") }}
                     />
 
                     <FormInput
                         control={control}
                         name="routing_number"
-                        label="Routing Number"
-                        placeholder="Enter your routing number"
-                        rules={{ required: "Routing number is required" }}
+                        label={t("settings.bank.routingNumberLabel")}
+                        placeholder={t("settings.bank.routingNumberPlaceholder")}
+                        rules={{ required: t("validation.routingNumberRequired") }}
                     />
 
                     <FormInput
                         control={control}
                         name="bank_name"
-                        label="Bank Name"
-                        placeholder="Enter bank name"
-                        rules={{ required: "Bank name is required" }}
+                        label={t("settings.bank.bankNameLabel")}
+                        placeholder={t("settings.bank.bankNamePlaceholder")}
+                        rules={{ required: t("validation.bankNameRequired") }}
                     />
 
                     <FormInput
                         control={control}
                         name="bankholder_name"
-                        label="Bank holder Name"
-                        placeholder="Enter bank holder name"
-                        rules={{ required: "Holder name is required" }}
+                        label={t("settings.bank.holderNameLabel")}
+                        placeholder={t("settings.bank.holderNamePlaceholder")}
+                        rules={{ required: t("validation.holderNameRequired") }}
                     />
 
                     <FormInput
                         control={control}
                         name="bank_address"
-                        label="Bank Adress"
-                        placeholder="Enter bank address"
-                        rules={{ required: "Bank address is required" }}
+                        label={t("settings.bank.addressLabel")}
+                        placeholder={t("settings.bank.addressPlaceholder")}
+                        rules={{ required: t("validation.bankAddressRequired") }}
                     />
 
                     <View className="mt-2">
                         <SubmitButton
-                            text={editingId ? "Save & Change" : "Add Account"}
+                            text={editingId ? t("settings.bank.saveChange") : t("settings.bank.addAccount")}
                             loading={saving}
                             onSubmit={handleSubmit(onSubmit)}
                         />

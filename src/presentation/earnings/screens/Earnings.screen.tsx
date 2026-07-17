@@ -4,6 +4,7 @@ import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { Wallet } from "lucide-react-native";
 import { EarningsStackParamList } from "../../../navigation/types";
 import { Earning } from "../types";
@@ -13,6 +14,7 @@ import EarningTable from "../components/EarningTable";
 type NavigationProp = NativeStackNavigationProp<EarningsStackParamList, "Earning">;
 
 const EarningsScreen: React.FC = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<NavigationProp>();
 
     // No earnings API endpoint exists yet. Render the real (empty) state instead
@@ -31,7 +33,7 @@ const EarningsScreen: React.FC = () => {
 
             {/* Header */}
             <View className="px-4 py-4 border-b border-gray-100">
-                <Text className="text-lg font-bold text-center text-gray-900">Earnings</Text>
+                <Text className="text-lg font-bold text-center text-gray-900">{t("earnings.title")}</Text>
             </View>
 
             <ScrollView
@@ -51,10 +53,10 @@ const EarningsScreen: React.FC = () => {
                             <Wallet size={36} color="#036BB4" />
                         </View>
                         <Text className="text-lg font-semibold text-gray-900 mt-5">
-                            No earnings yet
+                            {t("earnings.emptyTitle")}
                         </Text>
                         <Text className="text-sm text-gray-500 text-center mt-2 leading-5">
-                            Once you complete deliveries, your earnings and withdrawals will appear here.
+                            {t("earnings.emptyBody")}
                         </Text>
                     </View>
                 ) : (

@@ -3,6 +3,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import FormInput from "../../../shared/components/FormInput";
 import UploadField from "../../../shared/components/UploadField";
 import PhoneNumberInput from "../../../shared/components/PhoneNumberInput";
@@ -74,6 +75,7 @@ export default function DriverForm({
     isEdit = false,
     loading = false,
 }: Props) {
+    const { t } = useTranslation();
     const profilePicture = watch("profilePicture") || [];
     const driverLicense = watch("driverLicense") || [];
 
@@ -86,24 +88,24 @@ export default function DriverForm({
         >
             {/* ================= DRIVER DETAILS ================= */}
             <SectionCard
-                title="Driver Details"
-                subtitle="Basic contact information for this driver."
+                title={t("driver.form.detailsTitle")}
+                subtitle={t("driver.form.detailsSubtitle")}
             >
                 <FormInput
                     control={control}
                     name="name"
-                    label="Driver Name"
-                    placeholder="Enter driver name"
+                    label={t("driver.form.nameLabel")}
+                    placeholder={t("driver.form.namePlaceholder")}
                     required
                     rules={{
-                        required: "Driver name is required",
-                        minLength: { value: 2, message: "Enter a valid name" },
+                        required: t("validation.nameRequired"),
+                        minLength: { value: 2, message: t("validation.nameInvalid") },
                     }}
                 />
 
                 {/* Phone — prefix/flag driven by the selected country */}
                 <View className="mb-5">
-                    <Label required>Phone Number</Label>
+                    <Label required>{t("driver.form.phoneLabel")}</Label>
                     <Controller
                         control={control}
                         name="phone"
@@ -117,13 +119,16 @@ export default function DriverForm({
                             />
                         )}
                     />
+                    {/* Two complete sentences rather than gluing fragments —
+                        French word order will not survive concatenation. */}
                     {phoneError ? (
                         <Text className="text-red-500 text-xs mt-1">
-                            Enter a valid {country.name} phone number
                             {country.phoneLengths.length
-                                ? ` (${country.phoneLengths.join(" or ")} digits)`
-                                : ""}
-                            .
+                                ? t("driver.form.phoneInvalidWithDigits", {
+                                    country: country.name,
+                                    lengths: country.phoneLengths.join(t("common.or")),
+                                })
+                                : t("driver.form.phoneInvalid", { country: country.name })}
                         </Text>
                     ) : null}
                 </View>
@@ -131,41 +136,41 @@ export default function DriverForm({
                 <FormInput
                     control={control}
                     name="email"
-                    label="Email"
-                    placeholder="Enter email address"
+                    label={t("driver.form.emailLabel")}
+                    placeholder={t("driver.form.emailPlaceholder")}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     rules={{
                         pattern: {
                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                            message: "Enter a valid email address",
+                            message: t("validation.emailInvalid"),
                         },
                     }}
                 />
 
                 {/* Country — selecting updates the phone prefix automatically */}
                 <View className="mb-1">
-                    <Label required>Country</Label>
+                    <Label required>{t("driver.form.countryLabel")}</Label>
                     <CountryPicker value={country} onChange={onCountryChange} />
                 </View>
             </SectionCard>
 
             {/* ================= DOCUMENTS ================= */}
             <SectionCard
-                title="Documents"
-                subtitle="Add a clear profile photo and the driver's license."
+                title={t("driver.form.documentsTitle")}
+                subtitle={t("driver.form.documentsSubtitle")}
             >
                 <View className="flex-row gap-3">
                     <View className="flex-1">
                         <UploadField
-                            label="Profile Picture"
+                            label={t("driver.form.profilePicture")}
                             files={profilePicture}
                             onPress={(files) => setValue("profilePicture", files)}
                         />
                     </View>
                     <View className="flex-1">
                         <UploadField
-                            label="Driver License"
+                            label={t("driver.form.driverLicense")}
                             files={driverLicense}
                             onPress={(files) => setValue("driverLicense", files)}
                         />
@@ -180,7 +185,7 @@ export default function DriverForm({
                     disabled={loading}
                     className="items-center py-3 mb-2"
                 >
-                    <Text className="text-red-500 font-semibold">Remove Driver</Text>
+                    <Text className="text-red-500 font-semibold">{t("driver.form.removeDriver")}</Text>
                 </TouchableOpacity>
             )}
 
@@ -192,7 +197,7 @@ export default function DriverForm({
                         disabled={loading}
                         className="flex-1 border border-gray-300 py-4 rounded-full"
                     >
-                        <Text className="text-center font-semibold text-gray-700">Cancel</Text>
+                        <Text className="text-center font-semibold text-gray-700">{t("common.cancel")}</Text>
                     </TouchableOpacity>
                 )}
 
@@ -205,11 +210,11 @@ export default function DriverForm({
                     <Text className="text-center font-semibold text-white">
                         {loading
                             ? isEdit
-                                ? "Saving..."
-                                : "Adding..."
+                                ? t("driver.form.saving")
+                                : t("driver.form.adding")
                             : isEdit
-                                ? "Save Changes"
-                                : "Add Driver"}
+                                ? t("driver.form.saveChanges")
+                                : t("driver.form.addDriver")}
                     </Text>
                 </TouchableOpacity>
             </View>

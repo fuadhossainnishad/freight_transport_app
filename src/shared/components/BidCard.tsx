@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { MapPin, Package, ArrowRight } from "lucide-react-native";
 import { normalizeImageUrl } from "../utils/normalizeImageUrl";
 
@@ -10,13 +11,14 @@ type Props = {
 };
 
 export default function BidCard({ bid, width, onPress }: Props) {
+  const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
 
   const rawImage = bid?.shipment_images?.[0];
   const uri = rawImage ? normalizeImageUrl(rawImage) : "";
   const showImage = !!uri && !imgError;
 
-  const title = bid?.shipment_title || bid?.category || "Shipment";
+  const title = bid?.shipment_title || bid?.category || t("components.bidCard.fallbackTitle");
   const pickup = bid?.pickup_address || "—";
   const delivery = bid?.delivery_address || "—";
 

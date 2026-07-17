@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import FormInput from "../../../shared/components/FormInput";
 import AppHeader from "../../../shared/components/AppHeader";
 import { ChangePassword } from "../../../domain/entities/user.entity";
@@ -17,6 +18,7 @@ import { useChangePassword } from "../hooks/useChangePassword";
 type props = NativeStackNavigationProp<SettingsStackParamList, 'ChangePassword'>;
 
 export default function ChangePasswordScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<props>()
     const { changePassword, loading } = useChangePassword();
 
@@ -37,15 +39,18 @@ export default function ChangePasswordScreen() {
 
             await changePassword(data);
 
+            // NOTE: this screen has always reported "Profile updated" rather
+            // than "Password changed". Translated faithfully rather than
+            // silently rewording it — flagged for a copy fix.
             Alert.alert(
-                "Success",
-                "Profile updated successfully"
+                t("common.success"),
+                t("settings.profile.updated")
             );
 
         } catch {
             Alert.alert(
-                "Error",
-                "Failed to update profile"
+                t("common.error"),
+                t("settings.profile.updateFailed")
             );
         }
     };
@@ -53,28 +58,30 @@ export default function ChangePasswordScreen() {
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
 
-            <AppHeader text="Edit Profile" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("settings.profile.title")} onpress={() => navigation.goBack()} />
 
             <View className="p-4">
 
                 <FormInput
                     control={control}
                     name="current_pasword"
-                    label="Current Password"
-                    placeholder="Enter Current Password"
-                    rules={{ required: "Current Password is required" }}
+                    label={t("settings.changePassword.currentLabel")}
+                    placeholder={t("settings.changePassword.currentPlaceholder")}
+                    rules={{ required: t("validation.currentPasswordRequired") }}
                 />
 
                 <FormInput
                     control={control}
                     name="new_pasword"
-                    label="New Password"
-                    placeholder="Enter New Password"
+                    label={t("settings.changePassword.newLabel")}
+                    placeholder={t("settings.changePassword.newPlaceholder")}
                     rules={{
-                        required: "New Password is required",
+                        required: t("validation.newPasswordRequiredShort"),
+                        // Pre-existing: an email pattern on a password field.
+                        // Kept as-is so this stays a translation-only change.
                         pattern: {
                             value: /\S+@\S+\.\S+/,
-                            message: "Invalid email",
+                            message: t("validation.emailInvalid"),
                         },
                     }}
                 />
@@ -82,14 +89,14 @@ export default function ChangePasswordScreen() {
                 <FormInput
                     control={control}
                     name="confirmed_pasword"
-                    label="Confirmed Password"
-                    placeholder="Enter Confirmed Password"
-                    rules={{ required: "Confirmed Password required" }}
+                    label={t("settings.changePassword.confirmLabel")}
+                    placeholder={t("settings.changePassword.confirmPlaceholder")}
+                    rules={{ required: t("validation.confirmedPasswordRequired") }}
                 />
 
 
                 <SubmitButton
-                    text="Save & Change"
+                    text={t("settings.profile.save")}
                     loading={loading}
                     onSubmit={handleSubmit(onSubmit)}
                 />

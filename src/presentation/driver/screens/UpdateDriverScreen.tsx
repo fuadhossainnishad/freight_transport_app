@@ -5,6 +5,7 @@ import { View, ActivityIndicator, Alert } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import DriverForm, {
   DriverFormValues,
@@ -33,6 +34,7 @@ type RouteType = RouteProp<
 >;
 
 export default function UpdateDriverScreen() {
+  const { t } = useTranslation();
   const route = useRoute<RouteType>();
   const navigation = useNavigation<Nav>();
 
@@ -85,14 +87,14 @@ export default function UpdateDriverScreen() {
         });
 
       } catch (err) {
-        Alert.alert("Error", "Failed to load driver");
+        Alert.alert(t("common.error"), t("driver.update.loadFailed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchDriver();
-  }, [driverId, reset]);
+  }, [driverId, reset, t]);
 
   const handleCountryChange = (next: Country) => {
     setCountry(next);
@@ -123,11 +125,11 @@ export default function UpdateDriverScreen() {
         country: country.name,
       });
 
-      Alert.alert("Success", "Driver updated successfully");
+      Alert.alert(t("common.success"), t("driver.update.updated"));
 
       navigation.goBack();
     } catch (err) {
-      Alert.alert("Error", "Update failed");
+      Alert.alert(t("common.error"), t("driver.update.updateFailed"));
       console.error(err);
     } finally {
       setSaving(false);
@@ -148,7 +150,7 @@ export default function UpdateDriverScreen() {
       className="flex-1 bg-gray-50"
     >
       <AppHeader
-        text="Edit Driver Details"
+        text={t("driver.update.title")}
         onpress={() => navigation.goBack()}
       />
 

@@ -15,6 +15,8 @@ import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.use
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 import ShipmentMapRoute from '../../transporter/components/ShipmentMapRoute';
 
 type RoutePropType = RouteProp<ActiveShipmentsStackParamList, 'ShipmentTracking'>;
@@ -22,14 +24,15 @@ type NavigationPropType = NativeStackNavigationProp<ActiveShipmentsStackParamLis
 
 const BLUE = "#036BB4";
 
-const STATUS: Record<string, { label: string; bg: string }> = {
-    IN_PROGRESS: { label: "In progress", bg: "#F97316" },
-    IN_TRANSIT: { label: "In transit", bg: "#2563EB" },
-    COMPLETED: { label: "Delivered", bg: "#22C55E" },
-    DELIVERED: { label: "Delivered", bg: "#22C55E" },
-    BIDDING: { label: "Bidding", bg: "#0EA5E9" },
-    PENDING: { label: "Pending", bg: "#64748B" },
-    CANCELLED: { label: "Cancelled", bg: "#EF4444" },
+// Keys are backend enums — never translate them. Only labelKey is translated.
+const STATUS: Record<string, { labelKey: ParseKeys; bg: string }> = {
+    IN_PROGRESS: { labelKey: "shipper.status.inProgress", bg: "#F97316" },
+    IN_TRANSIT: { labelKey: "shipper.status.inTransit", bg: "#2563EB" },
+    COMPLETED: { labelKey: "shipper.status.delivered", bg: "#22C55E" },
+    DELIVERED: { labelKey: "shipper.status.delivered", bg: "#22C55E" },
+    BIDDING: { labelKey: "shipper.status.bidding", bg: "#0EA5E9" },
+    PENDING: { labelKey: "shipper.status.pending", bg: "#64748B" },
+    CANCELLED: { labelKey: "shipper.status.cancelled", bg: "#EF4444" },
 };
 
 // One labelled field inside a card
@@ -43,6 +46,7 @@ function Field({ label, value }: { label: string; value?: string | number | null
 }
 
 const ShipmentTrackingScreen: React.FC = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<NavigationPropType>();
     const route = useRoute<RoutePropType>();
     const { shipmentId } = route.params;
@@ -74,11 +78,16 @@ const ShipmentTrackingScreen: React.FC = () => {
     }
 
     const { vehicle, driver } = data;
-    const status = STATUS[data.status] ?? { label: data.status, bg: "#64748B" };
+    // Unmapped statuses still fall back to the raw backend enum, as before.
+    const statusConfig = STATUS[data.status];
+    const status = {
+        label: statusConfig ? t(statusConfig.labelKey) : data.status,
+        bg: statusConfig?.bg ?? "#64748B",
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-            <AppHeader text="Shipment Tracking" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("shipper.tracking.title")} onpress={() => navigation.goBack()} />
 
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
                 {/* Status badge */}
@@ -100,36 +109,39 @@ const ShipmentTrackingScreen: React.FC = () => {
                 />
 
                 {/* Basic Information */}
-                <Text style={styles.sectionTitle}>Basic Information</Text>
+                <Text style={styles.sectionTitle}>{t("shipper.tracking.basicInformation")}</Text>
                 <View style={styles.card}>
                     <View style={styles.cardRow}>
-                        <Field label="Shipment Id" value={data.id} />
-                        <Field label="Shipment title" value={data.title} />
+                        <Field label={t("shipper.tracking.shipmentId")} value={data.id} />
+                        <Field label={t("shipper.tracking.shipmentTitle")} value={data.title} />
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.cardRow}>
-                        <Field label="Estimated Delivery" value={data.datePreference} />
+                        <Field label={t("shipper.tracking.estimatedDelivery")} value={data.datePreference} />
                     </View>
                 </View>
 
                 {/* Vehicle Details */}
                 {vehicle && (
                     <>
-                        <Text style={styles.sectionTitle}>Vehicle Details</Text>
+                        <Text style={styles.sectionTitle}>{t("shipper.tracking.vehicleDetails")}</Text>
                         <View style={styles.card}>
                             <View style={styles.cardRow}>
-                                <Field label="Vehicle Type" value={vehicle.type} />
-                                <Field label="Plate Number" value={vehicle.plate} />
+                                <Field label={t("shipper.tracking.vehicleType")} value={vehicle.type} />
+                                <Field label={t("shipper.tracking.plateNumber")} value={vehicle.plate} />
                             </View>
                             <View style={styles.divider} />
                             <View style={styles.cardRow}>
-                                <Field label="Capacity" value={vehicle.capacity ? `${vehicle.capacity} Tons` : null} />
+                                <Field
+                                    label={t("shipper.tracking.capacity")}
+                                    value={vehicle.capacity ? t("shipper.tracking.capacityValue", { value: vehicle.capacity }) : null}
+                                />
                             </View>
                         </View>
 
                         {vehicle.images?.length > 0 && (
                             <>
-                                <Text style={styles.subLabel}>Vehicle Images</Text>
+                                <Text style={styles.subLabel}>{t("shipper.tracking.vehicleImages")}</Text>
                                 <ScrollView
                                     horizontal
                                     showsHorizontalScrollIndicator={false}
@@ -147,11 +159,11 @@ const ShipmentTrackingScreen: React.FC = () => {
                 {/* Driver Details */}
                 {driver && (
                     <>
-                        <Text style={styles.sectionTitle}>Driver Details</Text>
+                        <Text style={styles.sectionTitle}>{t("shipper.tracking.driverDetails")}</Text>
                         <View style={styles.card}>
                             <View style={styles.cardRow}>
-                                <Field label="Name" value={driver.name} />
-                                <Field label="Phone" value={driver.phone} />
+                                <Field label={t("shipper.tracking.driverName")} value={driver.name} />
+                                <Field label={t("shipper.tracking.driverPhone")} value={driver.phone} />
                             </View>
                         </View>
                     </>
@@ -160,10 +172,10 @@ const ShipmentTrackingScreen: React.FC = () => {
                 {/* Actions */}
                 <View style={styles.actions}>
                     <TouchableOpacity style={styles.reportBtn} activeOpacity={0.85}>
-                        <Text style={styles.reportTxt}>Report an Issue</Text>
+                        <Text style={styles.reportTxt}>{t("shipper.tracking.reportIssue")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.confirmBtn} activeOpacity={0.85} disabled>
-                        <Text style={styles.confirmTxt}>Confirm Delivery</Text>
+                        <Text style={styles.confirmTxt}>{t("shipper.tracking.confirmDelivery")}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

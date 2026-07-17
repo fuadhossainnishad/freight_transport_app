@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Alert, KeyboardAvoidingView, Platform } from "react-native";
 
 import DriverForm, { DriverFormValues } from "../components/DriverForm";
@@ -16,6 +17,7 @@ import {
 } from "../../../domain/constants/countries";
 
 export default function AddDriverScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const { user } = useAuth();
 
@@ -72,10 +74,10 @@ export default function AddDriverScreen() {
       console.log(error);
 
       Alert.alert(
-        "Error",
+        t("common.error"),
         error?.response?.data?.message ||
         error?.message ||
-        "Failed to create driver"
+        t("driver.add.createFailed")
       );
     } finally {
       setLoading(false);
@@ -84,7 +86,7 @@ export default function AddDriverScreen() {
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
-      <AppHeader text="Add Driver" onpress={() => navigation.goBack()} />
+      <AppHeader text={t("driver.add.title")} onpress={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         className="flex-1"
@@ -106,9 +108,9 @@ export default function AddDriverScreen() {
 
       <SuccessModal
         visible={success}
-        title="Driver Added"
-        message="The driver has been added successfully and can now be assigned to shipments."
-        buttonText="Done"
+        title={t("driver.add.successTitle")}
+        message={t("driver.add.successMessage")}
+        buttonText={t("common.done")}
         onClose={() => {
           setSuccess(false);
           navigation.goBack();

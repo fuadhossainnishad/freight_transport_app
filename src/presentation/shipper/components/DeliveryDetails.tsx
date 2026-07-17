@@ -1,6 +1,7 @@
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Controller, Control } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Check, ShieldCheck, Send } from "lucide-react-native"
 import LocationPickerInput, { LatLng } from "../../../shared/components/LocationPickerInput"
 import DatePickerField from "../../../shared/components/DatePickerField"
@@ -99,17 +100,19 @@ export default function DeliveryDetails({
   setPickupCoord,
   setDeliveryCoord,
 }: Props) {
+  const { t } = useTranslation()
+
   return (
     <View className="px-5">
-      <Text className="text-sm text-gray-500 mb-5">Where should it be picked up and dropped off?</Text>
+      <Text className="text-sm text-gray-500 mb-5">{t("shipper.delivery.intro")}</Text>
 
       <Controller
         control={control}
         name="pickup_address"
         render={({ field: { onChange, value } }) => (
           <LocationPickerInput
-            label="Pickup Location"
-            placeholder="Search pickup address"
+            label={t("shipper.delivery.pickupLabel")}
+            placeholder={t("shipper.delivery.pickupPlaceholder")}
             address={value || ""}
             coord={pickupCoord}
             onChange={(addr, c) => {
@@ -120,14 +123,14 @@ export default function DeliveryDetails({
         )}
       />
 
-      <Label required>Time Window</Label>
+      <Label required>{t("shipper.delivery.timeWindowLabel")}</Label>
       <Controller
         control={control}
         name="time_window"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className={inputClass}
-            placeholder="e.g. 9:00 AM - 5:00 PM"
+            placeholder={t("shipper.delivery.timeWindowPlaceholder")}
             placeholderTextColor="#9ca3af"
             value={value}
             onChangeText={onChange}
@@ -140,8 +143,8 @@ export default function DeliveryDetails({
         name="delivery_address"
         render={({ field: { onChange, value } }) => (
           <LocationPickerInput
-            label="Delivery Location"
-            placeholder="Search delivery address"
+            label={t("shipper.delivery.deliveryLabel")}
+            placeholder={t("shipper.delivery.deliveryPlaceholder")}
             address={value || ""}
             coord={deliveryCoord}
             onChange={(addr, c) => {
@@ -152,14 +155,14 @@ export default function DeliveryDetails({
         )}
       />
 
-      <Label required>Contact Person / Phone</Label>
+      <Label required>{t("shipper.delivery.contactLabel")}</Label>
       <Controller
         control={control}
         name="contact_person"
         render={({ field: { onChange, value } }) => (
           <TextInput
             className={inputClass}
-            placeholder="e.g. +1 555 123 4567"
+            placeholder={t("shipper.delivery.contactPlaceholder")}
             placeholderTextColor="#9ca3af"
             value={value}
             onChangeText={onChange}
@@ -168,32 +171,31 @@ export default function DeliveryDetails({
         )}
       />
 
-      <Label required>Date Preference</Label>
+      <Label required>{t("shipper.delivery.dateLabel")}</Label>
       <Controller
         control={control}
         name="date_preference"
         render={({ field: { onChange, value } }) => (
-          <DatePickerField
-            value={value}
-            onChange={onChange}
-            placeholder="Select a date"
-          />
+          // No placeholder prop: DatePickerField supplies its own translated
+          // default. Its formatted output stays English on purpose — it is
+          // submitted as `date_preference`. See shared/utils/dateWireFormat.
+          <DatePickerField value={value} onChange={onChange} />
         )}
       />
 
       {/* Additional services */}
-      <Label>Additional services</Label>
+      <Label>{t("shipper.delivery.additionalServices")}</Label>
       <View style={{ flexDirection: "row", gap: 12 }}>
         <ServiceToggle
           control={control}
           name="insurance"
-          label="Insurance"
+          label={t("shipper.delivery.insurance")}
           icon={<ShieldCheck size={16} color="#036BB4" />}
         />
         <ServiceToggle
           control={control}
           name="forwarding"
-          label="Forwarding"
+          label={t("shipper.delivery.forwarding")}
           icon={<Send size={15} color="#036BB4" />}
         />
       </View>

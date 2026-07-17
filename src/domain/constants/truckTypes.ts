@@ -1,8 +1,17 @@
-export const TRUCK_TYPES = [
-  { label: "Tractorhead", value: "TRACTORHEAD" },
-  { label: "Truck", value: "TRUCK" },
-  { label: "Light commercial vehicle", value: "LIGHT_COMMERCIAL_VEHICLE" },
-  { label: "Construction equipment", value: "CONSTRUCTION_EQUIPMENT" },
-  { label: "Semi-trailer", value: "SEMI_TRAILER" },
-  { label: "Trailer", value: "TRAILER" },
+import type { ParseKeys } from "i18next"
+
+export type TruckType = {
+  /** Resolved with t() at the render site; typed so a bad key fails the build. */
+  labelKey: ParseKeys
+  /** API enum sent to and stored by the backend — never translate. */
+  value: string
+}
+
+export const TRUCK_TYPES: TruckType[] = [
+  { labelKey: "truckTypes.tractorhead", value: "TRACTORHEAD" },
+  { labelKey: "truckTypes.truck", value: "TRUCK" },
+  { labelKey: "truckTypes.lightCommercialVehicle", value: "LIGHT_COMMERCIAL_VEHICLE" },
+  { labelKey: "truckTypes.constructionEquipment", value: "CONSTRUCTION_EQUIPMENT" },
+  { labelKey: "truckTypes.semiTrailer", value: "SEMI_TRAILER" },
+  { labelKey: "truckTypes.trailer", value: "TRAILER" },
 ];

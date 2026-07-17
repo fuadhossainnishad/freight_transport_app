@@ -12,6 +12,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { ArrowLeft } from "lucide-react-native"
 
 import CustomInput from "../../../shared/components/CustomInput"
@@ -31,6 +32,7 @@ interface ForgotPasswordForm {
 }
 
 export default function ForgetPasswordScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<Props>()
 
     const { requestOtp, loading } = useForgotPassword()
@@ -52,7 +54,7 @@ export default function ForgetPasswordScreen() {
                 verificationToken: res.verification_token,
             })
         } catch (error: any) {
-            Alert.alert("Error", error?.message || "Failed to send OTP")
+            Alert.alert(t("common.error"), error?.message || t("auth.forgotPassword.otpFailed"))
         }
     }
 
@@ -83,10 +85,10 @@ export default function ForgetPasswordScreen() {
 
                             {/* Header */}
                             <Text className="text-2xl font-bold text-center text-gray-900 mt-5">
-                                Forgot Password
+                                {t("auth.forgotPassword.title")}
                             </Text>
                             <Text className="text-gray-500 text-[15px] text-center mt-3 leading-6">
-                                Please enter your email address to{"\n"}receive a verification code.
+                                {t("auth.forgotPassword.subtitle")}
                             </Text>
 
                             {/* Email */}
@@ -95,15 +97,15 @@ export default function ForgetPasswordScreen() {
                                     control={control}
                                     name="email"
                                     rules={{
-                                        required: "Email is required",
+                                        required: t("validation.emailRequired"),
                                         pattern: {
                                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                            message: "Enter a valid email address",
+                                            message: t("validation.emailInvalid"),
                                         },
                                     }}
                                     render={({ field: { onChange, value } }) => (
                                         <CustomInput
-                                            placeholder="you@example.com"
+                                            placeholder={t("auth.forgotPassword.emailPlaceholder")}
                                             autoCapitalize="none"
                                             keyboardType="email-address"
                                             autoCorrect={false}
@@ -128,19 +130,19 @@ export default function ForgetPasswordScreen() {
                             keyboard never hides it */}
                         <View className="px-7 pt-4 pb-4">
                             <SubmitButton
-                                text="Send"
+                                text={t("auth.forgotPassword.send")}
                                 loading={loading}
                                 onSubmit={handleSubmit(onSubmit)}
                             />
 
                             <View className="flex-row justify-center mt-5">
-                                <Text className="text-gray-500">Remember your password?</Text>
+                                <Text className="text-gray-500">{t("auth.forgotPassword.rememberPassword")}</Text>
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate("SignIn")}
                                     className="ml-2"
                                     activeOpacity={0.7}
                                 >
-                                    <Text className="font-semibold text-[#036BB4]">Log In</Text>
+                                    <Text className="font-semibold text-[#036BB4]">{t("auth.forgotPassword.logIn")}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

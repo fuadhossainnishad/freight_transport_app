@@ -15,6 +15,7 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 
 const { width, height } = Dimensions.get('window')
 
@@ -32,6 +33,7 @@ const API_HEADERS = {
 }
 
 export default function AddressPickerScreen() {
+    const { t } = useTranslation()
     const route = useRoute()
     const navigation = useNavigation()
     const { field } = route.params as any
@@ -46,8 +48,12 @@ export default function AddressPickerScreen() {
     const searchTimeoutRef = useRef<number | null>(null)
     const mapRef = useRef<MapView>(null)
 
+    // Mount-only: seed the map with the default location. reverseGeocode now
+    // closes over `t`, so the linter wants it as a dependency — but adding it
+    // would re-fire this geocode request on every language switch for no reason.
     useEffect(() => {
         reverseGeocode(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // Search using OpenStreetMap Nominatim API
@@ -86,11 +92,11 @@ export default function AddressPickerScreen() {
                 setError('')
             } else {
                 setPredictions([])
-                setError(`No locations found for "${query}". Try a different search term.`)
+                setError(t('shipper.addressPicker.noResults', { query }))
             }
         } catch (err) {
             console.error('Search Error:', err)
-            setError('Unable to search. Please check your internet connection.')
+            setError(t('shipper.addressPicker.searchFailed'))
             setPredictions([])
         } finally {
             setLoading(false)
@@ -159,7 +165,7 @@ export default function AddressPickerScreen() {
                 coordinates: { lat: latitude, lng: longitude }
             }
             setSelectedLocation(addressData)
-            setError('Unable to get address details')
+            setError(t('shipper.addressPicker.addressFailed'))
         } finally {
             setLoading(false)
         }
@@ -214,7 +220,10 @@ export default function AddressPickerScreen() {
                 field: field
             })
         } else {
-            Alert.alert('No Location Selected', 'Please tap on the map or search for a location first.')
+            Alert.alert(
+                t('shipper.addressPicker.noneSelectedTitle'),
+                t('shipper.addressPicker.noneSelectedMessage'),
+            )
         }
     }
 
@@ -264,7 +273,7 @@ export default function AddressPickerScreen() {
                             }}
                             draggable
                             onDragEnd={handleMarkerDragEnd}
-                            title="Selected Location"
+                            title={t('shipper.addressPicker.selectedLocation')}
                             description={selectedLocation.formatted_address?.substring(0, 100)}
                         />
                     )}
@@ -305,7 +314,7 @@ export default function AddressPickerScreen() {
                                 fontSize: 16,
                                 color: '#1F2937'
                             }}
-                            placeholder="Search for street, area, or city..."
+                            placeholder={t('shipper.addressPicker.searchPlaceholder')}
                             placeholderTextColor="#9CA3AF"
                             value={searchQuery}
                             onChangeText={searchLocations}
@@ -339,7 +348,7 @@ export default function AddressPickerScreen() {
                         borderBottomWidth: 1,
                         borderBottomColor: '#DBEAFE',
                     }}>
-                        <Text style={{ fontSize: 12, color: '#1E40AF', marginBottom: 4 }}>✓ Selected Location:</Text>
+                        <Text style={{ fontSize: 12, color: '#1E40AF', marginBottom: 4 }}>✓ {t('shipper.addressPicker.selectedLocation')}</Text>
                         <Text style={{ fontSize: 14, color: '#1E3A8A' }} numberOfLines={2}>
                             {selectedLocation.formatted_address}
                         </Text>
@@ -360,13 +369,13 @@ export default function AddressPickerScreen() {
                             <Text style={{ fontSize: 48, marginBottom: 16 }}>🗺️</Text>
                             <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 8 }}>
                                 {!selectedLocation
-                                    ? "Tap anywhere on the map\nto select a location"
-                                    : "✓ Location selected!\nTap 'Confirm' below to continue"
+                                    ? t('shipper.addressPicker.tapHint')
+                                    : t('shipper.addressPicker.selectedHint')
                                 }
                             </Text>
                             {!selectedLocation && (
                                 <Text style={{ fontSize: 14, color: '#999', textAlign: 'center' }}>
-                                    Search for any address worldwide
+                                    {t('shipper.addressPicker.searchWorldwide')}
                                 </Text>
                             )}
                         </View>
@@ -384,8 +393,12 @@ export default function AddressPickerScreen() {
                         }}
                         disabled={!selectedLocation}
                     >
+                        {/* Two complete sentences, not "Confirm " + word + " Location":
+                            French word order will not survive concatenation. */}
                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-                            Confirm {field === 'pickup_address' ? 'Pickup' : 'Delivery'} Location
+                            {field === 'pickup_address'
+                                ? t('shipper.addressPicker.confirmPickup')
+                                : t('shipper.addressPicker.confirmDelivery')}
                         </Text>
                     </TouchableOpacity>
                 </View>

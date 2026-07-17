@@ -1,18 +1,11 @@
 import React, { useState } from "react"
 import { Text, TouchableOpacity } from "react-native"
+import { useTranslation } from "react-i18next"
 import { Calendar as CalendarIcon } from "lucide-react-native"
 import CalendarModal from "./CalendarModal"
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-]
-
-// "2026-06-25" -> "25 June 2026"
-const formatISO = (iso: string) => {
-  const [y, m, d] = iso.split("-").map(Number)
-  return `${d} ${MONTHS[m - 1]} ${y}`
-}
+// English on purpose — this value is submitted to the API, not just displayed.
+// See the module for why.
+import { formatDateForWire } from "../utils/dateWireFormat"
 
 type Props = {
   value?: string
@@ -20,9 +13,11 @@ type Props = {
   placeholder?: string
 }
 
-export default function DatePickerField({ value, onChange, placeholder = "Select a date" }: Props) {
+export default function DatePickerField({ value, onChange, placeholder }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [iso, setIso] = useState<string | null>(null)
+  const resolvedPlaceholder = placeholder ?? t("components.datePicker.placeholder")
 
   return (
     <>
@@ -32,7 +27,7 @@ export default function DatePickerField({ value, onChange, placeholder = "Select
         className="flex-row items-center justify-between border border-gray-300 rounded-xl px-4 py-3.5 mb-4"
       >
         <Text className={`text-[15px] ${value ? "text-gray-900" : "text-gray-400"}`}>
-          {value || placeholder}
+          {value || resolvedPlaceholder}
         </Text>
         <CalendarIcon size={20} color="#036BB4" />
       </TouchableOpacity>
@@ -43,7 +38,7 @@ export default function DatePickerField({ value, onChange, placeholder = "Select
         onClose={() => setOpen(false)}
         onSelect={(isoDate) => {
           setIso(isoDate)
-          onChange(formatISO(isoDate))
+          onChange(formatDateForWire(isoDate))
           setOpen(false)
         }}
       />
