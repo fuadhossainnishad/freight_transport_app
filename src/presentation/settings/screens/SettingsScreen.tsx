@@ -81,7 +81,9 @@ export default function SettingsScreen() {
         break;
 
       case "earning_overview":
-        navigation.navigate('EarningOverview');
+        // There's no dedicated "Earning Overview" screen — it's the same
+        // Earnings tab reached from the bottom bar, just entered from Settings.
+        (navigation.getParent() as any)?.navigate('Earning');
         break;
 
       // No `title` param: Info derives its header from `type` so it stays in

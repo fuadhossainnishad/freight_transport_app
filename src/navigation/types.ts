@@ -92,6 +92,7 @@ export type InvoiceStackParamList = {
 export type EarningsStackParamList = {
     Earning: undefined;
     Withdraw: undefined
+    WithdrawalHistory: undefined
 };
 
 export type SettingsStackParamList = {
@@ -109,7 +110,6 @@ export type SettingsStackParamList = {
     // ResetPassword: { verificationToken: string };
     MyVehicles: undefined
     Driver: undefined
-    EarningOverview: undefined
     Privacy: undefined
     Terms: undefined
     Hiring: undefined

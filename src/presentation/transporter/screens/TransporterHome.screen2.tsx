@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Truck, ArrowRight } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../app/context/Auth.context";
 import useTransporterStats from "../hooks/useTransporterStats";
@@ -25,6 +26,7 @@ type NavigationProp = NativeStackNavigationProp<
 >;
 
 export default function TransporterHomeScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { user: authUser } = useAuth();
   const transporterId = authUser?.transporter_id;
@@ -74,7 +76,7 @@ export default function TransporterHomeScreen() {
         {/* Active Shipments header */}
         <View className="flex-row justify-between items-center mt-6 mb-3">
           <Text className="text-lg font-bold text-gray-900">
-            Active Shipments
+            {t("transporter.home.activeShipments")}
           </Text>
           {activeShipments.length > 0 && (
             <TouchableOpacity
@@ -82,7 +84,7 @@ export default function TransporterHomeScreen() {
               onPress={() => navigation.navigate("ActiveShipments")}
             >
               <Text className="text-sm font-semibold text-[#036BB4]">
-                See All
+                {t("transporter.home.seeAll")}
               </Text>
             </TouchableOpacity>
           )}
@@ -104,11 +106,10 @@ export default function TransporterHomeScreen() {
               <Truck size={32} color="#036BB4" strokeWidth={1.75} />
             </View>
             <Text className="text-base font-bold text-gray-900 mb-1.5">
-              No active shipments yet
+              {t("transporter.home.noShipmentsTitle")}
             </Text>
             <Text className="text-sm text-gray-500 text-center leading-[20px] mb-6 max-w-[280px]">
-              Once you win a bid, your live shipments show up here. Browse
-              available loads to start hauling and grow your earnings.
+              {t("transporter.home.noShipmentsSubtitle")}
             </Text>
             <TouchableOpacity
               activeOpacity={0.85}
@@ -118,7 +119,7 @@ export default function TransporterHomeScreen() {
               className="flex-row items-center justify-center bg-[#036BB4] rounded-xl px-6 py-3.5 w-full"
             >
               <Text className="text-white font-semibold text-sm mr-2">
-                Browse Available Bids
+                {t("transporter.home.browseBids")}
               </Text>
               <ArrowRight size={16} color="#fff" />
             </TouchableOpacity>

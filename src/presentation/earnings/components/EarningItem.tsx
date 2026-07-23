@@ -1,11 +1,16 @@
 // EarningItem.tsx
 import React from "react";
 import { View, Text } from "react-native";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 import { Earning } from "../types";
+import { formatPrice } from "../../../shared/utils/price";
+import { useFormatDate } from "../../../shared/i18n/useFormatDate";
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: "#FB6000", text: "#ffffff", label: "Pending" },
-  CONFIRMED: { bg: "#4BB54B", text: "#ffffff", label: "Confirmed" },
+const METHOD_STYLE: Record<string, { bg: string; labelKey: ParseKeys }> = {
+  cash: { bg: "#4BB54B", labelKey: "earnings.methods.cash" },
+  bank: { bg: "#8B5CF6", labelKey: "earnings.methods.bank" },
+  online: { bg: "#036BB4", labelKey: "earnings.methods.online" },
 };
 
 interface Props {
@@ -13,26 +18,31 @@ interface Props {
 }
 
 const EarningItem: React.FC<Props> = ({ item }) => {
-  const s = STATUS_STYLE[item.status] ?? { bg: "#f3f4f6", text: "#6b7280", label: item.status };
+  const { t } = useTranslation();
+  const formatDate = useFormatDate();
+  const style = METHOD_STYLE[item.method] ?? { bg: "#6b7280", labelKey: undefined };
 
   return (
     <View className="flex-row border-t border-gray-200 bg-white">
 
-      {/* Shipment Title */}
+      {/* Date */}
       <View className="flex-1 p-3 border-r border-gray-200 justify-center">
-        <Text className="text-gray-800 font-medium">{item.date}</Text>
-      </View>
-      <View className="w-28  p-3 border-r border-gray-200 justify-center">
-        <Text className="text-gray-800 font-medium">{item.amount}</Text>
+        <Text className="text-gray-800 font-medium" numberOfLines={1}>{formatDate(item.date)}</Text>
+        <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>{item.companyName}</Text>
       </View>
 
-      {/* Status */}
-      <View className="w-28 p-3 border-r border-gray-200 items-center justify-center">
+      {/* Amount */}
+      <View className="w-28 p-3 border-r border-gray-200 justify-center">
+        <Text className="text-gray-800 font-medium">{formatPrice(item.amount)}</Text>
+      </View>
+
+      {/* Method */}
+      <View className="w-28 p-3 items-center justify-center">
         <Text
-          className={`px-3 py-1 rounded-full text-white text-xs }`}
-          style={{ backgroundColor: s.bg }}
+          className="px-3 py-1 rounded-full text-white text-xs"
+          style={{ backgroundColor: style.bg }}
         >
-          {s.label}
+          {style.labelKey ? t(style.labelKey) : item.method}
         </Text>
       </View>
 

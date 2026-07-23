@@ -1,6 +1,8 @@
 import { memo } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Shipment } from "../../../domain/entities/shipment.entity";
+import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions";
 
 const truckPlaceholder = require("../../../../assets/images/truck.png");
 
@@ -21,6 +23,8 @@ export const ShipmentCarouselItem = memo(function ShipmentCarouselItem({
   cardHeightInactive,
   onPress,
 }: Props) {
+  const { t } = useTranslation();
+  const { categoryLabel } = useShipmentOptions();
   const imageUri = item.images?.[0] ?? null;
   const imageHeight = isActive ? cardHeightActive : cardHeightInactive;
 
@@ -82,13 +86,13 @@ export const ShipmentCarouselItem = memo(function ShipmentCarouselItem({
             numberOfLines={1}
             style={{ fontSize: 13, fontWeight: "700", color: "#111827" }}
           >
-            {item.title ?? "Shipment"}
+            {item.title ?? t("transporter.home.shipmentFallbackTitle")}
           </Text>
           <Text
             numberOfLines={1}
             style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}
           >
-            {item.category ?? ""}
+            {categoryLabel(item.category)}
           </Text>
         </View>
       </View>

@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 import { Search, SearchX, ReceiptText, MapPin, CreditCard } from "lucide-react-native";
 
 import { usePaymentRequests } from "../PaymentRequestsContext";
@@ -19,18 +21,30 @@ import CompletePaymentModal from "../components/CompletePaymentModal";
 
 const BLUE = "#036BB4";
 
-const STATUS: Record<PaymentRequestStatus, { label: string; bg: string; fg: string }> = {
-  pending:           { label: "Pending",     bg: "#FEF3C7", fg: "#B45309" },
-  online_processing: { label: "Processing",  bg: "#DBEAFE", fg: "#1D4ED8" },
-  cash_pending:      { label: "Cash pending", bg: "#FEF3C7", fg: "#B45309" },
-  bank_pending:      { label: "Bank pending", bg: "#FEF3C7", fg: "#B45309" },
-  completed:         { label: "Paid",        bg: "#DCFCE7", fg: "#15803D" },
-  verified:          { label: "Verified",    bg: "#DCFCE7", fg: "#15803D" },
-  rejected:          { label: "Rejected",    bg: "#FEE2E2", fg: "#B91C1C" },
-  cancelled:         { label: "Cancelled",   bg: "#F1F5F9", fg: "#64748B" },
+const STATUS_COLORS: Record<PaymentRequestStatus, { bg: string; fg: string }> = {
+  pending:           { bg: "#FEF3C7", fg: "#B45309" },
+  online_processing: { bg: "#DBEAFE", fg: "#1D4ED8" },
+  cash_pending:      { bg: "#FEF3C7", fg: "#B45309" },
+  bank_pending:      { bg: "#FEF3C7", fg: "#B45309" },
+  completed:         { bg: "#DCFCE7", fg: "#15803D" },
+  verified:          { bg: "#DCFCE7", fg: "#15803D" },
+  rejected:          { bg: "#FEE2E2", fg: "#B91C1C" },
+  cancelled:         { bg: "#F1F5F9", fg: "#64748B" },
+};
+
+const STATUS_LABEL_KEY: Record<PaymentRequestStatus, ParseKeys> = {
+  pending: "payment.status.pending",
+  online_processing: "payment.status.processing",
+  cash_pending: "payment.status.cashPending",
+  bank_pending: "payment.status.bankPending",
+  completed: "payment.status.paid",
+  verified: "payment.status.verified",
+  rejected: "payment.status.rejected",
+  cancelled: "payment.status.cancelled",
 };
 
 export default function PaymentRequestsScreen() {
+  const { t } = useTranslation();
   const { requests, loading, refresh } = usePaymentRequests();
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -54,14 +68,15 @@ export default function PaymentRequestsScreen() {
   }, [requests, search]);
 
   const renderCard = ({ item }: { item: PaymentRequest }) => {
-    const st = STATUS[item.status] ?? STATUS.pending;
+    const colors = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
+    const label = t(STATUS_LABEL_KEY[item.status] ?? STATUS_LABEL_KEY.pending);
     const payable = isPayable(item.status);
     return (
       <View style={s.card}>
         <View style={s.cardTop}>
           <Text style={s.shortId}>{item.shortId}</Text>
-          <View style={[s.badge, { backgroundColor: st.bg }]}>
-            <Text style={[s.badgeTxt, { color: st.fg }]}>{st.label}</Text>
+          <View style={[s.badge, { backgroundColor: colors.bg }]}>
+            <Text style={[s.badgeTxt, { color: colors.fg }]}>{label}</Text>
           </View>
         </View>
 
@@ -79,10 +94,10 @@ export default function PaymentRequestsScreen() {
           {payable ? (
             <TouchableOpacity style={s.payBtn} activeOpacity={0.85} onPress={() => setActive(item)}>
               <CreditCard size={16} color="#fff" />
-              <Text style={s.payTxt}>Pay Now</Text>
+              <Text style={s.payTxt}>{t("payment.requests.payNow")}</Text>
             </TouchableOpacity>
           ) : (
-            <Text style={[s.statusNote, { color: st.fg }]}>{st.label}</Text>
+            <Text style={[s.statusNote, { color: colors.fg }]}>{label}</Text>
           )}
         </View>
       </View>
@@ -91,7 +106,7 @@ export default function PaymentRequestsScreen() {
 
   return (
     <SafeAreaView edges={["top"]} style={s.screen}>
-      <Text style={s.screenTitle}>Payment Requests</Text>
+      <Text style={s.screenTitle}>{t("payment.requests.title")}</Text>
 
       {!loading && requests.length > 0 && (
         <View style={s.searchRow}>
@@ -99,7 +114,7 @@ export default function PaymentRequestsScreen() {
             <Search size={16} color="#9ca3af" style={{ marginRight: 8 }} />
             <TextInput
               style={s.searchInput}
-              placeholder="Search by shipment title or ID"
+              placeholder={t("payment.requests.search")}
               placeholderTextColor="#9ca3af"
               value={search}
               onChangeText={setSearch}
@@ -118,10 +133,8 @@ export default function PaymentRequestsScreen() {
           <View style={s.emptyIconWrap}>
             <ReceiptText size={34} color={BLUE} />
           </View>
-          <Text style={s.emptyTitle}>No payment requests</Text>
-          <Text style={s.emptySub}>
-            When an admin requests a payment for one of your shipments, it'll show up here.
-          </Text>
+          <Text style={s.emptyTitle}>{t("payment.requests.emptyTitle")}</Text>
+          <Text style={s.emptySub}>{t("payment.requests.emptySubtitle")}</Text>
         </View>
       ) : (
         <FlatList
@@ -138,8 +151,8 @@ export default function PaymentRequestsScreen() {
               <View style={s.emptyIconWrap}>
                 <SearchX size={30} color={BLUE} />
               </View>
-              <Text style={s.emptyTitle}>No matching requests</Text>
-              <Text style={s.emptySub}>{`We couldn't find a request matching "${search.trim()}".`}</Text>
+              <Text style={s.emptyTitle}>{t("payment.requests.noMatchTitle")}</Text>
+              <Text style={s.emptySub}>{t("payment.requests.noMatchSubtitle", { query: search.trim() })}</Text>
             </View>
           }
         />

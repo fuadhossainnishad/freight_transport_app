@@ -24,7 +24,7 @@ const EarningTable: React.FC<Props> = ({ earnings }) => {
           <Text className="text-white text-center font-semibold">{t("earnings.table.amount")}</Text>
         </View>
         <View className="w-28 p-3">
-          <Text className="text-white text-center font-semibold">{t("earnings.table.status")}</Text>
+          <Text className="text-white text-center font-semibold">{t("earnings.table.method")}</Text>
         </View>
       </View>
 

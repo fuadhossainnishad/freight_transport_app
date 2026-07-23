@@ -87,7 +87,8 @@ export default {
     "routingNumberRequired": "Routing number is required",
     "bankNameRequired": "Bank name is required",
     "holderNameRequired": "Holder name is required",
-    "bankAddressRequired": "Bank address is required"
+    "bankAddressRequired": "Bank address is required",
+    "accountAliasRequired": "Please enter a phone number or account ID"
   },
   "components": {
     "countrySelect": {
@@ -268,12 +269,14 @@ export default {
       "loadFailed": "Failed to load profile"
     },
     "changePassword": {
+      "title": "Change Password",
       "currentLabel": "Current Password",
       "currentPlaceholder": "Enter Current Password",
       "newLabel": "New Password",
       "newPlaceholder": "Enter New Password",
       "confirmLabel": "Confirmed Password",
       "confirmPlaceholder": "Enter Confirmed Password",
+      "success": "Password changed successfully",
       "changeFailed": "Failed to change password"
     },
     "bank": {
@@ -486,6 +489,137 @@ export default {
       "confirmPickup": "Confirm Pickup Location",
       "confirmDelivery": "Confirm Delivery Location",
       "noResults": "No locations found for \"{{query}}\". Try a different search term."
+    }
+  },
+  "transporter": {
+    "home": {
+      "activeShipments": "Active Shipments",
+      "seeAll": "See All",
+      "noShipmentsTitle": "No active shipments yet",
+      "noShipmentsSubtitle": "Once you win a bid, your live shipments show up here. Browse available loads to start hauling and grow your earnings.",
+      "browseBids": "Browse Available Bids",
+      "shipmentFallbackTitle": "Shipment",
+      "searchPlaceholder": "Search shipments…",
+      "noMatchTitle": "No matching shipments",
+      "noMatchSubtitle": "We couldn’t find any shipments for that search. Try a different keyword."
+    },
+    "stats": {
+      "shipmentsInProgress": "Shipments In Progress",
+      "completedShipments": "Completed Shipments",
+      "totalEarnings": "Total Earnings",
+      "updating": "Updating...",
+      "loadFailed": "Failed to load stats",
+      "refreshFailed": "Failed to refresh",
+      "tryAgain": "Try again"
+    },
+    "activeShipmentDetail": {
+      "driverDetailsTitle": "Driver Details",
+      "driverNotFound": "Driver record not found",
+      "noDriverAssigned": "No driver assigned yet",
+      "name": "Name",
+      "phone": "Phone",
+      "drivingLicence": "Driving Licence",
+      "shipmentDetailsTitle": "Shipment Details",
+      "pickupAddress": "Pickup Address",
+      "deliveryAddress": "Delivery Address",
+      "contactPerson": "Contact Person",
+      "contactPersonNumber": "Contact Person Number",
+      "viewFullDetails": "View full details",
+      "frontSide": "Front side",
+      "backSide": "Back side",
+      "licence": "Licence",
+      "shipmentNotFound": "Shipment not found",
+      "contactNumber": "Contact Number",
+      "category": "Category",
+      "weight": "Weight",
+      "vehicleFallback": "Vehicle",
+      "closeMap": "Close map",
+      "requestPayment": "Request Payment",
+      "paymentRequestedTitle": "Payment requested — awaiting approval",
+      "openPaymentPage": "Open payment page"
+    }
+  },
+  "shipmentMap": {
+    "status": {
+      "inProgress": "In Progress",
+      "inTransit": "In Transit",
+      "completed": "Completed",
+      "pending": "Pending"
+    },
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "driver": "Driver"
+  },
+  "availableBids": {
+    "shipmentDetails": {
+      "title": "Shipment Detail",
+      "notAvailable": "Shipment details not available",
+      "bids": "Bids",
+      "backToDetails": "Back to Details",
+      "status": {
+        "pending": "Pending",
+        "bidding": "Bidding",
+        "inProgress": "In Progress",
+        "inTransit": "In Transit",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "unknown": "Unknown"
+      },
+      "basicInformation": "Basic Information",
+      "category": "Category",
+      "weight": "Weight",
+      "dimensions": "Dimensions",
+      "packaging": "Packaging",
+      "pickupDeliveryDetails": "Pickup & Delivery Details",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "timeWindow": "Time Window",
+      "datePreference": "Date Preference",
+      "amount": "Amount",
+      "price": "Price",
+      "driverInfo": "Driver Info",
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "vehicleInfo": "Vehicle Info",
+      "type": "Type",
+      "number": "Number",
+      "plate": "Plate"
+    },
+    "placeBid": {
+      "title": "Place a Bid",
+      "stepHint": "Fill in all three fields to submit your bid",
+      "driver": "Driver",
+      "selectDriver": "Select a driver",
+      "vehicle": "Vehicle",
+      "selectVehicle": "Select a vehicle",
+      "plate": "Plate: {{plate}}",
+      "capacityTons": "{{capacity}} tons capacity",
+      "year": "Year: {{year}}",
+      "bidAmount": "Bid Amount",
+      "enterYourBid": "Enter your bid",
+      "bidSummary": "Bid Summary",
+      "amount": "Amount",
+      "vehicleSummary": "{{type}} · Plate {{plate}}",
+      "placeBid": "Place Bid",
+      "selectDriverTitle": "Select Driver",
+      "searchDriverPlaceholder": "Search by name, phone or email…",
+      "noDriversFound": "No drivers found",
+      "selectVehicleTitle": "Select Vehicle",
+      "searchVehiclePlaceholder": "Search by type or plate…",
+      "noVehiclesFound": "No vehicles found",
+      "errors": {
+        "selectDriver": "Please select a driver",
+        "selectVehicle": "Please select a vehicle",
+        "priceRequired": "Price is required",
+        "priceInvalid": "Enter a valid amount"
+      },
+      "alerts": {
+        "successTitle": "Success",
+        "successMessage": "Bid placed successfully",
+        "errorTitle": "Error",
+        "errorMessage": "Something went wrong"
+      }
     }
   },
   "driver": {
@@ -707,28 +841,176 @@ export default {
       "download": "Download invoice"
     }
   },
+  "payment": {
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "cashPending": "Cash pending",
+      "bankPending": "Bank pending",
+      "paid": "Paid",
+      "verified": "Verified",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "requests": {
+      "title": "Payment Requests",
+      "search": "Search by shipment title or ID",
+      "payNow": "Pay Now",
+      "emptyTitle": "No payment requests",
+      "emptySubtitle": "When an admin requests a payment for one of your shipments, it'll show up here.",
+      "noMatchTitle": "No matching requests",
+      "noMatchSubtitle": "We couldn't find a request matching \"{{query}}\"."
+    },
+    "webView": {
+      "title": "Payment"
+    },
+    "complete": {
+      "title": "Complete Payment",
+      "detailsHeading": "Payment Request Details",
+      "requestId": "Request ID",
+      "shipment": "Shipment",
+      "route": "Route",
+      "requestedBy": "Requested By",
+      "totalAmount": "Total Amount to Pay",
+      "selectMethod": "Select Payment Method",
+      "cancel": "Cancel",
+      "payOnline": "Pay Online",
+      "confirm": "Confirm",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Pay securely with PayDunya",
+        "bankTitle": "Bank Transfer",
+        "bankSub": "Transfer directly to our bank account",
+        "cashTitle": "Cash on Delivery",
+        "cashSub": "Pay when shipment is delivered"
+      },
+      "alerts": {
+        "unavailableTitle": "Unavailable",
+        "unavailableMessage": "The payment link could not be generated. Please try again.",
+        "submittedTitle": "Payment submitted",
+        "submittedMessage": "We'll confirm your payment shortly.",
+        "cashRecordedTitle": "Cash payment recorded",
+        "cashRecordedFallback": "An admin will confirm receipt.",
+        "bankDetailsTitle": "Bank transfer details",
+        "bankDetailsUnavailable": "Bank details are not available yet. Please contact support.",
+        "bankLine": "Bank: {{bank}}\nAccount: {{account}}\nHolder: {{holder}}",
+        "bankRoutingLine": "\nRouting: {{routing}}",
+        "failedTitle": "Payment failed"
+      }
+    },
+    "requestModal": {
+      "title": "Request Payment",
+      "shipment": "Shipment",
+      "agreedPrice": "Agreed price: {{price}}",
+      "amount": "Amount",
+      "enterAmount": "Enter amount",
+      "amountError": "Enter an amount greater than 0.",
+      "paymentMethod": "Payment Method",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Get paid via PayDunya",
+        "bankTitle": "Bank Transfer",
+        "bankSub": "Paid into your bank account",
+        "cashTitle": "Cash",
+        "cashSub": "Collect payment in cash"
+      },
+      "mobileMoneyNumber": "Mobile Money Number",
+      "mobileMoneyHint": "Required — PayDunya uses this to show the mobile money options.",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "accountHolder": "Account Holder",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Delivery completed",
+      "cancel": "Cancel",
+      "continueToPaydunya": "Continue to PayDunya",
+      "submitRequest": "Submit Request",
+      "alerts": {
+        "submittedTitle": "Request submitted",
+        "linkFailedMessage": "Your request was saved, but the payment link could not be generated. An admin will follow up.",
+        "bankPendingMessage": "Your bank transfer request is pending admin approval.",
+        "cashPendingMessage": "Your cash payment request is pending admin approval.",
+        "failedTitle": "Request failed",
+        "failedMessage": "Something went wrong"
+      }
+    }
+  },
   "earnings": {
     "title": "Earnings",
     "emptyTitle": "No earnings yet",
     "emptyBody": "Once you complete deliveries, your earnings and withdrawals will appear here.",
     "balance": {
       "label": "Your Balance",
-      "withdraw": "Withdraw"
+      "withdraw": "Withdraw",
+      "history": "History"
     },
     "table": {
       "date": "Date",
       "amount": "Amount",
       "status": "Status",
+      "company": "Company",
+      "method": "Method",
       "empty": "No earnings found"
     },
+    "methods": {
+      "cash": "Cash",
+      "bank": "Bank Transfer",
+      "online": "Mobile Money"
+    },
+    "loadFailed": "Failed to load earnings",
     "withdraw": {
       "title": "Withdraw Request",
+      "availableBalanceLabel": "Available Balance",
       "amountLabel": "Amount",
-      "amountPlaceholder": "Enter amount",
+      "amountPlaceholder": "0.00",
+      "methodNote": "Payouts are sent via PayDunya Mobile Money.",
+      "methodSectionLabel": "Payout Method",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Sent instantly via PayDunya",
+        "bankTitle": "Bank Transfer",
+        "bankSub": "Manual transfer arranged by admin",
+        "cashTitle": "Cash",
+        "cashSub": "Hand-delivered, arranged by admin"
+      },
+      "accountAliasLabel": "Account Alias (Phone Number / Account ID)",
+      "accountAliasPlaceholder": "Enter phone number or account ID",
+      "accountAliasHint": "PayDunya-registered phone number or email for DirectPay payout",
+      "accountHolderLabel": "Account Holder Name (optional)",
+      "accountHolderPlaceholder": "Enter account holder name",
+      "bankNameLabel": "Bank Name",
+      "bankNamePlaceholder": "Enter bank name",
+      "accountNumberLabel": "Account Number",
+      "accountNumberPlaceholder": "Enter account number",
+      "bankAccountHolderLabel": "Account Holder Name",
+      "bankAccountHolderPlaceholder": "Enter account holder name",
+      "cashNote": "No account details needed — the admin will contact you to arrange cash handover.",
       "regionLabel": "Region",
       "regionPlaceholder": "Select region",
-      "submitRequest": "Submit Request",
-      "requestSubmitted": "Withdraw request submitted"
+      "submitRequest": "Submit Withdraw Request",
+      "requestSubmitted": "Withdraw request submitted",
+      "noBalance": "You have no available balance to withdraw.",
+      "loadBalanceFailed": "Failed to load your balance",
+      "alerts": {
+        "pendingTitle": "Request pending",
+        "pendingMessage": "You already have a withdrawal request pending approval.",
+        "amountExceedsBalance": "The amount exceeds your available balance.",
+        "requestSubmittedMessage": "Your withdrawal request has been submitted for approval.",
+        "bankFieldsRequired": "Please fill in all bank details.",
+        "accountAliasRequired": "Please enter a phone number or account ID."
+      }
+    },
+    "history": {
+      "title": "Withdrawal History",
+      "emptyTitle": "No withdrawal requests yet",
+      "emptySubtitle": "Requests you submit will show up here with their status.",
+      "loadFailed": "Failed to load withdrawal history",
+      "region": "Region",
+      "rejectionReason": "Reason",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
     }
   }
 }

@@ -3,6 +3,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Truck } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import type { ParseKeys } from 'i18next';
 import { geocodeAddress, Coord } from '../../../shared/utils/geocode';
 import {
   fetchRoute,
@@ -17,11 +19,11 @@ import axiosClient from '../../../shared/config/axios.config';
 import TruckIcon from '../../../../assets/icons/truck3.svg';
 import BoxIcon from '../../../../assets/icons/box3.svg';
 
-const STATUS_LABEL: Record<string, string> = {
-  IN_PROGRESS: 'In Progress',
-  IN_TRANSIT: 'In Transit',
-  COMPLETED: 'Completed',
-  PENDING: 'Pending',
+const STATUS_LABEL_KEY: Record<string, ParseKeys> = {
+  IN_PROGRESS: 'shipmentMap.status.inProgress',
+  IN_TRANSIT: 'shipmentMap.status.inTransit',
+  COMPLETED: 'shipmentMap.status.completed',
+  PENDING: 'shipmentMap.status.pending',
 };
 const STATUS_BG: Record<string, string> = {
   IN_PROGRESS: '#F97316',
@@ -32,13 +34,14 @@ const STATUS_BG: Record<string, string> = {
 
 /* ── Pickup pin: white card, blue accent, truck icon ── */
 function PickupMarker() {
+  const { t } = useTranslation();
   return (
     <View style={pin.wrapper}>
       <View style={pin.pickupCard}>
         <View style={pin.pickupIconBg}>
           <TruckIcon width={16} height={16} />
         </View>
-        <Text style={pin.pickupLabel}>Pickup</Text>
+        <Text style={pin.pickupLabel}>{t('shipmentMap.pickup')}</Text>
       </View>
       <View style={pin.tailPickup} />
     </View>
@@ -47,13 +50,14 @@ function PickupMarker() {
 
 /* ── Delivery pin: white card, orange accent, box/factory icon ── */
 function DeliveryMarker() {
+  const { t } = useTranslation();
   return (
     <View style={pin.wrapper}>
       <View style={pin.deliveryCard}>
         <View style={pin.deliveryIconBg}>
           <BoxIcon width={16} height={16} />
         </View>
-        <Text style={pin.deliveryLabel}>Delivery</Text>
+        <Text style={pin.deliveryLabel}>{t('shipmentMap.delivery')}</Text>
       </View>
       <View style={pin.tailDelivery} />
     </View>
@@ -89,6 +93,7 @@ export default function ShipmentMapRoute({
   fullscreen = false,
   showBadge = true,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [pickup, setPickup] = useState<Coord | null>(null);
   const [dropoff, setDropoff] = useState<Coord | null>(null);
@@ -194,7 +199,8 @@ export default function ShipmentMapRoute({
     };
   }, [live, shipmentId, isInTransit]);
 
-  const label = STATUS_LABEL[status] ?? status;
+  const statusKey = STATUS_LABEL_KEY[status];
+  const label = statusKey ? t(statusKey) : status;
   const badgeBg = STATUS_BG[status] ?? '#94A3B8';
   const center = pickup ?? { latitude: 23.8103, longitude: 90.4125 };
   const badgeTop = fullscreen ? insets.top + 12 : 10;
@@ -231,7 +237,7 @@ export default function ShipmentMapRoute({
 
         {/* Live driver marker */}
         {showTruck && truck && (
-          <Marker coordinate={truck} anchor={{ x: 0.5, y: 0.5 }} title="Driver" tracksViewChanges={false}>
+          <Marker coordinate={truck} anchor={{ x: 0.5, y: 0.5 }} title={t('shipmentMap.driver')} tracksViewChanges={false}>
             <View style={styles.truckMarker}>
               <Truck size={20} color="#FFF" />
             </View>

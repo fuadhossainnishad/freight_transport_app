@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
 
 import AppHeader from "../../../shared/components/AppHeader";
+import HtmlContent from "../../../shared/components/HtmlContent";
 import { Info, InfoType } from "../../../domain/entities/Info.entity";
 import { BRAND_NAME } from "../../../domain/constants/brand";
 import { SettingsStackParamList } from "../../../navigation/types";
@@ -71,7 +72,7 @@ const InfoScreen = () => {
         contentContainerStyle={{ padding: 20 }}
         showsVerticalScrollIndicator={false}>
         {info ? (
-          <Text className="text-gray-700 text-base leading-7">{info.description}</Text>
+          <HtmlContent html={info.description} />
         ) : (
           <Text className="text-gray-500 text-center">{t("settings.info.empty")}</Text>
         )}

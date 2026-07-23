@@ -28,9 +28,9 @@ export default function ChangePasswordScreen() {
 
     } = useForm<ChangePassword>({
         defaultValues: {
-            current_pasword: "Sunan Rahman",
-            new_pasword: "demo@gmail.com",
-            confirmed_pasword: "+99007007007",
+            current_pasword: "",
+            new_pasword: "",
+            confirmed_pasword: "",
         },
     });
 
@@ -39,18 +39,15 @@ export default function ChangePasswordScreen() {
 
             await changePassword(data);
 
-            // NOTE: this screen has always reported "Profile updated" rather
-            // than "Password changed". Translated faithfully rather than
-            // silently rewording it — flagged for a copy fix.
             Alert.alert(
                 t("common.success"),
-                t("settings.profile.updated")
+                t("settings.changePassword.success")
             );
 
         } catch {
             Alert.alert(
                 t("common.error"),
-                t("settings.profile.updateFailed")
+                t("settings.changePassword.changeFailed")
             );
         }
     };
@@ -58,7 +55,7 @@ export default function ChangePasswordScreen() {
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
 
-            <AppHeader text={t("settings.profile.title")} onpress={() => navigation.goBack()} />
+            <AppHeader text={t("settings.changePassword.title")} onpress={() => navigation.goBack()} />
 
             <View className="p-4">
 
@@ -77,12 +74,6 @@ export default function ChangePasswordScreen() {
                     placeholder={t("settings.changePassword.newPlaceholder")}
                     rules={{
                         required: t("validation.newPasswordRequiredShort"),
-                        // Pre-existing: an email pattern on a password field.
-                        // Kept as-is so this stays a translation-only change.
-                        pattern: {
-                            value: /\S+@\S+\.\S+/,
-                            message: t("validation.emailInvalid"),
-                        },
                     }}
                 />
 

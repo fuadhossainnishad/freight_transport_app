@@ -17,12 +17,14 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft, ArrowRight } from "lucide-react-native";
 import LinearGradient from "react-native-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.usecase";
 import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 import { Driver } from "../../driver/types";
 import ShipmentMapRoute from "../../transporter/components/ShipmentMapRoute";
+import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const MODAL_WIDTH = SCREEN_WIDTH * 0.85;
@@ -51,6 +53,7 @@ function ColSep() {
 }
 
 function Header({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.header}>
       <TouchableOpacity
@@ -60,7 +63,7 @@ function Header({ onBack }: { onBack: () => void }) {
       >
         <ArrowLeft size={22} color="#111827" />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Active Shipments</Text>
+      <Text style={styles.headerTitle}>{t("transporter.home.activeShipments")}</Text>
       <View style={{ width: 36 }} />
     </View>
   );
@@ -70,6 +73,8 @@ export default function ShipmentDetailsScreen() {
   const navigation = useNavigation<NavigationPropType>();
   const route = useRoute<RoutePropType>();
   const { shipmentId } = route.params;
+  const { t } = useTranslation();
+  const { categoryLabel } = useShipmentOptions();
 
   const [shipment, setShipment] = useState<any>(null);
   const [driver, setDriver] = useState<Driver | null | undefined>(undefined);
@@ -120,7 +125,7 @@ export default function ShipmentDetailsScreen() {
       <SafeAreaView edges={["top"]} style={styles.screen}>
         <Header onBack={() => navigation.goBack()} />
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>Shipment not found</Text>
+          <Text style={styles.emptyText}>{t("transporter.activeShipmentDetail.shipmentNotFound")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -142,7 +147,7 @@ export default function ShipmentDetailsScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* ── SHIPMENT PREVIEW CARD ─────────────────────────────────────────── */}
-        <Text style={styles.sectionLabel}>Active Shipments</Text>
+        <Text style={styles.sectionLabel}>{t("transporter.home.activeShipments")}</Text>
 
         <View style={styles.previewCard}>
           <View style={styles.activeDot} />
@@ -155,28 +160,28 @@ export default function ShipmentDetailsScreen() {
           </View>
           <View style={styles.previewInfo}>
             <Text style={styles.previewTitle} numberOfLines={1}>
-              {shipment.title ?? "Shipment"}
+              {shipment.title ?? t("transporter.home.shipmentFallbackTitle")}
             </Text>
             <Text style={styles.previewCategory} numberOfLines={1}>
-              {shipment.category ?? ""}
+              {categoryLabel(shipment.category)}
             </Text>
           </View>
         </View>
 
         {/* ── DRIVER DETAILS ────────────────────────────────────────────────── */}
-        <Text style={styles.sectionLabel}>Driver Details</Text>
+        <Text style={styles.sectionLabel}>{t("transporter.activeShipmentDetail.driverDetailsTitle")}</Text>
 
         <View style={styles.driverCard}>
           {driverLoading ? (
             <ActivityIndicator color="#036BB4" style={{ paddingVertical: 16 }} />
           ) : driverNotFound ? (
-            <Text style={styles.emptyDriverText}>Driver record not found</Text>
+            <Text style={styles.emptyDriverText}>{t("transporter.activeShipmentDetail.driverNotFound")}</Text>
           ) : !shipment.driverId ? (
-            <Text style={styles.emptyDriverText}>No driver assigned yet</Text>
+            <Text style={styles.emptyDriverText}>{t("transporter.activeShipmentDetail.noDriverAssigned")}</Text>
           ) : (
             <View style={styles.driverRow}>
               <View style={styles.col}>
-                <Text style={styles.colLabel}>Name</Text>
+                <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.name")}</Text>
                 <Text style={styles.colValue} numberOfLines={2}>
                   {driver?.name ?? shipment.driver?.name ?? "—"}
                 </Text>
@@ -185,7 +190,7 @@ export default function ShipmentDetailsScreen() {
               <ColSep />
 
               <View style={styles.col}>
-                <Text style={styles.colLabel}>Phone</Text>
+                <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.phone")}</Text>
                 <Text style={styles.colValue} numberOfLines={1}>
                   {driver?.phone ?? shipment.driver?.phone ?? "—"}
                 </Text>
@@ -194,7 +199,7 @@ export default function ShipmentDetailsScreen() {
               <ColSep />
 
               <View style={[styles.col, { alignItems: "center" }]}>
-                <Text style={styles.colLabel}>Driving Licence</Text>
+                <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.drivingLicence")}</Text>
                 <TouchableOpacity
                   onPress={() => licenceImages.length > 0 && setModalVisible(true)}
                   activeOpacity={0.75}
@@ -219,7 +224,7 @@ export default function ShipmentDetailsScreen() {
         />
 
         {/* ── SHIPMENT DETAILS CARD ─────────────────────────────────────────── */}
-        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Shipment Details</Text>
+        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>{t("transporter.activeShipmentDetail.shipmentDetailsTitle")}</Text>
 
         <View style={styles.detailsCard}>
           <Image
@@ -242,13 +247,13 @@ export default function ShipmentDetailsScreen() {
 
             <View style={styles.infoGrid}>
               <View style={styles.infoCell}>
-                <Text style={styles.infoLabel}>Pickup Address</Text>
+                <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.pickupAddress")}</Text>
                 <Text style={styles.infoValue} numberOfLines={2}>
                   {shipment.pickup || "—"}
                 </Text>
               </View>
               <View style={styles.infoCell}>
-                <Text style={styles.infoLabel}>Delivery Address</Text>
+                <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.deliveryAddress")}</Text>
                 <Text style={styles.infoValue} numberOfLines={2}>
                   {shipment.delivery || "—"}
                 </Text>
@@ -258,13 +263,13 @@ export default function ShipmentDetailsScreen() {
             {shipment.contactPerson ? (
               <View style={[styles.infoGrid, { marginTop: 12 }]}>
                 <View style={styles.infoCell}>
-                  <Text style={styles.infoLabel}>Contact Person</Text>
+                  <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.contactPerson")}</Text>
                   <Text style={styles.infoValue} numberOfLines={1}>
                     {shipment.contactPerson}
                   </Text>
                 </View>
                 <View style={styles.infoCell}>
-                  <Text style={styles.infoLabel}>Contact Number</Text>
+                  <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.contactNumber")}</Text>
                   <Text style={styles.infoValue} numberOfLines={1}>
                     {driver?.phone ?? shipment.driver?.phone ?? "—"}
                   </Text>
@@ -278,13 +283,13 @@ export default function ShipmentDetailsScreen() {
                 <View style={styles.infoGrid}>
                   {shipment.category ? (
                     <View style={styles.infoCell}>
-                      <Text style={styles.infoLabel}>Category</Text>
-                      <Text style={styles.infoValue}>{shipment.category}</Text>
+                      <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.category")}</Text>
+                      <Text style={styles.infoValue}>{categoryLabel(shipment.category)}</Text>
                     </View>
                   ) : null}
                   {shipment.weight ? (
                     <View style={styles.infoCell}>
-                      <Text style={styles.infoLabel}>Weight</Text>
+                      <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.weight")}</Text>
                       <Text style={styles.infoValue}>{shipment.weight}</Text>
                     </View>
                   ) : null}
@@ -299,7 +304,7 @@ export default function ShipmentDetailsScreen() {
               style={styles.viewDetailsBtn}
               activeOpacity={0.75}
             >
-              <Text style={styles.viewDetailsBtnText}>View full details</Text>
+              <Text style={styles.viewDetailsBtnText}>{t("transporter.activeShipmentDetail.viewFullDetails")}</Text>
               <ArrowRight size={15} color="#0071BC" />
             </TouchableOpacity>
           </View>
@@ -332,7 +337,7 @@ export default function ShipmentDetailsScreen() {
                 style={styles.glassCard}
               >
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Driving Licence</Text>
+                  <Text style={styles.modalTitle}>{t("transporter.activeShipmentDetail.drivingLicence")}</Text>
                   <TouchableOpacity
                     onPress={() => setModalVisible(false)}
                     style={styles.closeBtn}
@@ -377,9 +382,9 @@ export default function ShipmentDetailsScreen() {
                 <Text style={styles.imgLabel}>
                   {licenceImages.length > 1
                     ? imgPage === 0
-                      ? "Front side"
-                      : "Back side"
-                    : "Licence"}
+                      ? t("transporter.activeShipmentDetail.frontSide")
+                      : t("transporter.activeShipmentDetail.backSide")
+                    : t("transporter.activeShipmentDetail.licence")}
                 </Text>
               </LinearGradient>
             </LinearGradient>

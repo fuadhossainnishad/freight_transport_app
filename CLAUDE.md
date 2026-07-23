@@ -10,6 +10,7 @@ npm run ios       # Build and run on iOS
 npm run start     # Start Metro bundler
 npm run lint      # ESLint
 npm run test      # Jest
+npx tsc --noEmit  # Type-check (no dedicated npm script; also catches typo'd i18n keys, see below)
 ```
 
 **Windows MAX_PATH workaround:** The `android` script runs via `C:\p` (a junction to this repo root). If `npm run android` fails with path-too-long errors, ensure the junction exists: `cmd /c mklink /J C:\p "C:\Users\Mozammel\Desktop\Projects\freight_transport_app-master"`.
@@ -120,9 +121,9 @@ Also: don't translate `COUNTRIES[].name` — `findCountryByName()` matches on it
 - The brand name lives in `src/domain/constants/brand.ts` and is interpolated as `{{brand}}` so translators can't mangle it.
 - Backend-supplied text (API error messages, FAQ content, invoice PDF) can't be translated client-side. Only the `||` fallback is fixable.
 
-**Rollout status (batch 5 complete):** converted — i18n foundation, auth, earnings, the settings tree, both tab bars, `src/shared/components/*`, `SETTINGS_MENU`, `TRUCK_TYPES`, all live files under `driver/` and `shipper/`, `shipment/screens/MyShipments.screen.tsx`, `shipment/screens/ShipmentTrackingScreen.tsx`, and the live `invoice/` screens (`Invoices.screen.tsx`, `InvoiceDetails.screen.tsx`, `components/InvoiceTable.tsx`, `components/InvoiceItem.tsx`).
+**Rollout status (batch 5 complete):** converted — i18n foundation, auth, earnings, the settings tree, both tab bars, `src/shared/components/*`, `SETTINGS_MENU`, `TRUCK_TYPES`, all live files under `driver/` and `shipper/`, `shipment/screens/MyShipments.screen.tsx`, `shipment/screens/ShipmentTrackingScreen.tsx`, the live `invoice/` screens (`Invoices.screen.tsx`, `InvoiceDetails.screen.tsx`, `components/InvoiceTable.tsx`, `components/InvoiceItem.tsx`), `payment/` (`PaymentRequests.screen.tsx`, `CompletePaymentModal.tsx`, `PayWebView.screen.tsx` — the shared `payment.*` namespace in the locale files; `PayWebView` now derives its header title from a fixed translated key instead of the `title` nav param it used to receive, fixing the nav-param violation), and the transporter home screen: `TransporterHome.screen2.tsx` (the live one — `TransporterHome.screen.tsx` without the `2` is dead code, unimported), `TransporterStatsSection.tsx`, `StatsError.tsx`, `ShipmentCarouselItem.tsx`, `ActiveShipmentDetail.tsx`, and the shared `ShipmentMapRoute.tsx` (new `transporter.*` and `shipmentMap.*` namespaces — `ShipmentMapRoute` is also used by the already-converted `ShipmentTrackingScreen.tsx` and by the not-yet-converted `availablebids/ActiveShipmentDetailsScreen.tsx` and `shipment/ShipmentDetails.screen.tsx`, so its pickup/delivery/status labels are now translated everywhere it's mounted, not just on the transporter home screen).
 
-Still hardcoded English: `transporter/`, `Vehicle/`, `availablebids/`, `profile_completion/`, and the transporter-facing remainder of `shipment/` (`ActiveShipments.screen.tsx`, `ShipmentDetails.screen.tsx`, `components/*`) — roughly 275 strings.
+Still hardcoded English: the rest of `transporter/` (including `RequestPaymentModal.tsx`, which still passes an untranslated `title` param to `PayWebView` — harmless since that screen ignores it now, but worth cleaning up when the rest of `transporter/` is converted), `Vehicle/`, `availablebids/`, `profile_completion/`, and the transporter-facing remainder of `shipment/` (`ActiveShipments.screen.tsx`, `ShipmentDetails.screen.tsx`, `components/*`) — roughly 250 strings.
 
 **Dates:** use `useFormatDate()` (`src/shared/i18n/useFormatDate.ts`) for display dates. It is built on `useMonthNames()` and deliberately avoids `Intl.DateTimeFormat`, because Hermes ships a partial Intl (no `Intl.PluralRules`) and a Node-based test would never catch a device-only failure. Do not confuse it with `shared/utils/dateWireFormat.ts`, which stays English because its output is submitted to the API.
 

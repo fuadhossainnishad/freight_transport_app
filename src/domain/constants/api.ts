@@ -45,6 +45,12 @@ export const POST_VEHICLE = '/vehicle/'
 export const UPDATE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
 export const DELETE_VEHICLE = (vehicleId: string) => `/vehicle/${vehicleId}`
 
+export const GET_MY_EARNINGS = "/earning/my-earnings"
+
+export const GET_WITHDRAWAL_BALANCE = "/withdrawal/balance"
+export const GET_MY_WITHDRAWALS = "/withdrawal/my-requests"
+export const REQUEST_WITHDRAWAL = "/withdrawal/request"
+
 export const GET_DRIVERS = (transporterId: string) => `/driver/transporter/${transporterId}`
 export const GET_DRIVER = (driverId: string) => `/driver/${driverId}`
 export const POST_DRIVER = '/driver/'

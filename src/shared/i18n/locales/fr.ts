@@ -87,7 +87,8 @@ export default {
     "routingNumberRequired": "Le code guichet est obligatoire",
     "bankNameRequired": "Le nom de la banque est obligatoire",
     "holderNameRequired": "Le nom du titulaire est obligatoire",
-    "bankAddressRequired": "L'adresse de la banque est obligatoire"
+    "bankAddressRequired": "L'adresse de la banque est obligatoire",
+    "accountAliasRequired": "Veuillez saisir un numéro de téléphone ou un identifiant de compte"
   },
   "components": {
     "countrySelect": {
@@ -268,12 +269,14 @@ export default {
       "loadFailed": "Échec du chargement du profil"
     },
     "changePassword": {
+      "title": "Changer le mot de passe",
       "currentLabel": "Mot de passe actuel",
       "currentPlaceholder": "Saisissez le mot de passe actuel",
       "newLabel": "Nouveau mot de passe",
       "newPlaceholder": "Saisissez le nouveau mot de passe",
       "confirmLabel": "Confirmer le mot de passe",
       "confirmPlaceholder": "Confirmez le mot de passe",
+      "success": "Mot de passe changé avec succès",
       "changeFailed": "Échec du changement de mot de passe"
     },
     "bank": {
@@ -486,6 +489,137 @@ export default {
       "confirmPickup": "Confirmer le lieu d'enlèvement",
       "confirmDelivery": "Confirmer le lieu de livraison",
       "noResults": "Aucun lieu trouvé pour « {{query}} ». Essayez un autre terme de recherche."
+    }
+  },
+  "transporter": {
+    "home": {
+      "activeShipments": "Expéditions actives",
+      "seeAll": "Tout voir",
+      "noShipmentsTitle": "Aucune expédition active pour le moment",
+      "noShipmentsSubtitle": "Dès que vous remportez une offre, vos expéditions en cours apparaissent ici. Parcourez les offres disponibles pour commencer à transporter et augmenter vos revenus.",
+      "browseBids": "Parcourir les offres disponibles",
+      "shipmentFallbackTitle": "Expédition",
+      "searchPlaceholder": "Rechercher des expéditions…",
+      "noMatchTitle": "Aucune expédition correspondante",
+      "noMatchSubtitle": "Nous n’avons trouvé aucune expédition pour cette recherche. Essayez un autre mot-clé."
+    },
+    "stats": {
+      "shipmentsInProgress": "Expéditions en cours",
+      "completedShipments": "Expéditions terminées",
+      "totalEarnings": "Revenus totaux",
+      "updating": "Mise à jour...",
+      "loadFailed": "Échec du chargement des statistiques",
+      "refreshFailed": "Échec de l'actualisation",
+      "tryAgain": "Réessayer"
+    },
+    "activeShipmentDetail": {
+      "driverDetailsTitle": "Détails du chauffeur",
+      "driverNotFound": "Fiche chauffeur introuvable",
+      "noDriverAssigned": "Aucun chauffeur assigné pour le moment",
+      "name": "Nom",
+      "phone": "Téléphone",
+      "drivingLicence": "Permis de conduire",
+      "shipmentDetailsTitle": "Détails de l'expédition",
+      "pickupAddress": "Adresse de ramassage",
+      "deliveryAddress": "Adresse de livraison",
+      "contactPerson": "Personne à contacter",
+      "contactPersonNumber": "Numéro de la personne à contacter",
+      "viewFullDetails": "Voir tous les détails",
+      "frontSide": "Recto",
+      "backSide": "Verso",
+      "licence": "Permis",
+      "shipmentNotFound": "Expédition introuvable",
+      "contactNumber": "Numéro de contact",
+      "category": "Catégorie",
+      "weight": "Poids",
+      "vehicleFallback": "Véhicule",
+      "closeMap": "Fermer la carte",
+      "requestPayment": "Demander un paiement",
+      "paymentRequestedTitle": "Paiement demandé — en attente d'approbation",
+      "openPaymentPage": "Ouvrir la page de paiement"
+    }
+  },
+  "shipmentMap": {
+    "status": {
+      "inProgress": "En cours",
+      "inTransit": "En transit",
+      "completed": "Terminé",
+      "pending": "En attente"
+    },
+    "pickup": "Ramassage",
+    "delivery": "Livraison",
+    "driver": "Chauffeur"
+  },
+  "availableBids": {
+    "shipmentDetails": {
+      "title": "Détail de l'expédition",
+      "notAvailable": "Détails de l'expédition non disponibles",
+      "bids": "Offres",
+      "backToDetails": "Retour aux détails",
+      "status": {
+        "pending": "En attente",
+        "bidding": "Enchères en cours",
+        "inProgress": "En cours",
+        "inTransit": "En transit",
+        "completed": "Terminé",
+        "cancelled": "Annulé",
+        "unknown": "Inconnu"
+      },
+      "basicInformation": "Informations de base",
+      "category": "Catégorie",
+      "weight": "Poids",
+      "dimensions": "Dimensions",
+      "packaging": "Emballage",
+      "pickupDeliveryDetails": "Détails de ramassage et de livraison",
+      "pickup": "Ramassage",
+      "delivery": "Livraison",
+      "timeWindow": "Créneau horaire",
+      "datePreference": "Date préférée",
+      "amount": "Montant",
+      "price": "Prix",
+      "driverInfo": "Informations sur le chauffeur",
+      "name": "Nom",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "vehicleInfo": "Informations sur le véhicule",
+      "type": "Type",
+      "number": "Numéro",
+      "plate": "Plaque"
+    },
+    "placeBid": {
+      "title": "Placer une offre",
+      "stepHint": "Remplissez les trois champs pour soumettre votre offre",
+      "driver": "Chauffeur",
+      "selectDriver": "Sélectionner un chauffeur",
+      "vehicle": "Véhicule",
+      "selectVehicle": "Sélectionner un véhicule",
+      "plate": "Plaque : {{plate}}",
+      "capacityTons": "Capacité de {{capacity}} tonnes",
+      "year": "Année : {{year}}",
+      "bidAmount": "Montant de l'offre",
+      "enterYourBid": "Entrez votre offre",
+      "bidSummary": "Résumé de l'offre",
+      "amount": "Montant",
+      "vehicleSummary": "{{type}} · Plaque {{plate}}",
+      "placeBid": "Placer l'offre",
+      "selectDriverTitle": "Sélectionner un chauffeur",
+      "searchDriverPlaceholder": "Rechercher par nom, téléphone ou e-mail…",
+      "noDriversFound": "Aucun chauffeur trouvé",
+      "selectVehicleTitle": "Sélectionner un véhicule",
+      "searchVehiclePlaceholder": "Rechercher par type ou plaque…",
+      "noVehiclesFound": "Aucun véhicule trouvé",
+      "errors": {
+        "selectDriver": "Veuillez sélectionner un chauffeur",
+        "selectVehicle": "Veuillez sélectionner un véhicule",
+        "priceRequired": "Le prix est requis",
+        "priceInvalid": "Entrez un montant valide"
+      },
+      "alerts": {
+        "successTitle": "Succès",
+        "successMessage": "Offre placée avec succès",
+        "errorTitle": "Erreur",
+        "errorMessage": "Une erreur s'est produite"
+      }
     }
   },
   "driver": {
@@ -707,28 +841,176 @@ export default {
       "download": "Télécharger la facture"
     }
   },
+  "payment": {
+    "status": {
+      "pending": "En attente",
+      "processing": "En cours de traitement",
+      "cashPending": "Espèces en attente",
+      "bankPending": "Virement en attente",
+      "paid": "Payé",
+      "verified": "Vérifié",
+      "rejected": "Rejeté",
+      "cancelled": "Annulé"
+    },
+    "requests": {
+      "title": "Demandes de paiement",
+      "search": "Rechercher par titre d'expédition ou ID",
+      "payNow": "Payer maintenant",
+      "emptyTitle": "Aucune demande de paiement",
+      "emptySubtitle": "Lorsqu'un administrateur demande un paiement pour l'une de vos expéditions, il apparaîtra ici.",
+      "noMatchTitle": "Aucune demande correspondante",
+      "noMatchSubtitle": "Nous n'avons trouvé aucune demande correspondant à \"{{query}}\"."
+    },
+    "webView": {
+      "title": "Paiement"
+    },
+    "complete": {
+      "title": "Finaliser le paiement",
+      "detailsHeading": "Détails de la demande de paiement",
+      "requestId": "ID de la demande",
+      "shipment": "Expédition",
+      "route": "Itinéraire",
+      "requestedBy": "Demandé par",
+      "totalAmount": "Montant total à payer",
+      "selectMethod": "Sélectionner un mode de paiement",
+      "cancel": "Annuler",
+      "payOnline": "Payer en ligne",
+      "confirm": "Confirmer",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Payez en toute sécurité avec PayDunya",
+        "bankTitle": "Virement bancaire",
+        "bankSub": "Transférez directement sur notre compte bancaire",
+        "cashTitle": "Paiement à la livraison",
+        "cashSub": "Payez à la livraison de l'expédition"
+      },
+      "alerts": {
+        "unavailableTitle": "Indisponible",
+        "unavailableMessage": "Le lien de paiement n'a pas pu être généré. Veuillez réessayer.",
+        "submittedTitle": "Paiement soumis",
+        "submittedMessage": "Nous confirmerons votre paiement sous peu.",
+        "cashRecordedTitle": "Paiement en espèces enregistré",
+        "cashRecordedFallback": "Un administrateur confirmera la réception.",
+        "bankDetailsTitle": "Détails du virement bancaire",
+        "bankDetailsUnavailable": "Les coordonnées bancaires ne sont pas encore disponibles. Veuillez contacter le support.",
+        "bankLine": "Banque : {{bank}}\nCompte : {{account}}\nTitulaire : {{holder}}",
+        "bankRoutingLine": "\nCode d'acheminement : {{routing}}",
+        "failedTitle": "Échec du paiement"
+      }
+    },
+    "requestModal": {
+      "title": "Demander un paiement",
+      "shipment": "Expédition",
+      "agreedPrice": "Prix convenu : {{price}}",
+      "amount": "Montant",
+      "enterAmount": "Entrez le montant",
+      "amountError": "Entrez un montant supérieur à 0.",
+      "paymentMethod": "Méthode de paiement",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Recevez votre paiement via PayDunya",
+        "bankTitle": "Virement bancaire",
+        "bankSub": "Versé sur votre compte bancaire",
+        "cashTitle": "Espèces",
+        "cashSub": "Encaissement du paiement en espèces"
+      },
+      "mobileMoneyNumber": "Numéro Mobile Money",
+      "mobileMoneyHint": "Requis — PayDunya utilise ce numéro pour afficher les options Mobile Money.",
+      "bankName": "Nom de la banque",
+      "accountNumber": "Numéro de compte",
+      "accountHolder": "Titulaire du compte",
+      "notes": "Notes (facultatif)",
+      "notesPlaceholder": "Livraison effectuée",
+      "cancel": "Annuler",
+      "continueToPaydunya": "Continuer vers PayDunya",
+      "submitRequest": "Soumettre la demande",
+      "alerts": {
+        "submittedTitle": "Demande soumise",
+        "linkFailedMessage": "Votre demande a été enregistrée, mais le lien de paiement n'a pas pu être généré. Un administrateur assurera le suivi.",
+        "bankPendingMessage": "Votre demande de virement bancaire est en attente d'approbation par un administrateur.",
+        "cashPendingMessage": "Votre demande de paiement en espèces est en attente d'approbation par un administrateur.",
+        "failedTitle": "Échec de la demande",
+        "failedMessage": "Une erreur s'est produite"
+      }
+    }
+  },
   "earnings": {
     "title": "Revenus",
     "emptyTitle": "Aucun revenu pour le moment",
     "emptyBody": "Une fois vos livraisons terminées, vos revenus et vos retraits apparaîtront ici.",
     "balance": {
       "label": "Votre solde",
-      "withdraw": "Retirer"
+      "withdraw": "Retirer",
+      "history": "Historique"
     },
     "table": {
       "date": "Date",
       "amount": "Montant",
       "status": "Statut",
+      "company": "Entreprise",
+      "method": "Méthode",
       "empty": "Aucun revenu trouvé"
     },
+    "methods": {
+      "cash": "Espèces",
+      "bank": "Virement bancaire",
+      "online": "Mobile Money"
+    },
+    "loadFailed": "Échec du chargement des revenus",
     "withdraw": {
       "title": "Demande de retrait",
+      "availableBalanceLabel": "Solde disponible",
       "amountLabel": "Montant",
-      "amountPlaceholder": "Saisissez un montant",
+      "amountPlaceholder": "0,00",
+      "methodNote": "Les paiements sont envoyés via PayDunya Mobile Money.",
+      "methodSectionLabel": "Mode de paiement",
+      "methods": {
+        "onlineTitle": "Mobile Money",
+        "onlineSub": "Envoyé instantanément via PayDunya",
+        "bankTitle": "Virement bancaire",
+        "bankSub": "Virement manuel organisé par l'administrateur",
+        "cashTitle": "Espèces",
+        "cashSub": "Remise en main propre, organisée par l'administrateur"
+      },
+      "accountAliasLabel": "Alias du compte (numéro de téléphone / identifiant)",
+      "accountAliasPlaceholder": "Entrez le numéro de téléphone ou l'identifiant du compte",
+      "accountAliasHint": "Numéro de téléphone ou e-mail enregistré sur PayDunya pour le paiement DirectPay",
+      "accountHolderLabel": "Nom du titulaire du compte (facultatif)",
+      "accountHolderPlaceholder": "Entrez le nom du titulaire du compte",
+      "bankNameLabel": "Nom de la banque",
+      "bankNamePlaceholder": "Entrez le nom de la banque",
+      "accountNumberLabel": "Numéro de compte",
+      "accountNumberPlaceholder": "Entrez le numéro de compte",
+      "bankAccountHolderLabel": "Nom du titulaire du compte",
+      "bankAccountHolderPlaceholder": "Entrez le nom du titulaire du compte",
+      "cashNote": "Aucun détail de compte requis — l'administrateur vous contactera pour organiser la remise en espèces.",
       "regionLabel": "Région",
       "regionPlaceholder": "Sélectionnez une région",
-      "submitRequest": "Envoyer la demande",
-      "requestSubmitted": "Demande de retrait envoyée"
+      "submitRequest": "Envoyer la demande de retrait",
+      "requestSubmitted": "Demande de retrait envoyée",
+      "noBalance": "Vous n'avez aucun solde disponible à retirer.",
+      "loadBalanceFailed": "Échec du chargement de votre solde",
+      "alerts": {
+        "pendingTitle": "Demande en attente",
+        "pendingMessage": "Vous avez déjà une demande de retrait en attente d'approbation.",
+        "amountExceedsBalance": "Le montant dépasse votre solde disponible.",
+        "requestSubmittedMessage": "Votre demande de retrait a été soumise pour approbation.",
+        "bankFieldsRequired": "Veuillez remplir tous les détails bancaires.",
+        "accountAliasRequired": "Veuillez saisir un numéro de téléphone ou un identifiant de compte."
+      }
+    },
+    "history": {
+      "title": "Historique des retraits",
+      "emptyTitle": "Aucune demande de retrait pour le moment",
+      "emptySubtitle": "Les demandes que vous envoyez apparaîtront ici avec leur statut.",
+      "loadFailed": "Échec du chargement de l'historique des retraits",
+      "region": "Région",
+      "rejectionReason": "Motif",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      }
     }
   }
 }
