@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import Download from "../../../../assets/icons/download2.svg";
 import ViewIcon from "../../../../assets/icons/view2.svg";
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const InvoiceItem: React.FC<Props> = ({ invoice, onViewPress, onDownloadPress }) => {
+    const { t } = useTranslation();
+
     return (
         <View className="flex-row border-t border-gray-200 bg-white">
 
@@ -24,8 +27,10 @@ const InvoiceItem: React.FC<Props> = ({ invoice, onViewPress, onDownloadPress })
 
             {/* Status */}
             <View className="w-28 p-3 border-r border-gray-200 items-center justify-center">
+                {/* VERIFIED is a backend enum — never translate it. Unmapped
+                    statuses still fall through as the raw value, as before. */}
                 <Text className="px-2 py-1 rounded text-black text-xs bg-green-500">
-                    {invoice.status === "VERIFIED" ? "Paid" : invoice.status}
+                    {invoice.status === "VERIFIED" ? t("invoice.status.paid") : invoice.status}
                 </Text>
             </View>
 

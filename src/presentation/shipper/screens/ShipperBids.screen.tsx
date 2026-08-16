@@ -4,6 +4,7 @@ import {
     FlatList, Image, StyleSheet, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useTranslation } from "react-i18next"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useNavigation } from "@react-navigation/native"
 import { ShipperHomeStackParamList } from "../../../navigation/types"
@@ -15,6 +16,7 @@ const BLUE = '#036BB4';
 type Props = NativeStackNavigationProp<ShipperHomeStackParamList, 'Bids'>;
 
 export default function ShipperBids() {
+    const { t } = useTranslation()
     const navigation = useNavigation<Props>()
 
     const [bids, setBids] = useState<any[]>([])
@@ -59,10 +61,10 @@ export default function ShipperBids() {
 
             <View style={s.badgeRow}>
                 <View style={s.removeBadge}>
-                    <Text style={s.badgeText}>Remove</Text>
+                    <Text style={s.badgeText}>{t('shipper.bids.remove')}</Text>
                 </View>
                 <View style={s.openBadge}>
-                    <Text style={s.badgeText}>Open</Text>
+                    <Text style={s.badgeText}>{t('shipper.bids.open')}</Text>
                 </View>
             </View>
 
@@ -81,7 +83,7 @@ export default function ShipperBids() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
                     <Text style={s.backIcon}>‹</Text>
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Bids</Text>
+                <Text style={s.headerTitle}>{t('shipper.bids.title')}</Text>
                 <View style={s.backBtn} />
             </View>
 
@@ -95,14 +97,14 @@ export default function ShipperBids() {
                     keyExtractor={(item, i) => item._id ?? String(i)}
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-                    ListHeaderComponent={<Text style={s.sectionTitle}>Bids</Text>}
+                    ListHeaderComponent={<Text style={s.sectionTitle}>{t('shipper.bids.title')}</Text>}
                     ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[BLUE]} tintColor={BLUE} />
                     }
                     ListEmptyComponent={
                         <View style={s.empty}>
-                            <Text style={s.emptyText}>No active bids right now</Text>
+                            <Text style={s.emptyText}>{t('shipper.bids.empty')}</Text>
                         </View>
                     }
                 />

@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { CreditCard } from 'lucide-react-native';
 
 
@@ -35,6 +36,7 @@ function svgTabIcon(Active: SvgIcon, Inactive: SvgIcon) {
 const Tab = createBottomTabNavigator<ShipperTabParamList>();
 
 function ShipperTabsInner() {
+  const { t } = useTranslation();
   const { pendingCount } = usePaymentRequests();
   const insets = useSafeAreaInsets();
   // insets.bottom is unreliable here (reports 0 on this device), so floor it.
@@ -57,23 +59,23 @@ function ShipperTabsInner() {
       <Tab.Screen
         name="HomeStack"
         component={ShipperHomeStack}
-        options={{ tabBarLabel: 'Home', tabBarIcon: svgTabIcon(Home, HomeInline) }}
+        options={{ tabBarLabel: t('nav.tabs.home'), tabBarIcon: svgTabIcon(Home, HomeInline) }}
       />
       <Tab.Screen
         name="Shipments"
         component={ShipperShipmentsStack}
-        options={{ tabBarLabel: 'Shipments', tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
+        options={{ tabBarLabel: t('nav.tabs.shipments'), tabBarIcon: svgTabIcon(Shipments, ShipmentsInline) }}
       />
       <Tab.Screen
         name="Invoices"
         component={InvoiceStack}
-        options={{ tabBarLabel: 'Invoices', tabBarIcon: svgTabIcon(Invoice, InvoiceInline) }}
+        options={{ tabBarLabel: t('nav.tabs.invoices'), tabBarIcon: svgTabIcon(Invoice, InvoiceInline) }}
       />
       <Tab.Screen
         name="Payments"
         component={PaymentsStack}
         options={{
-          tabBarLabel: 'Payments',
+          tabBarLabel: t('nav.tabs.payments'),
           tabBarBadge: pendingCount > 0 ? (pendingCount > 9 ? '9+' : pendingCount) : undefined,
           tabBarIcon: ({ focused }) => (
             <CreditCard width={22} height={22} color={focused ? BLUE : '#1f2937'} />
@@ -83,7 +85,7 @@ function ShipperTabsInner() {
       <Tab.Screen
         name="Settings"
         component={SettingsStack}
-        options={{ tabBarLabel: 'Settings', tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
+        options={{ tabBarLabel: t('nav.tabs.settings'), tabBarIcon: svgTabIcon(Settings, SettingsInline) }}
       />
     </Tab.Navigator>
   );

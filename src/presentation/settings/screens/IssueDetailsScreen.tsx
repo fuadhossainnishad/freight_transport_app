@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 import AppHeader from "../../../shared/components/AppHeader";
 import { SettingsStackParamList } from "../../../navigation/types";
@@ -25,6 +26,7 @@ const Row = ({ label, value }: { label: string; value?: string }) => (
 );
 
 const StatusBadge = ({ status }: { status: boolean }) => {
+    const { t } = useTranslation();
     const isResolved = status === true;
 
     return (
@@ -33,13 +35,14 @@ const StatusBadge = ({ status }: { status: boolean }) => {
                 }`}
         >
             <Text className="text-white text-sm font-semibold">
-                {isResolved ? "Resolved" : "Pending"}
+                {isResolved ? t("settings.issues.resolved") : t("settings.issues.pending")}
             </Text>
         </View>
     );
 };
 
 export default function IssueSummaryScreen() {
+    const { t } = useTranslation();
     const navigation = useNavigation<Props>();
     const route = useRoute<RouteProps>();
 
@@ -52,7 +55,7 @@ export default function IssueSummaryScreen() {
         return (
             <View className="flex-1 items-center justify-center bg-gray-100">
                 <ActivityIndicator size="large" />
-                <Text className="text-gray-500 mt-2">Loading issue...</Text>
+                <Text className="text-gray-500 mt-2">{t("settings.issues.loadingIssue")}</Text>
             </View>
         );
     }
@@ -62,7 +65,7 @@ export default function IssueSummaryScreen() {
         return (
             <View className="flex-1 items-center justify-center bg-gray-100 px-4">
                 <Text className="text-red-500 font-semibold text-center">
-                    Failed to load issue
+                    {t("settings.issues.loadFailed")}
                 </Text>
             </View>
         );
@@ -70,7 +73,7 @@ export default function IssueSummaryScreen() {
 
     return (
         <SafeAreaView edges={['top']} className="flex-1 px-4 bg-white">
-            <AppHeader text="Issue Summary" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("settings.issues.summaryTitle")} onpress={() => navigation.goBack()} />
             <ScrollView className="flex-1  px-4">
                 {/* Header */}
 
@@ -85,15 +88,15 @@ export default function IssueSummaryScreen() {
 
                 {/* Card */}
                 <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-400">
-                    <Row label="Issue Title" value={issue.issue_title} />
-                    <Row label="Shipment ID" value={issue.shipment_id} />
-                    <Row label="Transporter Name" value={issue.transporter_name} />
-                    <Row label="Reported On" value={issue.reported_on} />
+                    <Row label={t("settings.issues.issueTitle")} value={issue.issue_title} />
+                    <Row label={t("settings.issues.shipmentId")} value={issue.shipment_id} />
+                    <Row label={t("settings.issues.transporterName")} value={issue.transporter_name} />
+                    <Row label={t("settings.issues.reportedOn")} value={issue.reported_on} />
 
                     {/* Description */}
                     <View className="mt-2">
                         <Text className="text-sm text-gray-700 mb-1">
-                            Issue Description
+                            {t("settings.issues.description")}
                         </Text>
                         <Text className="text-sm text-black font-medium leading-5">
                             {issue.issue_description ?? "—"}

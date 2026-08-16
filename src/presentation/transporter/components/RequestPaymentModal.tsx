@@ -16,6 +16,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Globe, Landmark, Truck, Check } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 
 import {
   requestTransporterPayment,
@@ -50,13 +52,13 @@ const DEFAULT_PHONE = AppConfig.default_mobile_money_phone?.trim() || "+22670189
 
 const METHODS: {
   value: TransporterPaymentMethod;
-  title: string;
-  sub: string;
+  titleKey: ParseKeys;
+  subKey: ParseKeys;
   icon: any;
 }[] = [
-  { value: "online", title: "Mobile Money", sub: "Get paid via PayDunya", icon: Globe },
-  { value: "bank", title: "Bank Transfer", sub: "Paid into your bank account", icon: Landmark },
-  { value: "cash", title: "Cash", sub: "Collect payment in cash", icon: Truck },
+  { value: "online", titleKey: "payment.requestModal.methods.onlineTitle", subKey: "payment.requestModal.methods.onlineSub", icon: Globe },
+  { value: "bank", titleKey: "payment.requestModal.methods.bankTitle", subKey: "payment.requestModal.methods.bankSub", icon: Landmark },
+  { value: "cash", titleKey: "payment.requestModal.methods.cashTitle", subKey: "payment.requestModal.methods.cashSub", icon: Truck },
 ];
 
 export default function RequestPaymentModal({
@@ -67,6 +69,7 @@ export default function RequestPaymentModal({
   onClose,
   onSubmitted,
 }: Props) {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
 
   const [method, setMethod] = useState<TransporterPaymentMethod>("online");
@@ -140,13 +143,12 @@ export default function RequestPaymentModal({
           navigation.navigate("PayWebView", {
             paymentId: payment.id,
             url: payment.paydunyaUrl,
-            title: "Complete Payment",
           });
         } else {
           onClose();
           Alert.alert(
-            "Request submitted",
-            "Your request was saved, but the payment link could not be generated. An admin will follow up.",
+            t("payment.requestModal.alerts.submittedTitle"),
+            t("payment.requestModal.alerts.linkFailedMessage"),
           );
         }
         return;
@@ -154,15 +156,15 @@ export default function RequestPaymentModal({
 
       onClose();
       Alert.alert(
-        "Request submitted",
+        t("payment.requestModal.alerts.submittedTitle"),
         method === "bank"
-          ? "Your bank transfer request is pending admin approval."
-          : "Your cash payment request is pending admin approval.",
+          ? t("payment.requestModal.alerts.bankPendingMessage")
+          : t("payment.requestModal.alerts.cashPendingMessage"),
       );
     } catch (err: any) {
       Alert.alert(
-        "Request failed",
-        err?.response?.data?.message || err?.message || "Something went wrong",
+        t("payment.requestModal.alerts.failedTitle"),
+        err?.response?.data?.message || err?.message || t("payment.requestModal.alerts.failedMessage"),
       );
     } finally {
       setSubmitting(false);
@@ -177,36 +179,38 @@ export default function RequestPaymentModal({
       >
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.sheet}>
-          <Text style={styles.title}>Request Payment</Text>
+          <Text style={styles.title}>{t("payment.requestModal.title")}</Text>
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Shipment */}
             <View style={styles.detailBox}>
-              <Text style={styles.detailHeading}>Shipment</Text>
+              <Text style={styles.detailHeading}>{t("payment.requestModal.shipment")}</Text>
               <Text style={styles.shipmentTitle} numberOfLines={2}>
                 {shipmentTitle || "—"}
               </Text>
               {price != null && (
-                <Text style={styles.agreedPrice}>Agreed price: {formatPrice(price)}</Text>
+                <Text style={styles.agreedPrice}>
+                  {t("payment.requestModal.agreedPrice", { price: formatPrice(price) })}
+                </Text>
               )}
             </View>
 
             {/* Amount */}
-            <Text style={styles.sectionLabel}>Amount</Text>
+            <Text style={styles.sectionLabel}>{t("payment.requestModal.amount")}</Text>
             <TextInput
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
-              placeholder="Enter amount"
+              placeholder={t("payment.requestModal.enterAmount")}
               placeholderTextColor="#9CA3AF"
               style={styles.input}
             />
             {amount.trim() !== "" && !amountValid && (
-              <Text style={styles.error}>Enter an amount greater than 0.</Text>
+              <Text style={styles.error}>{t("payment.requestModal.amountError")}</Text>
             )}
 
             {/* Methods */}
-            <Text style={styles.sectionLabel}>Payment Method</Text>
+            <Text style={styles.sectionLabel}>{t("payment.requestModal.paymentMethod")}</Text>
             {METHODS.map((m) => {
               const Icon = m.icon;
               const selected = method === m.value;
@@ -222,8 +226,8 @@ export default function RequestPaymentModal({
                   </View>
                   <Icon size={22} color={selected ? BLUE : "#6B7280"} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.methodTitle}>{m.title}</Text>
-                    <Text style={styles.methodSub}>{m.sub}</Text>
+                    <Text style={styles.methodTitle}>{t(m.titleKey)}</Text>
+                    <Text style={styles.methodSub}>{t(m.subKey)}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -232,7 +236,7 @@ export default function RequestPaymentModal({
             {/* Method-specific fields */}
             {method === "online" && (
               <>
-                <Text style={styles.sectionLabel}>Mobile Money Number</Text>
+                <Text style={styles.sectionLabel}>{t("payment.requestModal.mobileMoneyNumber")}</Text>
                 <TextInput
                   value={phone}
                   onChangeText={setPhone}
@@ -242,14 +246,14 @@ export default function RequestPaymentModal({
                   style={styles.input}
                 />
                 <Text style={styles.hint}>
-                  Required — PayDunya uses this to show the mobile money options.
+                  {t("payment.requestModal.mobileMoneyHint")}
                 </Text>
               </>
             )}
 
             {method === "bank" && (
               <>
-                <Text style={styles.sectionLabel}>Bank Name</Text>
+                <Text style={styles.sectionLabel}>{t("payment.requestModal.bankName")}</Text>
                 <TextInput
                   value={bankName}
                   onChangeText={setBankName}
@@ -257,7 +261,7 @@ export default function RequestPaymentModal({
                   placeholderTextColor="#9CA3AF"
                   style={styles.input}
                 />
-                <Text style={styles.sectionLabel}>Account Number</Text>
+                <Text style={styles.sectionLabel}>{t("payment.requestModal.accountNumber")}</Text>
                 <TextInput
                   value={accountNumber}
                   onChangeText={setAccountNumber}
@@ -266,7 +270,7 @@ export default function RequestPaymentModal({
                   placeholderTextColor="#9CA3AF"
                   style={styles.input}
                 />
-                <Text style={styles.sectionLabel}>Account Holder</Text>
+                <Text style={styles.sectionLabel}>{t("payment.requestModal.accountHolder")}</Text>
                 <TextInput
                   value={accountHolder}
                   onChangeText={setAccountHolder}
@@ -278,11 +282,11 @@ export default function RequestPaymentModal({
             )}
 
             {/* Notes */}
-            <Text style={styles.sectionLabel}>Notes (optional)</Text>
+            <Text style={styles.sectionLabel}>{t("payment.requestModal.notes")}</Text>
             <TextInput
               value={notes}
               onChangeText={setNotes}
-              placeholder="Delivery completed"
+              placeholder={t("payment.requestModal.notesPlaceholder")}
               placeholderTextColor="#9CA3AF"
               multiline
               style={[styles.input, styles.notesInput]}
@@ -297,7 +301,7 @@ export default function RequestPaymentModal({
               disabled={submitting}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelTxt}>Cancel</Text>
+              <Text style={styles.cancelTxt}>{t("payment.requestModal.cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.payBtn, (submitting || !canSubmit) && { opacity: 0.5 }]}
@@ -309,7 +313,9 @@ export default function RequestPaymentModal({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.payTxt}>
-                  {method === "online" ? "Continue to PayDunya" : "Submit Request"}
+                  {method === "online"
+                    ? t("payment.requestModal.continueToPaydunya")
+                    : t("payment.requestModal.submitRequest")}
                 </Text>
               )}
             </TouchableOpacity>

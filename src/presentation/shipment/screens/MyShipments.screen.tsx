@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 import { Eye, Map, Plus, Search, PackageSearch, SearchX } from "lucide-react-native";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
@@ -24,17 +26,19 @@ const BLUE = "#036BB4";
 type NavProp = NativeStackNavigationProp<ActiveShipmentsStackParamList, "ActiveShipments">;
 
 // ── Status config ─────────────────────────────────────────────────────────────
-const STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  IN_PROGRESS: { label: "In progress", bg: "#F97316", text: "#fff", dot: "#fff" },
-  IN_TRANSIT:  { label: "In transit",  bg: "#2563EB", text: "#fff", dot: "#fff" },
-  COMPLETED:   { label: "Delivered",   bg: "#22C55E", text: "#fff", dot: "#fff" },
-  DELIVERED:   { label: "Delivered",   bg: "#22C55E", text: "#fff", dot: "#fff" },
-  BIDDING:     { label: "Bidding",     bg: "#0EA5E9", text: "#fff", dot: "#fff" },
-  PENDING:     { label: "Pending",     bg: "#64748B", text: "#fff", dot: "#fff" },
-  CANCELLED:   { label: "Cancelled",   bg: "#EF4444", text: "#fff", dot: "#fff" },
+// Keys are backend enums — never translate them. Only labelKey is translated.
+const STATUS: Record<string, { labelKey: ParseKeys; bg: string; text: string; dot: string }> = {
+  IN_PROGRESS: { labelKey: "shipper.status.inProgress", bg: "#F97316", text: "#fff", dot: "#fff" },
+  IN_TRANSIT:  { labelKey: "shipper.status.inTransit",  bg: "#2563EB", text: "#fff", dot: "#fff" },
+  COMPLETED:   { labelKey: "shipper.status.delivered",  bg: "#22C55E", text: "#fff", dot: "#fff" },
+  DELIVERED:   { labelKey: "shipper.status.delivered",  bg: "#22C55E", text: "#fff", dot: "#fff" },
+  BIDDING:     { labelKey: "shipper.status.bidding",    bg: "#0EA5E9", text: "#fff", dot: "#fff" },
+  PENDING:     { labelKey: "shipper.status.pending",    bg: "#64748B", text: "#fff", dot: "#fff" },
+  CANCELLED:   { labelKey: "shipper.status.cancelled",  bg: "#EF4444", text: "#fff", dot: "#fff" },
 };
 
 const MyShipmentsScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavProp>();
   const { user } = useAuth();
 
@@ -66,7 +70,14 @@ const MyShipmentsScreen = () => {
     : shipments;
 
   const renderRow = ({ item }: { item: Shipment }) => {
-    const status = STATUS[item.status] ?? { label: item.status, bg: "#64748B", text: "#fff", dot: "#fff" };
+    // Unmapped statuses still fall back to the raw backend enum, as before.
+    const config = STATUS[item.status];
+    const status = {
+      label: config ? t(config.labelKey) : item.status,
+      bg: config?.bg ?? "#64748B",
+      text: config?.text ?? "#fff",
+      dot: config?.dot ?? "#fff",
+    };
     return (
       <View style={s.row}>
         <Text style={[s.cell, s.titleCell]} numberOfLines={1}>{item.title}</Text>
@@ -100,7 +111,7 @@ const MyShipmentsScreen = () => {
 
   return (
     <SafeAreaView edges={["top"]} style={s.screen}>
-      <Text style={s.screenTitle}>My Shipments</Text>
+      <Text style={s.screenTitle}>{t("shipper.myShipments.title")}</Text>
 
       {/* Search — only relevant once the shipper has shipments */}
       {!loading && shipments.length > 0 && (
@@ -109,7 +120,7 @@ const MyShipmentsScreen = () => {
             <Search size={16} color="#9ca3af" style={{ marginRight: 8 }} />
             <TextInput
               style={s.searchInput}
-              placeholder="Search"
+              placeholder={t("shipper.myShipments.search")}
               placeholderTextColor="#9ca3af"
               value={search}
               onChangeText={setSearch}
@@ -129,9 +140,9 @@ const MyShipmentsScreen = () => {
           <View style={s.emptyIconWrap}>
             <PackageSearch size={34} color={BLUE} />
           </View>
-          <Text style={s.emptyTitle}>No shipments yet</Text>
+          <Text style={s.emptyTitle}>{t("shipper.myShipments.emptyTitle")}</Text>
           <Text style={s.emptySub}>
-            Create your first shipment and transporters will start bidding on it.
+            {t("shipper.myShipments.emptySubtitle")}
           </Text>
         </View>
       ) : (
@@ -146,9 +157,9 @@ const MyShipmentsScreen = () => {
           }
           ListHeaderComponent={
             <View style={s.thead}>
-              <Text style={[s.theadTxt, s.titleCell]}>Shipment title</Text>
-              <Text style={[s.theadTxt, s.statusCell, { textAlign: "center" }]}>Status</Text>
-              <Text style={[s.theadTxt, s.actionCell, { textAlign: "center" }]}>Action</Text>
+              <Text style={[s.theadTxt, s.titleCell]}>{t("shipper.myShipments.tableTitle")}</Text>
+              <Text style={[s.theadTxt, s.statusCell, { textAlign: "center" }]}>{t("shipper.myShipments.tableStatus")}</Text>
+              <Text style={[s.theadTxt, s.actionCell, { textAlign: "center" }]}>{t("shipper.myShipments.tableAction")}</Text>
             </View>
           }
           stickyHeaderIndices={[0]}
@@ -158,9 +169,9 @@ const MyShipmentsScreen = () => {
               <View style={s.emptyIconWrap}>
                 <SearchX size={30} color={BLUE} />
               </View>
-              <Text style={s.emptyTitle}>No matching shipments</Text>
+              <Text style={s.emptyTitle}>{t("shipper.myShipments.noMatchTitle")}</Text>
               <Text style={s.emptySub}>
-                {`We couldn't find a shipment matching "${search.trim()}".`}
+                {t("shipper.myShipments.noMatchSubtitle", { query: search.trim() })}
               </Text>
             </View>
           }
@@ -175,7 +186,7 @@ const MyShipmentsScreen = () => {
           onPress={() => navigation.navigate("CreateShipment")}
         >
           <Plus size={20} color="#fff" />
-          <Text style={s.createTxt}>Create Shipment</Text>
+          <Text style={s.createTxt}>{t("shipper.myShipments.createShipment")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

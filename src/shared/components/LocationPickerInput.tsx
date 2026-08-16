@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import {
@@ -49,6 +50,7 @@ export default function LocationPickerInput({
   coord,
   onChange,
 }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(address);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [searching, setSearching] = useState(false);
@@ -147,8 +149,8 @@ export default function LocationPickerInput({
       () => {
         setLocating(false);
         Alert.alert(
-          'Location unavailable',
-          'Could not get your current location. Search or tap the map to pick instead.',
+          t('components.locationPicker.unavailableTitle'),
+          t('components.locationPicker.unavailableMessage'),
         );
       },
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 },
@@ -341,12 +343,14 @@ export default function LocationPickerInput({
                 </TouchableOpacity>
                 <TextInput
                   className="flex-1 py-3 px-1 text-[#1A1C1E]"
-                  placeholder={`Search ${label.toLowerCase()}`}
+                  placeholder={t('components.locationPicker.searchPlaceholder', {
+                    label: label.toLowerCase(),
+                  })}
                   placeholderTextColor="#9AA0A6"
                   value={query}
-                  onChangeText={t => {
-                    setQuery(t);
-                    onChange(t, coord);
+                  onChangeText={text => {
+                    setQuery(text);
+                    onChange(text, coord);
                   }}
                 />
                 {searching ? (
@@ -403,7 +407,7 @@ export default function LocationPickerInput({
             {/* Hint pill (only before a pin is set) */}
             {!coord && (
               <View className="absolute self-center bg-black/55 px-4 py-2 rounded-full" style={{ top: '46%' }}>
-                <Text className="text-white text-xs">Tap the map to drop a pin</Text>
+                <Text className="text-white text-xs">{t('components.locationPicker.tapMap')}</Text>
               </View>
             )}
 
@@ -447,7 +451,9 @@ export default function LocationPickerInput({
               </View>
 
               <Text className="text-base font-semibold text-[#1A1C1E]" numberOfLines={2}>
-                {coord ? query || 'Pinned location' : 'No location selected yet'}
+                {coord
+                  ? query || t('components.locationPicker.pinned')
+                  : t('components.locationPicker.noneSelected')}
               </Text>
               {coord && (
                 <Text className="text-xs text-[#8E8E93] mt-1">
@@ -464,7 +470,7 @@ export default function LocationPickerInput({
                 }`}
               >
                 <Check size={18} color="#fff" />
-                <Text className="text-white font-semibold ml-2">Confirm Location</Text>
+                <Text className="text-white font-semibold ml-2">{t('components.locationPicker.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>

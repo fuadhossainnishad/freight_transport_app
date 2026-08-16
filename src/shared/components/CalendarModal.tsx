@@ -1,5 +1,6 @@
 import React from "react"
 import { Modal, View, Text, TouchableOpacity } from "react-native"
+import { useTranslation } from "react-i18next"
 import { X } from "lucide-react-native"
 import { Calendar } from "react-native-calendars"
 
@@ -29,6 +30,7 @@ export default function CalendarModal({
   onClose,
   onSelect,
 }: Props) {
+  const { t } = useTranslation()
   const today = todayISO()
 
   return (
@@ -37,7 +39,7 @@ export default function CalendarModal({
         <TouchableOpacity activeOpacity={1} className="bg-white rounded-3xl p-3 overflow-hidden">
           {/* Header */}
           <View className="flex-row items-center justify-between px-2 pt-1 pb-2">
-            <Text className="text-base font-bold text-gray-900">Select date</Text>
+            <Text className="text-base font-bold text-gray-900">{t("components.calendar.title")}</Text>
             <TouchableOpacity onPress={onClose} className="w-8 h-8 rounded-full items-center justify-center">
               <X size={18} color="#9ca3af" />
             </TouchableOpacity>

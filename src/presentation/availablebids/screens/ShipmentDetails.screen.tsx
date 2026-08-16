@@ -18,6 +18,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AppHeader from "../../../shared/components/AppHeader";
 import { getShipmentBids } from "../../../data/services/shipmentService";
 import ShipmentBidsList from "../components/ShipmentBidsList";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
+import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions";
 
 import ArrowIcon from "../../../../assets/icons/arrow4.svg"
 
@@ -32,19 +35,21 @@ const carosoul = [
 // Status values mirror the backend ShipmentStatus enum
 // (Shipment/shipment.type.ts): PENDING, BIDDING, IN_PROGRESS,
 // IN_TRANSIT, COMPLETED, CANCELLED.
-const STATUS_CONFIG: Record<string, { label: string; bg: string }> = {
-    PENDING: { label: "Pending", bg: "#64748B" },
-    BIDDING: { label: "Bidding", bg: "#0EA5E9" },
-    IN_PROGRESS: { label: "In Progress", bg: "#F97316" },
-    IN_TRANSIT: { label: "In Transit", bg: "#8B5CF6" },
-    COMPLETED: { label: "Completed", bg: "#22C55E" },
-    CANCELLED: { label: "Cancelled", bg: "#EF4444" },
+const STATUS_CONFIG: Record<string, { labelKey: ParseKeys; bg: string }> = {
+    PENDING: { labelKey: "availableBids.shipmentDetails.status.pending", bg: "#64748B" },
+    BIDDING: { labelKey: "availableBids.shipmentDetails.status.bidding", bg: "#0EA5E9" },
+    IN_PROGRESS: { labelKey: "availableBids.shipmentDetails.status.inProgress", bg: "#F97316" },
+    IN_TRANSIT: { labelKey: "availableBids.shipmentDetails.status.inTransit", bg: "#8B5CF6" },
+    COMPLETED: { labelKey: "availableBids.shipmentDetails.status.completed", bg: "#22C55E" },
+    CANCELLED: { labelKey: "availableBids.shipmentDetails.status.cancelled", bg: "#EF4444" },
 };
 
 type RoutePropType = RouteProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
 type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList, 'ShipmentDetails'>;
 
 export default function ShipmentDetailsScreen() {
+    const { t } = useTranslation();
+    const { categoryLabel } = useShipmentOptions();
     const navigation = useNavigation<NavigationPropType>();
     const route = useRoute<RoutePropType>();
     const { shipmentId } = route.params;
@@ -94,7 +99,7 @@ export default function ShipmentDetailsScreen() {
     if (!shipmentData) {
         return (
             <SafeAreaView className="flex-1 justify-center items-center">
-                <Text className="text-gray-500">Shipment details not available</Text>
+                <Text className="text-gray-500">{t("availableBids.shipmentDetails.notAvailable")}</Text>
             </SafeAreaView>
         );
     }
@@ -120,11 +125,15 @@ export default function ShipmentDetailsScreen() {
     // Bidding is only open while the shipment is in the BIDDING stage.
     // Outside of it, transporters should see no bid UI (place your bid / bid list).
     const isBidding = status === "BIDDING";
-    const statusInfo = STATUS_CONFIG[status] ?? { label: status ?? "Unknown", bg: "#64748B" };
+    const statusConfig = STATUS_CONFIG[status];
+    const statusInfo = {
+        label: statusConfig ? t(statusConfig.labelKey) : status ?? t("availableBids.shipmentDetails.status.unknown"),
+        bg: statusConfig?.bg ?? "#64748B",
+    };
 
     return (
         <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-white">
-            <AppHeader text="Shipment Detail" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("availableBids.shipmentDetails.title")} onpress={() => navigation.goBack()} />
             {/* 🔹 Image Carousel */}
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -167,7 +176,7 @@ export default function ShipmentDetailsScreen() {
                                 {bidCount}
                             </Text>
 
-                            <Text className="text-base text-[#036BB4]">Bids</Text>
+                            <Text className="text-base text-[#036BB4]">{t("availableBids.shipmentDetails.bids")}</Text>
                             <ArrowIcon height={20} width={20} />
 
                         </TouchableOpacity>
@@ -182,7 +191,7 @@ export default function ShipmentDetailsScreen() {
 
 
                             <Text className="text-blue-500 font-medium">
-                                Back to Details
+                                {t("availableBids.shipmentDetails.backToDetails")}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -195,52 +204,52 @@ export default function ShipmentDetailsScreen() {
 
 
                         {/* Basic Info */}
-                        <InfoSection title="Basic Information">
+                        <InfoSection title={t("availableBids.shipmentDetails.basicInformation")}>
                             <View className="flex-row flex-1">
-                                <InfoRow label="Category" value={category} />
-                                <InfoRow label="Weight" value={weight} />
+                                <InfoRow label={t("availableBids.shipmentDetails.category")} value={categoryLabel(category)} />
+                                <InfoRow label={t("availableBids.shipmentDetails.weight")} value={weight} />
                             </View>
                             <View className="flex-row flex-1">
-                                <InfoRow label="Dimensions" value={dimensions} />
-                                <InfoRow label="Packaging" value={packaging} />
+                                <InfoRow label={t("availableBids.shipmentDetails.dimensions")} value={dimensions} />
+                                <InfoRow label={t("availableBids.shipmentDetails.packaging")} value={packaging} />
                             </View>
 
                         </InfoSection>
 
                         {/* Pickup & Delivery */}
-                        <InfoSection title="Pickup & Delivery Details">
+                        <InfoSection title={t("availableBids.shipmentDetails.pickupDeliveryDetails")}>
                             <View className="flex-row flex-1">
-                                <InfoRow label="Pickup" value={pickup} />
-                                <InfoRow label="Delivery" value={delivery} />
+                                <InfoRow label={t("availableBids.shipmentDetails.pickup")} value={pickup} />
+                                <InfoRow label={t("availableBids.shipmentDetails.delivery")} value={delivery} />
                             </View>
                             <View className="flex-row flex-1">
-                                <InfoRow label="Time Window" value={timeWindow} />
-                                <InfoRow label="Date Preference" value={datePreference} />
+                                <InfoRow label={t("availableBids.shipmentDetails.timeWindow")} value={timeWindow} />
+                                <InfoRow label={t("availableBids.shipmentDetails.datePreference")} value={datePreference} />
                             </View>
 
 
                         </InfoSection>
 
                         {/* Amount */}
-                        <InfoSection title="Amount">
-                            <InfoRow label="Price" value={`€${price}`} />
+                        <InfoSection title={t("availableBids.shipmentDetails.amount")}>
+                            <InfoRow label={t("availableBids.shipmentDetails.price")} value={`€${price}`} />
                         </InfoSection>
 
                         {/* Driver Info */}
                         {driver && (
-                            <InfoSection title="Driver Info">
-                                <InfoRow label="Name" value={driver.name} />
-                                <InfoRow label="Phone" value={driver.phone} />
-                                <InfoRow label="Email" value={driver.email} />
+                            <InfoSection title={t("availableBids.shipmentDetails.driverInfo")}>
+                                <InfoRow label={t("availableBids.shipmentDetails.name")} value={driver.name} />
+                                <InfoRow label={t("availableBids.shipmentDetails.phone")} value={driver.phone} />
+                                <InfoRow label={t("availableBids.shipmentDetails.email")} value={driver.email} />
                             </InfoSection>
                         )}
 
                         {/* Vehicle Info */}
                         {vehicle && (
-                            <InfoSection title="Vehicle Info">
-                                <InfoRow label="Type" value={vehicle.type} />
-                                <InfoRow label="Number" value={vehicle.number} />
-                                <InfoRow label="Plate" value={vehicle.plate} />
+                            <InfoSection title={t("availableBids.shipmentDetails.vehicleInfo")}>
+                                <InfoRow label={t("availableBids.shipmentDetails.type")} value={vehicle.type} />
+                                <InfoRow label={t("availableBids.shipmentDetails.number")} value={vehicle.number} />
+                                <InfoRow label={t("availableBids.shipmentDetails.plate")} value={vehicle.plate} />
                             </InfoSection>
                         )}
                     </View>

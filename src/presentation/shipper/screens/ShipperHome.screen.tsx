@@ -18,6 +18,7 @@ import StatCard from "../../../shared/components/StatCard";
 import { getShipmentBids } from "../../../data/services/shipmentService";
 import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
 import { normalizeImageUrl } from "../../../shared/utils/normalizeImageUrl";
+import { useTranslation } from "react-i18next";
 import { PackageSearch } from "lucide-react-native";
 
 const BLUE = '#036BB4';
@@ -32,6 +33,7 @@ const CLONE_COUNT = 2;
 type Props = NativeStackNavigationProp<ShipperHomeStackParamList, 'Home'>;
 
 export default function ShipperHome() {
+    const { t } = useTranslation()
     const navigation = useNavigation<Props>()
     const { user } = useUser()
     const { user: authUser } = useAuth()
@@ -212,24 +214,26 @@ export default function ShipperHome() {
                         >
                             <Create height={30} width={30} />
                             <Text className="text-[#7A7A7A] text-base font-bold text-center">
-                                Create Shipment
+                                {t('shipper.home.createShipment')}
                             </Text>
                         </TouchableOpacity>
-                        <StatCard title="Shipments In Progress" value={stats?.shipmentsInProgress ?? 0} />
+                        <StatCard title={t('shipper.home.shipmentsInProgress')} value={stats?.shipmentsInProgress ?? 0} />
                     </View>
                     <View className="flex-row gap-3">
-                        <StatCard title="Completed Shipments" value={stats?.completedShipments ?? 0} />
-                        <StatCard title="Total Money spent" value={`€${(stats?.totalMoneySpent ?? 0).toLocaleString()}`} />
+                        <StatCard title={t('shipper.home.completedShipments')} value={stats?.completedShipments ?? 0} />
+                        {/* NOTE: hardcoded € and locale-less toLocaleString — part of the
+                            app-wide currency inconsistency flagged in CLAUDE.md. */}
+                        <StatCard title={t('shipper.home.totalMoneySpent')} value={`€${(stats?.totalMoneySpent ?? 0).toLocaleString()}`} />
                     </View>
                 </View>
 
                 {/* ── Live Bids ── */}
                 <View style={s.section}>
                     <View style={s.sectionHeader}>
-                        <Text style={s.sectionTitle}>Live Bids</Text>
+                        <Text style={s.sectionTitle}>{t('shipper.home.liveBids')}</Text>
                         {bidShipments.length > 3 && (
                             <TouchableOpacity onPress={() => navigation.navigate('Bids')}>
-                                <Text style={s.seeAll}>See All</Text>
+                                <Text style={s.seeAll}>{t('shipper.home.seeAll')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -239,16 +243,16 @@ export default function ShipperHome() {
                             <View style={s.emptyIconWrap}>
                                 <PackageSearch size={28} color={BLUE} />
                             </View>
-                            <Text style={s.emptyTitle}>No live bids yet</Text>
+                            <Text style={s.emptyTitle}>{t('shipper.home.noBidsTitle')}</Text>
                             <Text style={s.emptySub}>
-                                Post a shipment and transporters will start placing bids here.
+                                {t('shipper.home.noBidsSubtitle')}
                             </Text>
                             <TouchableOpacity
                                 style={s.emptyCta}
                                 activeOpacity={0.85}
                                 onPress={() => navigation.navigate('CreateShipment')}
                             >
-                                <Text style={s.emptyCtaText}>Create Shipment</Text>
+                                <Text style={s.emptyCtaText}>{t('shipper.home.createShipment')}</Text>
                             </TouchableOpacity>
                         </View>
                     ) : (

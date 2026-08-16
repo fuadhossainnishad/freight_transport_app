@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ReceiptText } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import { InvoiceStackParamList } from "../../../navigation/types";
 import { getInvoices, getInvoiceDetail, InvoiceListItem } from "../../../data/services/invoiceService";
@@ -17,6 +18,7 @@ type Props = NativeStackNavigationProp<
 >;
 
 const InvoicesScreen = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<Props>();
 
     const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
@@ -33,22 +35,29 @@ const InvoicesScreen = () => {
             setInvoices(res.data);
         } catch (error: any) {
             console.error(error);
-            Alert.alert("Error", error?.response?.data?.message || error.message || "Failed to load invoices");
+            // The backend message wins when present — it is raw English and
+            // outside i18n. Only the fallback is ours.
+            Alert.alert(t("common.error"), error?.response?.data?.message || error.message || t("invoice.list.loadFailed"));
         } finally {
             setLoading(false);
         }
     };
 
+    // Mount-only. loadInvoices closes over `t`, so the linter wants it as a
+    // dependency — but it is not memoised, so adding it would re-create it every
+    // render and fire an endless fetch loop.
     useEffect(() => {
         loadInvoices();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Debounced server-side search
+    // Debounced server-side search — same reasoning as above.
     useEffect(() => {
         const handler = setTimeout(() => {
             loadInvoices(search.trim() || undefined);
         }, 400);
         return () => clearTimeout(handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     const handleView = (invoice: InvoiceListItem) => {
@@ -62,11 +71,11 @@ const InvoicesScreen = () => {
             const detail = await getInvoiceDetail(invoice.payment_id);
             const result = await downloadInvoicePdf(detail);
             if (result === "saved") {
-                Alert.alert("Downloaded", "The invoice was saved to your device.");
+                Alert.alert(t("invoice.download.successTitle"), t("invoice.download.successMessage"));
             }
         } catch (error: any) {
             console.error(error);
-            Alert.alert("Download failed", error?.response?.data?.message || error?.message || "Could not save the invoice PDF");
+            Alert.alert(t("invoice.download.failedTitle"), error?.response?.data?.message || error?.message || t("invoice.download.failedMessage"));
         } finally {
             setDownloadingId(null);
         }
@@ -76,7 +85,7 @@ const InvoicesScreen = () => {
         <SafeAreaView edges={["top"]} className="flex-1 bg-white p-4">
             <View className='bg-white flex-row w-full p-4 items-center px-4'>
                 <Text className='text-center text-lg font-semibold text-black w-full'>
-                    Invoices
+                    {t("invoice.list.title")}
                 </Text>
             </View>
 
@@ -85,7 +94,7 @@ const InvoicesScreen = () => {
                 <SearchInput
                     value={search}
                     onChange={setSearch}
-                    placeholder="Search invoice"
+                    placeholder={t("invoice.list.search")}
                 />
             )}
 
@@ -99,9 +108,9 @@ const InvoicesScreen = () => {
                     <View style={styles.emptyIconWrap}>
                         <ReceiptText size={34} color="#036BB4" />
                     </View>
-                    <Text style={styles.emptyTitle}>No invoices yet</Text>
+                    <Text style={styles.emptyTitle}>{t("invoice.list.emptyTitle")}</Text>
                     <Text style={styles.emptySub}>
-                        Invoices appear here automatically once your shipments are completed and paid.
+                        {t("invoice.list.emptySubtitle")}
                     </Text>
                 </View>
             ) : (

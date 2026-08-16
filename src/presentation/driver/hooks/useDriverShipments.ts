@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../app/context/Auth.context';
 import axiosClient from '../../../shared/config/axios.config';
 import { normalizeImageUrl } from '../../../shared/utils/normalizeImageUrl';
@@ -44,6 +45,7 @@ const mapApiShipment = (s: any): Shipment => ({
 });
 
 export const useDriverShipments = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,11 +63,13 @@ export const useDriverShipments = () => {
       const raw = res.data?.data?.shipments ?? [];
       setShipments(raw.map(mapApiShipment));
     } catch (err: any) {
-      setError(err?.message ?? 'Failed to fetch shipments');
+      // err.message is raw axios/network text and stays English; only the
+      // fallback is ours to translate.
+      setError(err?.message ?? t('driver.home.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [user?.driver_id]);
+  }, [user?.driver_id, t]);
 
   useEffect(() => {
     fetch();

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { EarningsStackParamList } from "./types";
 import EarningsScreen from "../presentation/earnings/screens/Earnings.screen";
 import WithdrawScreen from "../presentation/earnings/screens/Withdraw.screen";
+import WithdrawalHistoryScreen from "../presentation/earnings/screens/WithdrawalHistory.screen";
 
 const Stack = createNativeStackNavigator<EarningsStackParamList>();
 
@@ -21,6 +22,10 @@ export default function EarningsStack() {
       <Stack.Screen
         name='Withdraw'
         component={WithdrawScreen}
+      />
+      <Stack.Screen
+        name='WithdrawalHistory'
+        component={WithdrawalHistoryScreen}
       />
     </Stack.Navigator>
   );

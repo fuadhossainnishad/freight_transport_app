@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { X, Check, Search } from "lucide-react-native";
 import { COUNTRIES, Country, flagUrl } from "../../domain/constants/countries";
 
@@ -23,6 +24,7 @@ interface Props {
 /** Shared searchable country list — used by both the Country field and the
  *  phone-number prefix so they open the exact same picker. */
 export default function CountrySelectModal({ visible, value, onChange, onClose }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -44,7 +46,7 @@ export default function CountrySelectModal({ visible, value, onChange, onClose }
         <Pressable style={styles.backdrop} onPress={close} />
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Select country</Text>
+            <Text style={styles.sheetTitle}>{t("components.countrySelect.title")}</Text>
             <TouchableOpacity onPress={close} hitSlop={10}>
               <X size={22} color="#111827" />
             </TouchableOpacity>
@@ -54,7 +56,7 @@ export default function CountrySelectModal({ visible, value, onChange, onClose }
             <Search size={18} color="#9ca3af" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search"
+              placeholder={t("components.countrySelect.search")}
               placeholderTextColor="#9ca3af"
               value={query}
               onChangeText={setQuery}

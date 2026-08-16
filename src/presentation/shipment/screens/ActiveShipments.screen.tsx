@@ -15,11 +15,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft, Map, Search, Truck, SearchX, ArrowRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { Shipment } from "../../../domain/entities/shipment.entity";
 import { useAuth } from "../../../app/context/Auth.context";
 import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2; // 16 padding each side + 16 gap
@@ -28,11 +31,17 @@ const truckPlaceholder = require("../../../../assets/images/truck.png");
 type NavProp = NativeStackNavigationProp<ActiveShipmentsStackParamList, "ActiveShipments">;
 
 // ── Status config ─────────────────────────────────────────────────────────────
-const STATUS: Record<string, { label: string; bg: string; text: string }> = {
-  IN_PROGRESS: { label: "In Progress", bg: "#FFF7ED", text: "#EA580C" },
-  IN_TRANSIT:  { label: "In Transit",  bg: "#EFF6FF", text: "#1D4ED8" },
-  COMPLETED:   { label: "Completed",   bg: "#F0FDF4", text: "#15803D" },
-  PENDING:     { label: "Pending",     bg: "#F8FAFC", text: "#64748B" },
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  IN_PROGRESS: { bg: "#FFF7ED", text: "#EA580C" },
+  IN_TRANSIT:  { bg: "#EFF6FF", text: "#1D4ED8" },
+  COMPLETED:   { bg: "#F0FDF4", text: "#15803D" },
+  PENDING:     { bg: "#F8FAFC", text: "#64748B" },
+};
+const STATUS_LABEL_KEY: Record<string, ParseKeys> = {
+  IN_PROGRESS: "shipmentMap.status.inProgress",
+  IN_TRANSIT: "shipmentMap.status.inTransit",
+  COMPLETED: "shipmentMap.status.completed",
+  PENDING: "shipmentMap.status.pending",
 };
 
 // ── Card ──────────────────────────────────────────────────────────────────────
@@ -45,8 +54,12 @@ function ShipmentCard({
   onPress: () => void;
   onMapPress: () => void;
 }) {
+  const { t } = useTranslation();
+  const { categoryLabel } = useShipmentOptions();
   const imageUri = item.images?.[0] ?? null;
-  const status = STATUS[item.status] ?? { label: item.status, bg: "#F8FAFC", text: "#64748B" };
+  const statusStyle = STATUS_STYLE[item.status] ?? { bg: "#F8FAFC", text: "#64748B" };
+  const statusKey = STATUS_LABEL_KEY[item.status];
+  const statusLabel = statusKey ? t(statusKey) : item.status;
 
   return (
     <TouchableOpacity
@@ -70,9 +83,9 @@ function ShipmentCard({
       <View style={styles.infoRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.cardCategory} numberOfLines={1}>{item.category ?? ""}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
-            <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
+          <Text style={styles.cardCategory} numberOfLines={1}>{categoryLabel(item.category)}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>{statusLabel}</Text>
           </View>
         </View>
 
@@ -97,17 +110,16 @@ function EmptyState({
   searching: boolean;
   onAction?: () => void;
 }) {
+  const { t } = useTranslation();
+
   if (searching) {
     return (
       <View style={styles.empty}>
         <View style={styles.emptyIconWrap}>
           <SearchX size={32} color="#0071BC" strokeWidth={1.75} />
         </View>
-        <Text style={styles.emptyTitle}>No matching shipments</Text>
-        <Text style={styles.emptySubtitle}>
-          We couldn’t find any shipments for that search. Try a different
-          keyword.
-        </Text>
+        <Text style={styles.emptyTitle}>{t("transporter.home.noMatchTitle")}</Text>
+        <Text style={styles.emptySubtitle}>{t("transporter.home.noMatchSubtitle")}</Text>
       </View>
     );
   }
@@ -117,18 +129,15 @@ function EmptyState({
       <View style={styles.emptyIconWrap}>
         <Truck size={32} color="#0071BC" strokeWidth={1.75} />
       </View>
-      <Text style={styles.emptyTitle}>No active shipments yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Once you win a bid, your live shipments show up here. Browse available
-        loads to start hauling and grow your earnings.
-      </Text>
+      <Text style={styles.emptyTitle}>{t("transporter.home.noShipmentsTitle")}</Text>
+      <Text style={styles.emptySubtitle}>{t("transporter.home.noShipmentsSubtitle")}</Text>
       {onAction && (
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={onAction}
           style={styles.emptyCta}
         >
-          <Text style={styles.emptyCtaText}>Browse Available Bids</Text>
+          <Text style={styles.emptyCtaText}>{t("transporter.home.browseBids")}</Text>
           <ArrowRight size={16} color="#fff" />
         </TouchableOpacity>
       )}
@@ -140,6 +149,7 @@ function EmptyState({
 const ActiveShipmentsScreen = () => {
   const navigation = useNavigation<NavProp>();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [filtered, setFiltered] = useState<Shipment[]>([]);
@@ -189,7 +199,7 @@ const ActiveShipmentsScreen = () => {
         >
           <ArrowLeft size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Active Shipments</Text>
+        <Text style={styles.headerTitle}>{t("transporter.home.activeShipments")}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -198,7 +208,7 @@ const ActiveShipmentsScreen = () => {
         <Search size={16} color="#9ca3af" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search shipments…"
+          placeholder={t("transporter.home.searchPlaceholder")}
           placeholderTextColor="#9ca3af"
           value={search}
           onChangeText={setSearch}

@@ -10,6 +10,7 @@ import {
 } from "react-native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { Asset } from "react-native-image-picker"
@@ -48,17 +49,21 @@ type ShipmentFormState = {
     forwarding: boolean
 }
 
-const STEPS = ["Shipment Details", "Location & Delivery"]
+// Module scope has no hook access, so these are keys resolved at render.
+const STEP_KEYS = ["shipper.create.stepDetails", "shipper.create.stepLocation"] as const
 const BLUE = "#036BB4"
 
 // Numbered step header: circles connected by a progress line, with labels
 // centered beneath each circle.
 function StepHeader({ step }: { step: number }) {
+    const { t } = useTranslation()
+    const steps = STEP_KEYS.map((key) => t(key))
+
     return (
         <View className="px-6 pt-1 pb-5">
             {/* Circles + connector */}
             <View className="flex-row items-center">
-                {STEPS.map((label, i) => {
+                {steps.map((label, i) => {
                     const active = i === step
                     const done = i < step
                     const reached = active || done
@@ -88,7 +93,7 @@ function StepHeader({ step }: { step: number }) {
                                     </Text>
                                 )}
                             </View>
-                            {i < STEPS.length - 1 && (
+                            {i < steps.length - 1 && (
                                 <View className={`flex-1 h-1 mx-2.5 rounded-full ${done ? "bg-[#036BB4]" : "bg-gray-200"}`} />
                             )}
                         </React.Fragment>
@@ -98,7 +103,7 @@ function StepHeader({ step }: { step: number }) {
 
             {/* Labels aligned under their circles */}
             <View className="flex-row justify-between mt-2.5">
-                {STEPS.map((label, i) => {
+                {steps.map((label, i) => {
                     const reached = i <= step
                     return (
                         <Text
@@ -121,6 +126,7 @@ function StepHeader({ step }: { step: number }) {
 }
 
 export default function CreateShipmentScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<NavigationProp>()
     const route = useRoute<RoutePropType>()
     const insets = useSafeAreaInsets()
@@ -167,7 +173,7 @@ export default function CreateShipmentScreen() {
     // ------------------------------------------------------------------
     const onSubmit = async (data: ShipmentFormState) => {
         if (!values.pickup_address || !values.delivery_address || !values.time_window || !values.contact_person || !values.date_preference) {
-            Alert.alert("Missing details", "Please fill in all the delivery details before publishing.")
+            Alert.alert(t("shipper.create.missingTitle"), t("shipper.create.missingMessage"))
             return
         }
 
@@ -207,7 +213,7 @@ export default function CreateShipmentScreen() {
             await createShipment(formData)
             setShowSuccess(true)
         } catch {
-            Alert.alert("Error", "Shipment creation failed. Please try again.")
+            Alert.alert(t("common.error"), t("shipper.create.failed"))
         } finally {
             setSubmitting(false)
         }
@@ -218,7 +224,7 @@ export default function CreateShipmentScreen() {
     // ------------------------------------------------------------------
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
-            <AppHeader text="Create Shipment" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("shipper.create.title")} onpress={() => navigation.goBack()} />
             <StepHeader step={step} />
 
             <KeyboardAvoidingView
@@ -273,7 +279,7 @@ export default function CreateShipmentScreen() {
                             className="flex-row items-center justify-center gap-1.5 py-3.5 rounded-full border border-gray-300"
                         >
                             <ChevronLeft size={18} color="#374151" />
-                            <Text className="text-gray-700 font-semibold text-base">Back</Text>
+                            <Text className="text-gray-700 font-semibold text-base">{t("shipper.create.back")}</Text>
                         </TouchableOpacity>
                     )}
 
@@ -285,7 +291,7 @@ export default function CreateShipmentScreen() {
                             style={{ flex: 1, opacity: basicComplete ? 1 : 0.5 }}
                             className="flex-row items-center justify-center gap-1.5 py-3.5 rounded-full bg-[#036BB4]"
                         >
-                            <Text className="text-white font-semibold text-base">Next</Text>
+                            <Text className="text-white font-semibold text-base">{t("shipper.create.next")}</Text>
                             <ChevronRight size={18} color="#fff" />
                         </TouchableOpacity>
                     ) : (
@@ -297,7 +303,7 @@ export default function CreateShipmentScreen() {
                             className="flex-row items-center justify-center py-3.5 rounded-full bg-[#036BB4]"
                         >
                             <Text className="text-white font-semibold text-base">
-                                {submitting ? "Publishing…" : "Publish Shipment"}
+                                {submitting ? t("shipper.create.publishing") : t("shipper.create.publish")}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -306,9 +312,9 @@ export default function CreateShipmentScreen() {
 
             <SuccessModal
                 visible={showSuccess}
-                title="Shipment created!"
-                message="Your shipment has been created. An admin will manually review it, and once approved it will be available for bidding."
-                buttonText="Done"
+                title={t("shipper.create.successTitle")}
+                message={t("shipper.create.successMessage")}
+                buttonText={t("common.done")}
                 onClose={() => {
                     setShowSuccess(false)
                     navigation.goBack()

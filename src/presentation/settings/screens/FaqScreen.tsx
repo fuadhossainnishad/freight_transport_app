@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useFaqs } from "../hooks/useFaqs";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../../../shared/components/AppHeader";
@@ -17,32 +18,24 @@ import { FAQ } from "../../../domain/entities/faq";
 import Faq from "../../../../assets/icons/faq.svg"
 import Arrow from "../../../../assets/icons/up_arrow.svg"
 
-export const DEFAULT_FAQS: FAQ[] = [
-  {
-    _id: "1",
-    question: "How do I create a shipment?",
-    answer:
-      "Go to the shipment section and click create shipment. Fill the details and submit.",
-  },
-  {
-    _id: "2",
-    question: "How do I track my shipment?",
-    answer:
-      "You can track your shipment from the shipment history screen.",
-  },
-  {
-    _id: "3",
-    question: "How do I contact support?",
-    answer:
-      "You can report an issue from the settings page.",
-  },
-];
 type Props = NativeStackNavigationProp<SettingsStackParamList, "Faq">;
 
 export default function FaqScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Props>();
 
   const { loadFaqs, loading, faqs } = useFaqs();
+
+  // Fallback shown only when the API returns no FAQs. Live FAQ content is
+  // authored backend-side and arrives in one language — see CLAUDE.md.
+  const defaultFaqs: FAQ[] = useMemo(
+    () => [
+      { _id: "1", question: t("settings.faq.defaults.q1"), answer: t("settings.faq.defaults.a1") },
+      { _id: "2", question: t("settings.faq.defaults.q2"), answer: t("settings.faq.defaults.a2") },
+      { _id: "3", question: t("settings.faq.defaults.q3"), answer: t("settings.faq.defaults.a3") },
+    ],
+    [t],
+  );
 
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -60,9 +53,9 @@ export default function FaqScreen() {
 
   // fallback data if API empty
   const faqList = useMemo(() => {
-    if (!faqs || faqs.length === 0) return DEFAULT_FAQS;
+    if (!faqs || faqs.length === 0) return defaultFaqs;
     return faqs;
-  }, [faqs]);
+  }, [faqs, defaultFaqs]);
 
   const toggleFaq = (id: string) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -79,7 +72,7 @@ export default function FaqScreen() {
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-white">
 
-      <AppHeader text="FAQ" onpress={() => navigation.goBack()} />
+      <AppHeader text={t("settings.faq.title")} onpress={() => navigation.goBack()} />
 
       <FlatList
         contentContainerStyle={{ padding: 16 }}

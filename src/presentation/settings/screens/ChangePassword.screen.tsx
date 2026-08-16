@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import FormInput from "../../../shared/components/FormInput";
 import AppHeader from "../../../shared/components/AppHeader";
 import { ChangePassword } from "../../../domain/entities/user.entity";
@@ -17,6 +18,7 @@ import { useChangePassword } from "../hooks/useChangePassword";
 type props = NativeStackNavigationProp<SettingsStackParamList, 'ChangePassword'>;
 
 export default function ChangePasswordScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<props>()
     const { changePassword, loading } = useChangePassword();
 
@@ -26,9 +28,9 @@ export default function ChangePasswordScreen() {
 
     } = useForm<ChangePassword>({
         defaultValues: {
-            current_pasword: "Sunan Rahman",
-            new_pasword: "demo@gmail.com",
-            confirmed_pasword: "+99007007007",
+            current_pasword: "",
+            new_pasword: "",
+            confirmed_pasword: "",
         },
     });
 
@@ -38,14 +40,14 @@ export default function ChangePasswordScreen() {
             await changePassword(data);
 
             Alert.alert(
-                "Success",
-                "Profile updated successfully"
+                t("common.success"),
+                t("settings.changePassword.success")
             );
 
         } catch {
             Alert.alert(
-                "Error",
-                "Failed to update profile"
+                t("common.error"),
+                t("settings.changePassword.changeFailed")
             );
         }
     };
@@ -53,43 +55,39 @@ export default function ChangePasswordScreen() {
     return (
         <SafeAreaView edges={["top"]} className="flex-1 bg-white">
 
-            <AppHeader text="Edit Profile" onpress={() => navigation.goBack()} />
+            <AppHeader text={t("settings.changePassword.title")} onpress={() => navigation.goBack()} />
 
             <View className="p-4">
 
                 <FormInput
                     control={control}
                     name="current_pasword"
-                    label="Current Password"
-                    placeholder="Enter Current Password"
-                    rules={{ required: "Current Password is required" }}
+                    label={t("settings.changePassword.currentLabel")}
+                    placeholder={t("settings.changePassword.currentPlaceholder")}
+                    rules={{ required: t("validation.currentPasswordRequired") }}
                 />
 
                 <FormInput
                     control={control}
                     name="new_pasword"
-                    label="New Password"
-                    placeholder="Enter New Password"
+                    label={t("settings.changePassword.newLabel")}
+                    placeholder={t("settings.changePassword.newPlaceholder")}
                     rules={{
-                        required: "New Password is required",
-                        pattern: {
-                            value: /\S+@\S+\.\S+/,
-                            message: "Invalid email",
-                        },
+                        required: t("validation.newPasswordRequiredShort"),
                     }}
                 />
 
                 <FormInput
                     control={control}
                     name="confirmed_pasword"
-                    label="Confirmed Password"
-                    placeholder="Enter Confirmed Password"
-                    rules={{ required: "Confirmed Password required" }}
+                    label={t("settings.changePassword.confirmLabel")}
+                    placeholder={t("settings.changePassword.confirmPlaceholder")}
+                    rules={{ required: t("validation.confirmedPasswordRequired") }}
                 />
 
 
                 <SubmitButton
-                    text="Save & Change"
+                    text={t("settings.profile.save")}
                     loading={loading}
                     onSubmit={handleSubmit(onSubmit)}
                 />

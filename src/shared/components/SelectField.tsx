@@ -9,6 +9,12 @@ type Props = {
   placeholder: string
   control: Control<any>
   onPress: () => void
+  /**
+   * Maps the stored form value to display text. Needed where the form holds an
+   * untranslated API value (e.g. category "Furniture") but the user must see
+   * the translated label. Optional so existing callers are unaffected.
+   */
+  formatValue?: (value: string) => string
 }
 
 export default function SelectField({
@@ -17,6 +23,7 @@ export default function SelectField({
   placeholder,
   control,
   onPress,
+  formatValue,
 }: Props) {
   return (
     <View className="mb-4">
@@ -31,7 +38,7 @@ export default function SelectField({
             className="border border-[#AEAEAE] p-3 rounded-lg flex-row justify-between items-center"
           >
             <Text className={`${value ? "text-black" : "text-gray-400"}`}>
-              {value || placeholder}
+              {value ? formatValue?.(value) ?? value : placeholder}
             </Text>
 
             <Selector width={20} height={20} />

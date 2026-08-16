@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import { useTranslation } from "react-i18next";
 import { launchImageLibrary, Asset } from "react-native-image-picker";
 import Upload from "../../../assets/icons/upload.svg";
 import AddIcon from "../../../assets/icons/add.svg";
@@ -15,6 +16,8 @@ interface Props {
 const THUMB_SIZE = 80;
 
 const UploadField: React.FC<Props> = ({ label, files, onPress, multiple = false }) => {
+    const { t } = useTranslation();
+
     const handlePickFiles = () => {
         launchImageLibrary(
             {
@@ -29,7 +32,7 @@ const UploadField: React.FC<Props> = ({ label, files, onPress, multiple = false 
             (response) => {
                 if (response.didCancel) return;
                 if (response.errorCode) {
-                    Alert.alert("Error", response.errorMessage || "Failed to pick files");
+                    Alert.alert(t("common.error"), response.errorMessage || t("components.uploadField.pickFailed"));
                     return;
                 }
                 if (response.assets) {
@@ -57,7 +60,7 @@ const UploadField: React.FC<Props> = ({ label, files, onPress, multiple = false 
                     className="border-2 border-dashed border-gray-300 h-40 rounded-xl px-3 py-3 gap-2 items-center flex-col justify-center"
                 >
                     <Upload height={20} width={20} />
-                    <Text className="text-gray-400 text-xs">Upload Image</Text>
+                    <Text className="text-gray-400 text-xs">{t("components.uploadField.upload")}</Text>
                 </TouchableOpacity>
             )}
 

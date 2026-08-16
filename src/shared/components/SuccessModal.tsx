@@ -1,5 +1,6 @@
 import React from "react"
 import { Modal, View, Text, TouchableOpacity } from "react-native"
+import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react-native"
 
 const BLUE = "#036BB4"
@@ -15,11 +16,16 @@ type Props = {
 
 export default function SuccessModal({
   visible,
-  title = "Success!",
+  title,
   message,
-  buttonText = "Done",
+  buttonText,
   onClose,
 }: Props) {
+  // Resolved in the body, not as default params: `t` is not in scope there.
+  const { t } = useTranslation()
+  const resolvedTitle = title ?? t("common.successExclaim")
+  const resolvedButtonText = buttonText ?? t("common.done")
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/40 items-center justify-center px-8">
@@ -49,7 +55,7 @@ export default function SuccessModal({
             </View>
           </View>
 
-          <Text className="text-xl font-bold text-gray-900 mt-5 text-center">{title}</Text>
+          <Text className="text-xl font-bold text-gray-900 mt-5 text-center">{resolvedTitle}</Text>
 
           {message ? (
             <Text className="text-sm text-gray-500 mt-2 text-center leading-5">{message}</Text>
@@ -61,7 +67,7 @@ export default function SuccessModal({
             style={{ backgroundColor: BLUE }}
             className="w-full rounded-full py-3.5 mt-6"
           >
-            <Text className="text-white text-center font-semibold text-base">{buttonText}</Text>
+            <Text className="text-white text-center font-semibold text-base">{resolvedButtonText}</Text>
           </TouchableOpacity>
         </View>
       </View>

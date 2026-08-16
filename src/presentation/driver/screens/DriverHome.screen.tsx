@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertCircle } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 import { LocationGate } from "../components/LocationGate";
 import DriverHeader from "../components/DriverHeader";
@@ -28,6 +29,7 @@ export default function DriverHomeScreen() {
 }
 
 function DriverHomeContent() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const { shipments, loading, error, refresh } = useDriverShipments();
 
@@ -35,9 +37,11 @@ function DriverHomeContent() {
   const hasShipments = count > 0;
   const initialLoading = loading && count === 0;
 
+  // i18next picks the plural form per locale — a `count === 1` ternary would be
+  // wrong in French, where 0 takes the singular.
   const subtitle = hasShipments
-    ? `${count} active ${count === 1 ? "delivery" : "deliveries"}`
-    : "Your assigned deliveries appear here";
+    ? t("driver.home.activeDeliveries", { count })
+    : t("driver.home.noShipments");
 
   return (
     <View style={styles.container}>
@@ -58,28 +62,29 @@ function DriverHomeContent() {
         }
       >
         {/* Title block */}
-        <Text style={styles.title}>My Shipments</Text>
+        <Text style={styles.title}>{t("driver.home.title")}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
         {/* States */}
         {initialLoading ? (
           <View style={styles.centerState}>
             <ActivityIndicator size="large" color="#036BB4" />
-            <Text style={styles.centerStateText}>Loading your deliveries…</Text>
+            <Text style={styles.centerStateText}>{t("driver.home.loading")}</Text>
           </View>
         ) : error ? (
           <View style={styles.centerState}>
             <View style={styles.errorIcon}>
               <AlertCircle size={26} color="#EF4444" strokeWidth={2} />
             </View>
-            <Text style={styles.errorTitle}>Couldn't load shipments</Text>
+            <Text style={styles.errorTitle}>{t("driver.home.loadErrorTitle")}</Text>
+            {/* `error` is a raw axios/network message — English and outside i18n. */}
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
               activeOpacity={0.85}
               onPress={refresh}
             >
-              <Text style={styles.retryText}>Try again</Text>
+              <Text style={styles.retryText}>{t("driver.home.tryAgain")}</Text>
             </TouchableOpacity>
           </View>
         ) : !hasShipments ? (

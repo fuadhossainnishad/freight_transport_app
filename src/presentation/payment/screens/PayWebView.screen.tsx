@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewNavigation } from "react-native-webview";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react-native";
 
 import { PaymentsStackParamList } from "../../../navigation/types";
@@ -20,11 +21,12 @@ const isSuccessUrl = (url: string) => /payment\/(success|bank-success)/i.test(ur
 const isCancelUrl = (url: string) => /payment\/(cancel|bank-cancel)/i.test(url);
 
 export default function PayWebViewScreen() {
+  const { t } = useTranslation();
   const route = useRoute<Rt>();
   const navigation = useNavigation<Nav>();
   // Absent in the transporter stack, which has no shipper request list to sync.
   const paymentRequests = usePaymentRequestsOptional();
-  const { url, title } = route.params;
+  const { url } = route.params;
 
   const [loading, setLoading] = useState(true);
   const handled = useRef(false);
@@ -36,7 +38,7 @@ export default function PayWebViewScreen() {
     paymentRequests?.refresh();
     navigation.goBack();
     if (outcome === "success") {
-      Alert.alert("Payment submitted", "We'll confirm your payment shortly.");
+      Alert.alert(t("payment.complete.alerts.submittedTitle"), t("payment.complete.alerts.submittedMessage"));
     }
   };
 
@@ -52,7 +54,7 @@ export default function PayWebViewScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10} style={styles.closeBtn}>
           <X size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{title ?? "Payment"}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{t("payment.webView.title")}</Text>
         <View style={styles.closeBtn} />
       </View>
 

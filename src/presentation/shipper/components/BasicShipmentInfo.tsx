@@ -2,10 +2,12 @@ import React, { useState } from "react"
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Control, Controller, UseFormSetValue } from "react-hook-form"
 import { Asset } from "react-native-image-picker"
+import { useTranslation } from "react-i18next"
 import { ImagePlus, X } from "lucide-react-native"
 
 import SelectField from "../../../shared/components/SelectField"
 import OptionSelectorModal from "../../../shared/components/OptionSelectorModal"
+import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions"
 
 type Props = {
     control: Control<any>
@@ -14,22 +16,6 @@ type Props = {
     images: Asset[]
     onRemoveImage: (index: number) => void
 }
-
-const CATEGORY_OPTIONS = [
-    "Furniture",
-    "Electronics",
-    "Food",
-    "Clothing",
-    "Construction Materials",
-]
-
-const PACKAGING_OPTIONS = [
-    "Wooden Crates",
-    "Pallets",
-    "Boxes",
-    "Drums",
-    "Loose Cargo",
-]
 
 const Label = ({ children, required }: { children: string; required?: boolean }) => (
     <Text className="text-sm font-semibold text-gray-700 mb-1.5">
@@ -47,22 +33,25 @@ export default function BasicShipmentInfo({
     images,
     onRemoveImage,
 }: Props) {
+    const { t } = useTranslation()
+    // The form stores the untranslated API value; these render the label.
+    const { categories, packaging, categoryLabel, packagingLabel } = useShipmentOptions()
     const [categoryVisible, setCategoryVisible] = useState(false)
     const [packagingVisible, setPackagingVisible] = useState(false)
 
     return (
         <View className="px-5">
-            <Text className="text-sm text-gray-500 mb-5">Tell us what you're shipping.</Text>
+            <Text className="text-sm text-gray-500 mb-5">{t("shipper.basicInfo.intro")}</Text>
 
             {/* Shipment title */}
-            <Label required>Shipment title</Label>
+            <Label required>{t("shipper.basicInfo.titleLabel")}</Label>
             <Controller
                 control={control}
                 name="shipment_title"
                 render={({ field: { onChange, value } }) => (
                     <TextInput
                         className={inputClass}
-                        placeholder="Ship 12 Pallets of Rice"
+                        placeholder={t("shipper.basicInfo.titlePlaceholder")}
                         placeholderTextColor="#9ca3af"
                         value={value}
                         onChangeText={onChange}
@@ -71,14 +60,16 @@ export default function BasicShipmentInfo({
             />
 
             <SelectField
-                label="Category *"
+                label={t("shipper.basicInfo.categoryLabel")}
                 name="category"
-                placeholder="Select category"
+                placeholder={t("shipper.basicInfo.categoryPlaceholder")}
                 control={control}
                 onPress={() => setCategoryVisible(true)}
+                // Form holds "Furniture"; the user must see "Meubles".
+                formatValue={categoryLabel}
             />
 
-            <Label required>Description</Label>
+            <Label required>{t("shipper.basicInfo.descriptionLabel")}</Label>
             <Controller
                 control={control}
                 name="discription"
@@ -87,7 +78,7 @@ export default function BasicShipmentInfo({
                         multiline
                         className={`${inputClass} min-h-[90px]`}
                         style={{ textAlignVertical: "top" }}
-                        placeholder="Describe the goods, handling notes, etc."
+                        placeholder={t("shipper.basicInfo.descriptionPlaceholder")}
                         placeholderTextColor="#9ca3af"
                         value={value}
                         onChangeText={onChange}
@@ -98,7 +89,7 @@ export default function BasicShipmentInfo({
             {/* Weight + Packaging side by side */}
             <View className="flex-row gap-3">
                 <View className="flex-1">
-                    <Label required>Weight</Label>
+                    <Label required>{t("shipper.basicInfo.weightLabel")}</Label>
                     <Controller
                         control={control}
                         name="weight"
@@ -115,16 +106,17 @@ export default function BasicShipmentInfo({
                 </View>
                 <View className="flex-1">
                     <SelectField
-                        label="Packaging *"
+                        label={t("shipper.basicInfo.packagingLabel")}
                         name="type_of_packaging"
-                        placeholder="Select"
+                        placeholder={t("shipper.basicInfo.packagingPlaceholder")}
                         control={control}
                         onPress={() => setPackagingVisible(true)}
+                        formatValue={packagingLabel}
                     />
                 </View>
             </View>
 
-            <Label>Dimensions (optional)</Label>
+            <Label>{t("shipper.basicInfo.dimensionsLabel")}</Label>
             <Controller
                 control={control}
                 name="dimensions"
@@ -140,7 +132,7 @@ export default function BasicShipmentInfo({
             />
 
             {/* ── Image upload ─────────────────────────── */}
-            <Label>Shipment images (optional)</Label>
+            <Label>{t("shipper.basicInfo.imagesLabel")}</Label>
             {images.length === 0 ? (
                 <TouchableOpacity
                     onPress={onPickImages}
@@ -150,8 +142,8 @@ export default function BasicShipmentInfo({
                     <View className="w-12 h-12 rounded-full bg-[#036BB4]/10 items-center justify-center">
                         <ImagePlus size={24} color="#036BB4" />
                     </View>
-                    <Text className="text-sm font-medium text-gray-700 mt-3">Tap to upload images</Text>
-                    <Text className="text-xs text-gray-400 mt-1">JPG, PNG supported</Text>
+                    <Text className="text-sm font-medium text-gray-700 mt-3">{t("shipper.basicInfo.tapToUpload")}</Text>
+                    <Text className="text-xs text-gray-400 mt-1">{t("shipper.basicInfo.imageFormats")}</Text>
                 </TouchableOpacity>
             ) : (
                 <View className="flex-row flex-wrap" style={{ gap: 10 }}>
@@ -198,14 +190,17 @@ export default function BasicShipmentInfo({
                         }}
                     >
                         <ImagePlus size={22} color="#036BB4" />
-                        <Text className="text-[10px] text-[#036BB4] mt-1 font-medium">Add</Text>
+                        <Text className="text-[10px] text-[#036BB4] mt-1 font-medium">{t("shipper.basicInfo.add")}</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
+            {/* The modal shows translated labels but hands back the English
+                `value` — which is what gets POSTed and stored. Translating the
+                stored value would corrupt the API contract. */}
             <OptionSelectorModal
                 visible={categoryVisible}
-                options={CATEGORY_OPTIONS}
+                options={categories}
                 onClose={() => setCategoryVisible(false)}
                 onSelect={(value: string) => {
                     setValue("category", value)
@@ -215,7 +210,7 @@ export default function BasicShipmentInfo({
 
             <OptionSelectorModal
                 visible={packagingVisible}
-                options={PACKAGING_OPTIONS}
+                options={packaging}
                 onClose={() => setPackagingVisible(false)}
                 onSelect={(value: string) => {
                     setValue("type_of_packaging", value)

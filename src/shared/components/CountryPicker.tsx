@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react-native";
 import { Country, flagUrl } from "../../domain/constants/countries";
 import CountrySelectModal from "./CountrySelectModal";
@@ -10,7 +11,8 @@ interface Props {
   placeholder?: string;
 }
 
-export default function CountryPicker({ value, onChange, placeholder = "Select country" }: Props) {
+export default function CountryPicker({ value, onChange, placeholder }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -26,7 +28,9 @@ export default function CountryPicker({ value, onChange, placeholder = "Select c
             <Text style={styles.valueText}>{value.name}</Text>
           </View>
         ) : (
-          <Text style={styles.placeholder}>{placeholder}</Text>
+          <Text style={styles.placeholder}>
+            {placeholder ?? t("components.countryPicker.placeholder")}
+          </Text>
         )}
         <ChevronDown size={20} color="#6b7280" />
       </TouchableOpacity>

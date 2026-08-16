@@ -1,3 +1,7 @@
+import type { FC } from 'react'
+import type { SvgProps } from 'react-native-svg'
+import type { ParseKeys } from 'i18next'
+
 import Edit from '../../../assets/icons/edit2.svg'
 import ChangePassword from '../../../assets/icons/change_password.svg'
 import Bank from '../../../assets/icons/bank.svg'
@@ -12,39 +16,45 @@ import Vehicle from '../../../assets/icons/truck.svg'
 import Earning from '../../../assets/icons/earning.svg'
 import Profile from '../../../assets/icons/User.svg'
 
+export type SettingsMenuItem = {
+  /** Navigation switch key in SettingsScreen — never translate. */
+  id: string
+  /** Resolved with t() at the render site; module scope has no hook access.
+   *  Typed as ParseKeys so a bad key fails the build. */
+  labelKey: ParseKeys
+  Icon: FC<SvgProps>
+  roles?: string[]
+}
 
-
-export const SETTINGS_MENU = [
-  { id: "edit_profile", label: "Edit Profile Details", Icon: Edit },
-  { id: "change_password", label: "Change Password", Icon: ChangePassword },
+export const SETTINGS_MENU: SettingsMenuItem[] = [
+  { id: "edit_profile", labelKey: "settings.menu.editProfile", Icon: Edit },
+  { id: "change_password", labelKey: "settings.menu.changePassword", Icon: ChangePassword },
   {
     id: "my_vehicles",
-    label: "My Vehicles",
+    labelKey: "settings.menu.myVehicles",
     Icon: Vehicle,
     roles: ["TRANSPORTER"],
   },
 
   {
     id: "driver_profiles",
-    label: "My Drivers",
+    labelKey: "settings.menu.myDrivers",
     Icon: Profile,
     roles: ["TRANSPORTER"],
   },
 
   {
     id: "earning_overview",
-    label: "Earning Overview",
+    labelKey: "settings.menu.earningOverview",
     Icon: Earning,
     roles: ["TRANSPORTER"],
   },
-  { id: "bank_details", label: "Bank Details", Icon: Bank },
-  { id: "issue_report", label: "Issue Reported", Icon: Issue },
-  { id: "about", label: "About Us", Icon: About },
-  { id: "privacy", label: "Privacy & Security", Icon: Privacy },
-  { id: "terms", label: "Terms & Conditions", Icon: Terms },
-  { id: "hiring", label: "Lawpantruck is Hiring", Icon: Hiring },
-  { id: "carrier_data", label: "Your Carrier Data", Icon: Carrier },
-  { id: "faq", label: "FAQ", Icon: Faq },
-
-
+  { id: "bank_details", labelKey: "settings.menu.bankDetails", Icon: Bank },
+  { id: "issue_report", labelKey: "settings.menu.issueReported", Icon: Issue },
+  { id: "about", labelKey: "settings.menu.about", Icon: About },
+  { id: "privacy", labelKey: "settings.menu.privacy", Icon: Privacy },
+  { id: "terms", labelKey: "settings.menu.terms", Icon: Terms },
+  { id: "hiring", labelKey: "settings.menu.hiring", Icon: Hiring },
+  { id: "carrier_data", labelKey: "settings.menu.carrierData", Icon: Carrier },
+  { id: "faq", labelKey: "settings.menu.faq", Icon: Faq },
 ];

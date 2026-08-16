@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Alert, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import AppHeader from "../../../shared/components/AppHeader";
 import { SearchInput } from "../components/SearchInput";
@@ -19,6 +20,7 @@ type Props = NativeStackNavigationProp<
 >;
 
 const IssuesScreen = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<Props>();
     const { user } = useAuth()
 
@@ -44,10 +46,10 @@ const IssuesScreen = () => {
     };
 
     const handleDelete = (issue: Issue) => {
-        Alert.alert("Confirm Delete", "Delete this issue?", [
-            { text: "Cancel", style: "cancel" },
+        Alert.alert(t("settings.issues.deleteTitle"), t("settings.issues.deleteMessage"), [
+            { text: t("common.cancel"), style: "cancel" },
             {
-                text: "Delete",
+                text: t("common.delete"),
                 style: "destructive",
                 onPress: async () => {
                     try {
@@ -60,7 +62,7 @@ const IssuesScreen = () => {
                         );
 
                     } catch (err) {
-                        Alert.alert("Error", "Failed to delete issue");
+                        Alert.alert(t("common.error"), t("settings.issues.deleteFailed"));
                     }
                 },
             },
@@ -76,15 +78,16 @@ const IssuesScreen = () => {
     }
 
     if (error) {
+        // MISSING_SHIPPER is a sentinel code from useIssues, not display text.
         const message =
             error === "MISSING_SHIPPER"
-                ? "We couldn't find your shipper profile on this session. Please sign out and sign in again."
-                : "Something went wrong while loading issues. Please try again.";
+                ? t("settings.issues.missingShipper")
+                : t("settings.issues.loadError");
 
         return (
             <SafeAreaView edges={["top"]} className="flex-1 bg-white">
                 <AppHeader
-                    text="Issue Reported"
+                    text={t("settings.issues.title")}
                     onpress={() => navigation.goBack()}
                 />
                 <View className="flex-1 justify-center items-center px-6">
@@ -98,7 +101,7 @@ const IssuesScreen = () => {
         <SafeAreaView edges={["top"]} className="flex-1 bg-white p-4">
             {/* Header */}
             <AppHeader
-                text="Issue Reported"
+                text={t("settings.issues.title")}
                 onpress={() => navigation.goBack()}
             />
 
@@ -106,7 +109,7 @@ const IssuesScreen = () => {
             <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder="Search issue"
+                placeholder={t("settings.issues.searchPlaceholder")}
             />
 
             {/* Table */}

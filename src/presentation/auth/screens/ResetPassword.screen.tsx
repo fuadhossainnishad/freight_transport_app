@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react-native"
 
 import CustomInput from "../../../shared/components/CustomInput"
@@ -33,6 +34,7 @@ interface ResetPasswordForm {
 }
 
 export default function ResetPasswordScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation<Props>()
     const route = useRoute()
     const isMounted = useRef(true)
@@ -69,9 +71,9 @@ export default function ResetPasswordScreen() {
 
             if (!isMounted.current) return
 
-            Alert.alert("Success", "Password reset successfully", [
+            Alert.alert(t("common.success"), t("auth.resetPassword.successMessage"), [
                 {
-                    text: "OK",
+                    text: t("common.ok"),
                     onPress: () => {
                         if (isMounted.current) {
                             navigation.reset({ index: 0, routes: [{ name: "SignIn" }] })
@@ -81,7 +83,7 @@ export default function ResetPasswordScreen() {
             ])
         } catch (error: any) {
             if (isMounted.current) {
-                Alert.alert("Reset Failed", error?.message || "Something went wrong")
+                Alert.alert(t("auth.resetPassword.failedTitle"), error?.message || t("common.somethingWentWrong"))
             }
         }
     }
@@ -113,29 +115,29 @@ export default function ResetPasswordScreen() {
 
                             {/* Header */}
                             <Text className="text-2xl font-bold text-center text-gray-900 mt-5">
-                                Create New Password
+                                {t("auth.resetPassword.title")}
                             </Text>
                             <Text className="text-gray-500 text-[15px] text-center mt-3 leading-6">
-                                Your new password must be different{"\n"}from previously used passwords.
+                                {t("auth.resetPassword.subtitle")}
                             </Text>
 
                             {/* New password */}
                             <View className="w-full mt-9">
-                                <Text className="text-[#5C5C5C] mb-2">New Password</Text>
+                                <Text className="text-[#5C5C5C] mb-2">{t("auth.resetPassword.newPasswordLabel")}</Text>
                                 <Controller
                                     control={control}
                                     name="newPassword"
                                     rules={{
-                                        required: "New password is required",
+                                        required: t("validation.newPasswordRequired"),
                                         minLength: {
                                             value: 6,
-                                            message: "Password must be at least 6 characters",
+                                            message: t("validation.passwordMinLength", { min: 6 }),
                                         },
                                     }}
                                     render={({ field: { onChange, value } }) => (
                                         <View className="relative">
                                             <CustomInput
-                                                placeholder="Enter new password"
+                                                placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
                                                 secureTextEntry={!showNew}
                                                 value={value}
                                                 onChangeText={onChange}
@@ -161,19 +163,19 @@ export default function ResetPasswordScreen() {
                                 ) : null}
 
                                 {/* Confirm password */}
-                                <Text className="text-[#5C5C5C] mb-2 mt-3">Confirm Password</Text>
+                                <Text className="text-[#5C5C5C] mb-2 mt-3">{t("auth.resetPassword.confirmPasswordLabel")}</Text>
                                 <Controller
                                     control={control}
                                     name="confirmPassword"
                                     rules={{
-                                        required: "Please confirm your password",
+                                        required: t("validation.confirmPasswordRequired"),
                                         validate: (v) =>
-                                            v === watch("newPassword") || "Passwords do not match",
+                                            v === watch("newPassword") || t("validation.passwordsDoNotMatch"),
                                     }}
                                     render={({ field: { onChange, value } }) => (
                                         <View className="relative">
                                             <CustomInput
-                                                placeholder="Re-enter new password"
+                                                placeholder={t("auth.resetPassword.confirmPasswordPlaceholder")}
                                                 secureTextEntry={!showConfirm}
                                                 value={value}
                                                 onChangeText={onChange}
@@ -205,7 +207,7 @@ export default function ResetPasswordScreen() {
                         {/* Footer action — kept inside the scroll view so the
                             keyboard never hides it */}
                         <View className="px-7 pt-4 pb-4">
-                            <SubmitButton text="Save" loading={loading} onSubmit={handleSubmit(onSubmit)} />
+                            <SubmitButton text={t("auth.resetPassword.save")} loading={loading} onSubmit={handleSubmit(onSubmit)} />
                         </View>
                     </ScrollView>
                 </TouchableWithoutFeedback>

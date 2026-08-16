@@ -12,6 +12,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import CustomInput from "../../../shared/components/CustomInput"
 
@@ -30,6 +31,7 @@ type props = NativeStackNavigationProp<AuthParamList, 'SignIn'>;
 
 
 export default function LoginScreen() {
+  const { t } = useTranslation()
   const { login, loading } = useLogin()
   const navigation = useNavigation<props>()
   const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -72,8 +74,8 @@ export default function LoginScreen() {
     } catch (error: any) {
 
       Alert.alert(
-        "Login Failed",
-        error?.response?.data?.message || "Something went wrong"
+        t("auth.login.failedTitle"),
+        error?.response?.data?.message || t("common.somethingWentWrong")
       )
 
     }
@@ -99,24 +101,24 @@ export default function LoginScreen() {
               {/* HEADER */}
               <View className="">
                 <Text className="text-3xl text-center font-bold text-[#036BB4]">
-                  Login to Account
+                  {t("auth.login.title")}
                 </Text>
 
                 <Text className="text-gray-500 mt-2 text-base m-4 text-center">
-                  Please enter your email and password to continue
+                  {t("auth.login.subtitle")}
                 </Text>
               </View>
 
-              <Text className="text-[#5C5C5C]">Email address</Text>
+              <Text className="text-[#5C5C5C]">{t("auth.login.emailLabel")}</Text>
 
               {/* EMAIL */}
               <Controller
                 control={control}
                 name="email"
-                rules={{ required: "Email is required" }}
+                rules={{ required: t("validation.emailRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <CustomInput
-                    placeholder="Email address"
+                    placeholder={t("auth.login.emailPlaceholder")}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     value={value}
@@ -125,15 +127,15 @@ export default function LoginScreen() {
                 )}
               />
 
-              <Text className="text-[#5C5C5C]">Password</Text>
+              <Text className="text-[#5C5C5C]">{t("auth.login.passwordLabel")}</Text>
               <Controller
                 control={control}
                 name="password"
-                rules={{ required: "Password is required" }}
+                rules={{ required: t("validation.passwordRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <View className="relative">
                     <CustomInput
-                      placeholder="Password"
+                      placeholder={t("auth.login.passwordPlaceholder")}
                       secureTextEntry={!showPassword}
                       value={value}
                       onChangeText={onChange}
@@ -158,7 +160,7 @@ export default function LoginScreen() {
 
                 <TouchableOpacity>
                   <Text className="text-[#5C5C5C]">
-                    Remember Password
+                    {t("auth.login.rememberPassword")}
                   </Text>
                 </TouchableOpacity>
 
@@ -167,7 +169,7 @@ export default function LoginScreen() {
 
                 >
                   <Text className="text-[#036BB4] font-medium">
-                    Forgot Password?
+                    {t("auth.login.forgotPassword")}
                   </Text>
                 </TouchableOpacity>
 
@@ -175,7 +177,7 @@ export default function LoginScreen() {
 
               {/* LOGIN BUTTON */}
               <SubmitButton
-                text="Sign In"
+                text={t("auth.login.signIn")}
                 loading={loading}
                 onSubmit={handleSubmit(onSubmit)}
               />
@@ -183,14 +185,14 @@ export default function LoginScreen() {
               {/* SIGNUP */}
               <View className="flex-row justify-center">
                 <Text className="text-gray-500">
-                  Don't have an account?
+                  {t("auth.login.noAccount")}
                 </Text>
 
                 <TouchableOpacity
                   onPress={() => navigation.navigate('RootAuth')}
                   className="ml-2">
                   <Text className="font-semibold text-[#036BB4]">
-                    Sign Up
+                    {t("auth.login.signUp")}
                   </Text>
                 </TouchableOpacity>
               </View>

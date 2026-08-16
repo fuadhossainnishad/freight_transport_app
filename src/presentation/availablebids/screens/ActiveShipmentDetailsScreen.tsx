@@ -24,6 +24,7 @@ import { useAuth } from '../../../app/context/Auth.context';
 import { formatPrice } from '../../../shared/utils/price';
 import DocsIcon from '../../../../assets/icons/docs.svg';
 import ArrowRightIcon from '../../../../assets/icons/Arrow_right.svg';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ function ExpandIcon() {
 }
 
 export default function ActiveShipmentDetailsScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationPropType>();
   const route = useRoute<RoutePropType>();
   const { user } = useAuth();
@@ -96,7 +98,7 @@ export default function ActiveShipmentDetailsScreen() {
   if (!data) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <Text className="text-gray-500">Shipment not found</Text>
+        <Text className="text-gray-500">{t('transporter.activeShipmentDetail.shipmentNotFound')}</Text>
       </SafeAreaView>
     );
   }
@@ -112,11 +114,11 @@ export default function ActiveShipmentDetailsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <AppHeader text="Active Shipments" onpress={() => navigation.goBack()} />
+      <AppHeader text={t('transporter.home.activeShipments')} onpress={() => navigation.goBack()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Page title */}
-        <Text className="px-4 pt-2 pb-3 text-lg font-bold text-gray-900">Active Shipments</Text>
+        <Text className="px-4 pt-2 pb-3 text-lg font-bold text-gray-900">{t('transporter.home.activeShipments')}</Text>
 
         {/* ── Vehicle card ── */}
         <View className="mx-4 mb-5 bg-white rounded-2xl border border-gray-100 overflow-hidden"
@@ -132,7 +134,7 @@ export default function ActiveShipmentDetailsScreen() {
           </View>
           <View className="px-4 pb-4">
             <Text className="text-base font-bold text-gray-900">
-              {vehicle?.number ?? vehicle?.type ?? 'Vehicle'}
+              {vehicle?.number ?? vehicle?.type ?? t('transporter.activeShipmentDetail.vehicleFallback')}
             </Text>
             <Text className="text-sm text-gray-400 mt-0.5">{vehicle?.type ?? ''}</Text>
           </View>
@@ -141,13 +143,13 @@ export default function ActiveShipmentDetailsScreen() {
         {/* ── Driver Details ── */}
         {driver && (
           <View className="mx-4 mb-5">
-            <Text className="text-base font-bold text-gray-900 mb-3">Driver Details</Text>
+            <Text className="text-base font-bold text-gray-900 mb-3">{t('transporter.activeShipmentDetail.driverDetailsTitle')}</Text>
             <View className="rounded-2xl border border-gray-200 overflow-hidden">
               {/* Table header */}
               <View className="flex-row bg-gray-50 border-b border-gray-200">
-                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold">Name</Text>
-                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold text-center">Phone</Text>
-                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold text-right">Driving Licence</Text>
+                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold">{t('transporter.activeShipmentDetail.name')}</Text>
+                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold text-center">{t('transporter.activeShipmentDetail.phone')}</Text>
+                <Text className="flex-1 px-3 py-2.5 text-xs text-gray-500 font-semibold text-right">{t('transporter.activeShipmentDetail.drivingLicence')}</Text>
               </View>
               {/* Table row */}
               <View className="flex-row items-center">
@@ -244,7 +246,7 @@ export default function ActiveShipmentDetailsScreen() {
               }}
             >
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff', letterSpacing: 0.3 }}>
-                Close map
+                {t('transporter.activeShipmentDetail.closeMap')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -252,7 +254,7 @@ export default function ActiveShipmentDetailsScreen() {
 
         {/* ── Shipment Details ── */}
         <View className="mx-4">
-          <Text className="text-base font-bold text-gray-900 mb-3">Shipment Details</Text>
+          <Text className="text-base font-bold text-gray-900 mb-3">{t('transporter.activeShipmentDetail.shipmentDetailsTitle')}</Text>
 
           {/* Image carousel */}
           {shipmentImages.length > 0 && (
@@ -305,12 +307,12 @@ export default function ActiveShipmentDetailsScreen() {
           {/* Pickup / Delivery */}
           <View className="flex-row mb-4">
             <View className="flex-1">
-              <Text className="text-xs text-gray-400 mb-1">Pickup Address</Text>
+              <Text className="text-xs text-gray-400 mb-1">{t('transporter.activeShipmentDetail.pickupAddress')}</Text>
               <Text className="text-sm font-medium text-gray-800">{pickup}</Text>
             </View>
             <View className="w-px bg-gray-200 mx-3" />
             <View className="flex-1">
-              <Text className="text-xs text-gray-400 mb-1">Delivery Address</Text>
+              <Text className="text-xs text-gray-400 mb-1">{t('transporter.activeShipmentDetail.deliveryAddress')}</Text>
               <Text className="text-sm font-medium text-gray-800">{delivery}</Text>
             </View>
           </View>
@@ -318,14 +320,14 @@ export default function ActiveShipmentDetailsScreen() {
           {/* Contact */}
           <View className="flex-row mb-6">
             <View className="flex-1">
-              <Text className="text-xs text-gray-400 mb-1">Contact Person</Text>
+              <Text className="text-xs text-gray-400 mb-1">{t('transporter.activeShipmentDetail.contactPerson')}</Text>
               <Text className="text-sm font-bold text-gray-900">
                 {contactPerson ?? driver?.name ?? '—'}
               </Text>
             </View>
             <View className="w-px bg-gray-200 mx-3" />
             <View className="flex-1">
-              <Text className="text-xs text-gray-400 mb-1">Contact Person Number</Text>
+              <Text className="text-xs text-gray-400 mb-1">{t('transporter.activeShipmentDetail.contactPersonNumber')}</Text>
               <Text className="text-sm font-medium text-gray-800">{driver?.phone ?? '—'}</Text>
             </View>
           </View>
@@ -337,7 +339,7 @@ export default function ActiveShipmentDetailsScreen() {
               onPress={() => setPayModalVisible(true)}
               activeOpacity={0.85}
             >
-              <Text className="text-white font-bold text-sm">Request Payment</Text>
+              <Text className="text-white font-bold text-sm">{t('transporter.activeShipmentDetail.requestPayment')}</Text>
             </TouchableOpacity>
           )}
 
@@ -345,7 +347,7 @@ export default function ActiveShipmentDetailsScreen() {
           {paymentEligible && pendingRequest && (
             <View className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl px-4 py-3 mb-3">
               <Text className="text-[#036BB4] font-bold text-sm">
-                Payment requested — awaiting approval
+                {t('transporter.activeShipmentDetail.paymentRequestedTitle')}
               </Text>
               <Text className="text-gray-500 text-xs mt-1">
                 {formatPrice(pendingRequest.amount)} · {pendingRequest.method} · {pendingRequest.shortId}
@@ -358,11 +360,10 @@ export default function ActiveShipmentDetailsScreen() {
                     (navigation as any).navigate('PayWebView', {
                       paymentId: pendingRequest.id,
                       url: pendingRequest.paydunyaUrl,
-                      title: 'Complete Payment',
                     })
                   }
                 >
-                  <Text className="text-[#036BB4] font-bold text-xs">Open payment page</Text>
+                  <Text className="text-[#036BB4] font-bold text-xs">{t('transporter.activeShipmentDetail.openPaymentPage')}</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -373,7 +374,7 @@ export default function ActiveShipmentDetailsScreen() {
             className="border border-gray-300 rounded-full py-4 flex-row items-center justify-center gap-2"
             onPress={() => (navigation as any).navigate('ShipmentDetails', { shipmentId })}
           >
-            <Text className="text-gray-700 font-medium text-sm">View full details</Text>
+            <Text className="text-gray-700 font-medium text-sm">{t('transporter.activeShipmentDetail.viewFullDetails')}</Text>
             <ArrowRightIcon width={16} height={16} />
           </TouchableOpacity>
         </View>

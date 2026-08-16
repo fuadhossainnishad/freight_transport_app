@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import { ArrowRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Shipment } from "../../../domain/entities/shipment.entity";
 import { Driver } from "../../driver/types";
 import ShipmentMapRoute from "./ShipmentMapRoute";
@@ -50,6 +51,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
   driver,
   onViewDetails,
 }: Props) {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [imgPage, setImgPage] = useState(0);
 
@@ -65,20 +67,20 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
     <View style={styles.wrapper}>
 
       {/* ── DRIVER DETAILS CARD ──────────────────────────────────────────────── */}
-      <Text style={styles.sectionTitle}>Driver Details</Text>
+      <Text style={styles.sectionTitle}>{t("transporter.activeShipmentDetail.driverDetailsTitle")}</Text>
 
       <View style={styles.driverCard}>
         {driverLoading ? (
           <ActivityIndicator color="#036BB4" style={{ paddingVertical: 16 }} />
         ) : driverNotFound ? (
-          <Text style={styles.emptyText}>Driver record not found</Text>
+          <Text style={styles.emptyText}>{t("transporter.activeShipmentDetail.driverNotFound")}</Text>
         ) : !shipment.driverId ? (
-          <Text style={styles.emptyText}>No driver assigned yet</Text>
+          <Text style={styles.emptyText}>{t("transporter.activeShipmentDetail.noDriverAssigned")}</Text>
         ) : (
           <View style={styles.driverRow}>
             {/* Name */}
             <View style={styles.col}>
-              <Text style={styles.colLabel}>Name</Text>
+              <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.name")}</Text>
               <Text style={styles.colValue} numberOfLines={2}>{driver?.name}</Text>
             </View>
 
@@ -86,7 +88,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
 
             {/* Phone */}
             <View style={styles.col}>
-              <Text style={styles.colLabel}>Phone</Text>
+              <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.phone")}</Text>
               <Text style={styles.colValue} numberOfLines={1}>{driver?.phone}</Text>
             </View>
 
@@ -94,7 +96,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
 
             {/* Driving Licence */}
             <View style={[styles.col, { alignItems: "center" }]}>
-              <Text style={styles.colLabel}>Driving Licence</Text>
+              <Text style={styles.colLabel}>{t("transporter.activeShipmentDetail.drivingLicence")}</Text>
               <TouchableOpacity
                 onPress={() => licenceImages.length > 0 && setModalVisible(true)}
                 activeOpacity={0.75}
@@ -119,7 +121,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
       />
 
       {/* ── SHIPMENT DETAILS CARD ────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Shipment Details</Text>
+      <Text style={[styles.sectionTitle, { marginTop: 20 }]}>{t("transporter.activeShipmentDetail.shipmentDetailsTitle")}</Text>
 
       <View style={styles.shipmentCard}>
         {/* Image */}
@@ -143,11 +145,11 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
           {/* Row 1: Pickup | Delivery */}
           <View style={styles.infoGrid}>
             <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Pickup Address</Text>
+              <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.pickupAddress")}</Text>
               <Text style={styles.infoValue} numberOfLines={2}>{shipment.pickup || "—"}</Text>
             </View>
             <View style={styles.infoCell}>
-              <Text style={styles.infoLabel}>Delivery Address</Text>
+              <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.deliveryAddress")}</Text>
               <Text style={styles.infoValue} numberOfLines={2}>{shipment.delivery || "—"}</Text>
             </View>
           </View>
@@ -156,11 +158,11 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
           {(shipment.contactPerson) ? (
             <View style={[styles.infoGrid, { marginTop: 12 }]}>
               <View style={styles.infoCell}>
-                <Text style={styles.infoLabel}>Contact Person</Text>
+                <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.contactPerson")}</Text>
                 <Text style={styles.infoValue} numberOfLines={1}>{shipment.contactPerson}</Text>
               </View>
               <View style={styles.infoCell}>
-                <Text style={styles.infoLabel}>Contact Person Number</Text>
+                <Text style={styles.infoLabel}>{t("transporter.activeShipmentDetail.contactPersonNumber")}</Text>
                 <Text style={styles.infoValue} numberOfLines={1}>{driver?.phone ?? "—"}</Text>
               </View>
             </View>
@@ -174,7 +176,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
             style={styles.detailsBtn}
             activeOpacity={0.75}
           >
-            <Text style={styles.detailsBtnText}>View full details</Text>
+            <Text style={styles.detailsBtnText}>{t("transporter.activeShipmentDetail.viewFullDetails")}</Text>
             <ArrowRight size={15} color="#0071BC" />
           </TouchableOpacity>
         </View>
@@ -209,7 +211,7 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
               >
                 {/* Header */}
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Driving Licence</Text>
+                  <Text style={styles.modalTitle}>{t("transporter.activeShipmentDetail.drivingLicence")}</Text>
                   <TouchableOpacity
                     onPress={() => setModalVisible(false)}
                     style={styles.closeBtn}
@@ -260,9 +262,9 @@ export const ActiveShipmentDetail = memo(function ActiveShipmentDetail({
                 <Text style={styles.imgLabel}>
                   {licenceImages.length > 1
                     ? imgPage === 0
-                      ? "Front side"
-                      : "Back side"
-                    : "Licence"}
+                      ? t("transporter.activeShipmentDetail.frontSide")
+                      : t("transporter.activeShipmentDetail.backSide")
+                    : t("transporter.activeShipmentDetail.licence")}
                 </Text>
               </LinearGradient>
             </LinearGradient>

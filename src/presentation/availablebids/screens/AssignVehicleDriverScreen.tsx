@@ -32,6 +32,7 @@ import { searchVehicles } from '../../../data/services/vehicleService';
 import { createBid } from '../../../data/services/bidService';
 import { getSocket } from '../../../data/socket/socketClient';
 import { normalizeImageUrl } from '../../../shared/utils/normalizeImageUrl';
+import { useTranslation } from 'react-i18next';
 
 type RoutePropType = RouteProp<AvailableBidsStackParamList, 'AssignVehicleDriver'>;
 type NavigationPropType = NativeStackNavigationProp<AvailableBidsStackParamList, 'AssignVehicleDriver'>;
@@ -161,6 +162,7 @@ function DriverCard({ item, selected, onPress }: { item: any; selected: boolean;
    VEHICLE CARD (inside sheet)
 ───────────────────────────────────────────────────── */
 function VehicleCard({ item, selected, onPress }: { item: any; selected: boolean; onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.72} style={[s.listCard, selected && s.listCardSelected]}>
       {/* Icon */}
@@ -175,15 +177,15 @@ function VehicleCard({ item, selected, onPress }: { item: any; selected: boolean
         </Text>
         <View style={s.metaRow}>
           <Hash size={11} color="#9ca3af" />
-          <Text style={s.metaText}>Plate: {item.plate_number}</Text>
+          <Text style={s.metaText}>{t('availableBids.placeBid.plate', { plate: item.plate_number })}</Text>
         </View>
         <View style={s.metaRow}>
           <Gauge size={11} color="#9ca3af" />
-          <Text style={s.metaText}>{item.capicity} tons capacity</Text>
+          <Text style={s.metaText}>{t('availableBids.placeBid.capacityTons', { capacity: item.capicity })}</Text>
         </View>
         <View style={s.metaRow}>
           <CalendarDays size={11} color="#9ca3af" />
-          <Text style={s.metaText}>Year: {item.year_model}</Text>
+          <Text style={s.metaText}>{t('availableBids.placeBid.year', { year: item.year_model })}</Text>
         </View>
       </View>
 
@@ -237,6 +239,7 @@ function SelectorButton({
    MAIN SCREEN
 ───────────────────────────────────────────────────── */
 export default function AssignVehicleDriverScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationPropType>();
   const route = useRoute<RoutePropType>();
   const { shipmentId } = route.params;
@@ -296,10 +299,10 @@ export default function AssignVehicleDriverScreen() {
 
   const validate = () => {
     const e: typeof errors = {};
-    if (!selectedDriver) e.driver = 'Please select a driver';
-    if (!selectedVehicle) e.vehicle = 'Please select a vehicle';
-    if (!price) e.price = 'Price is required';
-    else if (isNaN(Number(price)) || Number(price) <= 0) e.price = 'Enter a valid amount';
+    if (!selectedDriver) e.driver = t('availableBids.placeBid.errors.selectDriver');
+    if (!selectedVehicle) e.vehicle = t('availableBids.placeBid.errors.selectVehicle');
+    if (!price) e.price = t('availableBids.placeBid.errors.priceRequired');
+    else if (isNaN(Number(price)) || Number(price) <= 0) e.price = t('availableBids.placeBid.errors.priceInvalid');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -316,10 +319,13 @@ export default function AssignVehicleDriverScreen() {
         bid_amount: Number(price),
       });
       getSocket()?.emit('new_bid', res?.data);
-      Alert.alert('Success', 'Bid placed successfully');
+      Alert.alert(t('availableBids.placeBid.alerts.successTitle'), t('availableBids.placeBid.alerts.successMessage'));
       navigation.goBack();
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message ?? err?.message ?? 'Something went wrong');
+      Alert.alert(
+        t('availableBids.placeBid.alerts.errorTitle'),
+        err?.response?.data?.message ?? err?.message ?? t('availableBids.placeBid.alerts.errorMessage'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -332,7 +338,7 @@ export default function AssignVehicleDriverScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <ArrowLeft size={20} color="#111827" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Place a Bid</Text>
+        <Text style={s.headerTitle}>{t('availableBids.placeBid.title')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -343,13 +349,13 @@ export default function AssignVehicleDriverScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* ── STEP LABELS ── */}
-          <Text style={s.stepHint}>Fill in all three fields to submit your bid</Text>
+          <Text style={s.stepHint}>{t('availableBids.placeBid.stepHint')}</Text>
 
           {/* ── DRIVER SELECTOR ── */}
-          <Text style={s.fieldLabel}>Driver</Text>
+          <Text style={s.fieldLabel}>{t('availableBids.placeBid.driver')}</Text>
           <SelectorButton
             icon={<User size={18} color={selectedDriver ? '#fff' : '#9ca3af'} />}
-            label={selectedDriver ? selectedDriver.driver_name : 'Select a driver'}
+            label={selectedDriver ? selectedDriver.driver_name : t('availableBids.placeBid.selectDriver')}
             sublabel={selectedDriver ? selectedDriver.phone : undefined}
             hasValue={!!selectedDriver}
             onPress={() => setDriverSheetOpen(true)}
@@ -358,11 +364,11 @@ export default function AssignVehicleDriverScreen() {
           {errors.driver && <Text style={s.errorText}>{errors.driver}</Text>}
 
           {/* ── VEHICLE SELECTOR ── */}
-          <Text style={[s.fieldLabel, { marginTop: 16 }]}>Vehicle</Text>
+          <Text style={[s.fieldLabel, { marginTop: 16 }]}>{t('availableBids.placeBid.vehicle')}</Text>
           <SelectorButton
             icon={<Truck size={18} color={selectedVehicle ? '#fff' : '#9ca3af'} />}
-            label={selectedVehicle ? `${selectedVehicle.vehicle_type} — ${selectedVehicle.capicity}T` : 'Select a vehicle'}
-            sublabel={selectedVehicle ? `Plate: ${selectedVehicle.plate_number}` : undefined}
+            label={selectedVehicle ? `${selectedVehicle.vehicle_type} — ${selectedVehicle.capicity}T` : t('availableBids.placeBid.selectVehicle')}
+            sublabel={selectedVehicle ? t('availableBids.placeBid.plate', { plate: selectedVehicle.plate_number }) : undefined}
             hasValue={!!selectedVehicle}
             onPress={() => setVehicleSheetOpen(true)}
             onClear={() => { setSelectedVehicle(null); setErrors((p) => ({ ...p, vehicle: undefined })); }}
@@ -370,14 +376,14 @@ export default function AssignVehicleDriverScreen() {
           {errors.vehicle && <Text style={s.errorText}>{errors.vehicle}</Text>}
 
           {/* ── BID AMOUNT ── */}
-          <Text style={[s.fieldLabel, { marginTop: 16 }]}>Bid Amount</Text>
+          <Text style={[s.fieldLabel, { marginTop: 16 }]}>{t('availableBids.placeBid.bidAmount')}</Text>
           <View style={[s.priceBox, errors.price && { borderColor: '#ef4444' }]}>
             <DollarSign size={18} color={price ? BLUE : '#9ca3af'} style={{ marginRight: 6 }} />
             <TextInput
               style={s.priceInput}
               value={price}
-              onChangeText={(t) => { setPrice(t); setErrors((p) => ({ ...p, price: undefined })); }}
-              placeholder="Enter your bid"
+              onChangeText={(v) => { setPrice(v); setErrors((p) => ({ ...p, price: undefined })); }}
+              placeholder={t('availableBids.placeBid.enterYourBid')}
               placeholderTextColor="#9ca3af"
               keyboardType="numeric"
             />
@@ -387,28 +393,31 @@ export default function AssignVehicleDriverScreen() {
           {/* ── SUMMARY CARD ── */}
           {(selectedDriver || selectedVehicle || price) ? (
             <View style={s.summaryCard}>
-              <Text style={s.summaryHeading}>Bid Summary</Text>
+              <Text style={s.summaryHeading}>{t('availableBids.placeBid.bidSummary')}</Text>
 
               {selectedDriver && (
                 <View style={s.summaryRow}>
                   <User size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>Driver</Text>
+                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.driver')}</Text>
                   <Text style={s.summaryValue}>{selectedDriver.driver_name}</Text>
                 </View>
               )}
               {selectedVehicle && (
                 <View style={s.summaryRow}>
                   <Truck size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>Vehicle</Text>
+                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.vehicle')}</Text>
                   <Text style={s.summaryValue}>
-                    {selectedVehicle.vehicle_type} · Plate {selectedVehicle.plate_number}
+                    {t('availableBids.placeBid.vehicleSummary', {
+                      type: selectedVehicle.vehicle_type,
+                      plate: selectedVehicle.plate_number,
+                    })}
                   </Text>
                 </View>
               )}
               {price ? (
                 <View style={s.summaryRow}>
                   <DollarSign size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>Amount</Text>
+                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.amount')}</Text>
                   <Text style={[s.summaryValue, { color: BLUE, fontWeight: '800' }]}>${price}</Text>
                 </View>
               ) : null}
@@ -424,16 +433,16 @@ export default function AssignVehicleDriverScreen() {
           >
             {submitting
               ? <ActivityIndicator color="#fff" />
-              : <Text style={s.submitText}>Place Bid</Text>
+              : <Text style={s.submitText}>{t('availableBids.placeBid.placeBid')}</Text>
             }
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* ── DRIVER BOTTOM SHEET ── */}
-      <BottomSheet visible={driverSheetOpen} onClose={() => setDriverSheetOpen(false)} title="Select Driver">
+      <BottomSheet visible={driverSheetOpen} onClose={() => setDriverSheetOpen(false)} title={t('availableBids.placeBid.selectDriverTitle')}>
         <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-          <SearchBar value={driverQuery} onChange={setDriverQuery} placeholder="Search by name, phone or email…" />
+          <SearchBar value={driverQuery} onChange={setDriverQuery} placeholder={t('availableBids.placeBid.searchDriverPlaceholder')} />
         </View>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {loadingDrivers ? (
@@ -441,7 +450,7 @@ export default function AssignVehicleDriverScreen() {
           ) : filteredDrivers.length === 0 ? (
             <View style={s.emptyState}>
               <User size={32} color="#d1d5db" />
-              <Text style={s.emptyText}>No drivers found</Text>
+              <Text style={s.emptyText}>{t('availableBids.placeBid.noDriversFound')}</Text>
             </View>
           ) : (
             filteredDrivers.map((item) => (
@@ -462,9 +471,9 @@ export default function AssignVehicleDriverScreen() {
       </BottomSheet>
 
       {/* ── VEHICLE BOTTOM SHEET ── */}
-      <BottomSheet visible={vehicleSheetOpen} onClose={() => setVehicleSheetOpen(false)} title="Select Vehicle">
+      <BottomSheet visible={vehicleSheetOpen} onClose={() => setVehicleSheetOpen(false)} title={t('availableBids.placeBid.selectVehicleTitle')}>
         <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-          <SearchBar value={vehicleQuery} onChange={setVehicleQuery} placeholder="Search by type or plate…" />
+          <SearchBar value={vehicleQuery} onChange={setVehicleQuery} placeholder={t('availableBids.placeBid.searchVehiclePlaceholder')} />
         </View>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {loadingVehicles ? (
@@ -472,7 +481,7 @@ export default function AssignVehicleDriverScreen() {
           ) : filteredVehicles.length === 0 ? (
             <View style={s.emptyState}>
               <Truck size={32} color="#d1d5db" />
-              <Text style={s.emptyText}>No vehicles found</Text>
+              <Text style={s.emptyText}>{t('availableBids.placeBid.noVehiclesFound')}</Text>
             </View>
           ) : (
             filteredVehicles.map((item) => (

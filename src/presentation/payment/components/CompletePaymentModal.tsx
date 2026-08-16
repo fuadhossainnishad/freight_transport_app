@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { Globe, Landmark, Truck, Check } from "lucide-react-native";
 
 import { PaymentRequest } from "../../../domain/entities/paymentRequest.entity";
@@ -29,13 +30,11 @@ interface Props {
 
 const BLUE = "#036BB4";
 
-const METHODS: { value: PayMethod; title: string; sub: string; icon: any }[] = [
-  { value: "online", title: "Mobile Money", sub: "Pay securely with PayDunya", icon: Globe },
-  { value: "bank", title: "Bank Transfer", sub: "Transfer directly to our bank account", icon: Landmark },
-  { value: "cash", title: "Cash on Delivery", sub: "Pay when shipment is delivered", icon: Truck },
-];
+const METHOD_ICONS: Record<PayMethod, any> = { online: Globe, bank: Landmark, cash: Truck };
+const METHOD_KEYS = ["online", "bank", "cash"] as const;
 
 export default function CompletePaymentModal({ visible, request, onClose }: Props) {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const { refresh } = usePaymentRequests();
   const [method, setMethod] = useState<PayMethod>("online");
@@ -59,68 +58,73 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
           navigation.navigate("PayWebView", {
             paymentId: request.id,
             url: result.payment_url,
-            title: "Complete Payment",
           });
         } else {
-          Alert.alert("Unavailable", "The payment link could not be generated. Please try again.");
+          Alert.alert(t("payment.complete.alerts.unavailableTitle"), t("payment.complete.alerts.unavailableMessage"));
         }
       } else if (method === "cash") {
         await refresh();
         onClose();
-        Alert.alert("Cash payment recorded", result.message ?? "An admin will confirm receipt.");
+        Alert.alert(t("payment.complete.alerts.cashRecordedTitle"), result.message ?? t("payment.complete.alerts.cashRecordedFallback"));
       } else if (method === "bank") {
         await refresh();
         onClose();
         const b = result.bank_details;
-        Alert.alert(
-          "Bank transfer details",
-          b
-            ? `Bank: ${b.bank_name ?? "—"}\nAccount: ${b.account_number ?? "—"}\nHolder: ${b.account_holder ?? "—"}${b.routing_number ? `\nRouting: ${b.routing_number}` : ""}`
-            : "Bank details are not available yet. Please contact support.",
-        );
+        let message = t("payment.complete.alerts.bankDetailsUnavailable");
+        if (b) {
+          message = t("payment.complete.alerts.bankLine", {
+            bank: b.bank_name ?? "—",
+            account: b.account_number ?? "—",
+            holder: b.account_holder ?? "—",
+          });
+          if (b.routing_number) {
+            message += t("payment.complete.alerts.bankRoutingLine", { routing: b.routing_number });
+          }
+        }
+        Alert.alert(t("payment.complete.alerts.bankDetailsTitle"), message);
       }
     } catch (err: any) {
-      Alert.alert("Payment failed", err?.response?.data?.message || err?.message || "Something went wrong");
+      Alert.alert(t("payment.complete.alerts.failedTitle"), err?.response?.data?.message || err?.message || t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const ctaLabel = method === "online" ? "Pay Online" : "Confirm";
+  const ctaLabel = method === "online" ? t("payment.complete.payOnline") : t("payment.complete.confirm");
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.sheet}>
-          <Text style={styles.title}>Complete Payment</Text>
+          <Text style={styles.title}>{t("payment.complete.title")}</Text>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Request details */}
             <View style={styles.detailBox}>
-              <Text style={styles.detailHeading}>Payment Request Details</Text>
-              <Row label="Request ID" value={request.shortId} />
-              <Row label="Shipment" value={request.shipmentTitle} />
-              <Row label="Route" value={`${request.pickup} → ${request.delivery}`} />
-              <Row label="Requested By" value={request.requestedBy} />
+              <Text style={styles.detailHeading}>{t("payment.complete.detailsHeading")}</Text>
+              <Row label={t("payment.complete.requestId")} value={request.shortId} />
+              <Row label={t("payment.complete.shipment")} value={request.shipmentTitle} />
+              <Row label={t("payment.complete.route")} value={`${request.pickup} → ${request.delivery}`} />
+              <Row label={t("payment.complete.requestedBy")} value={request.requestedBy} />
             </View>
 
             {/* Amount */}
             <View style={styles.amountBox}>
-              <Text style={styles.amountLabel}>Total Amount to Pay</Text>
+              <Text style={styles.amountLabel}>{t("payment.complete.totalAmount")}</Text>
               <Text style={styles.amountValue}>${request.amount.toLocaleString()}</Text>
             </View>
 
             {/* Methods */}
-            <Text style={styles.sectionLabel}>Select Payment Method</Text>
-            {METHODS.map((m) => {
-              const Icon = m.icon;
-              const selected = method === m.value;
+            <Text style={styles.sectionLabel}>{t("payment.complete.selectMethod")}</Text>
+            {METHOD_KEYS.map((value) => {
+              const Icon = METHOD_ICONS[value];
+              const selected = method === value;
               return (
                 <TouchableOpacity
-                  key={m.value}
+                  key={value}
                   activeOpacity={0.8}
-                  onPress={() => setMethod(m.value)}
+                  onPress={() => setMethod(value)}
                   style={[styles.method, selected && styles.methodSelected]}
                 >
                   <View style={[styles.radio, selected ? styles.radioOn : styles.radioOff]}>
@@ -128,8 +132,8 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
                   </View>
                   <Icon size={22} color={selected ? BLUE : "#6B7280"} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.methodTitle}>{m.title}</Text>
-                    <Text style={styles.methodSub}>{m.sub}</Text>
+                    <Text style={styles.methodTitle}>{t(`payment.complete.methods.${value}Title`)}</Text>
+                    <Text style={styles.methodSub}>{t(`payment.complete.methods.${value}Sub`)}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -139,7 +143,7 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
           {/* Footer */}
           <View style={styles.footer}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose} disabled={submitting} activeOpacity={0.7}>
-              <Text style={styles.cancelTxt}>Cancel</Text>
+              <Text style={styles.cancelTxt}>{t("payment.complete.cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.payBtn, submitting && { opacity: 0.7 }]}

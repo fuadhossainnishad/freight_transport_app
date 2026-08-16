@@ -92,6 +92,7 @@ export type InvoiceStackParamList = {
 export type EarningsStackParamList = {
     Earning: undefined;
     Withdraw: undefined
+    WithdrawalHistory: undefined
 };
 
 export type SettingsStackParamList = {
@@ -109,13 +110,14 @@ export type SettingsStackParamList = {
     // ResetPassword: { verificationToken: string };
     MyVehicles: undefined
     Driver: undefined
-    EarningOverview: undefined
     Privacy: undefined
     Terms: undefined
     Hiring: undefined
     Carrier: undefined
     Faq: undefined
-    Info: { type: InfoType; title: string }; // type-safe
+    // The header title is derived from `type` inside Info.screen so it follows
+    // the active language; passing it as a param froze it at navigation time.
+    Info: { type: InfoType };
 
 
 };

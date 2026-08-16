@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
-const MONTHS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-];
+import { useMonthNames } from "../i18n/useMonthNames";
 
 type Props = {
     title: string;
@@ -13,8 +11,14 @@ type Props = {
 };
 
 export default function StatCard({ title, value, fullWidth }: Props) {
-    const [selectedMonth, setSelectedMonth] = useState("This Month");
+    const { t } = useTranslation();
+    const months = useMonthNames();
+    // Store the index, not the label: a stored label would stay in the old
+    // language after the user switches languages.
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
     const [showMonths, setShowMonths] = useState(false);
+    const monthLabel =
+        selectedMonth === null ? t("components.statCard.thisMonth") : months[selectedMonth];
 
     return (
         <View
@@ -39,7 +43,7 @@ export default function StatCard({ title, value, fullWidth }: Props) {
                     className="items-center"
                     onPress={() => setShowMonths(!showMonths)}>
                     <Text style={{ color: "#2563EB", fontSize: 12 }}>
-                        {selectedMonth} ▼
+                        {monthLabel} ▼
                     </Text>
                 </TouchableOpacity>
 
@@ -58,11 +62,11 @@ export default function StatCard({ title, value, fullWidth }: Props) {
                             zIndex: 1000,
                         }}
                     >
-                        {MONTHS.map((month) => (
+                        {months.map((month, index) => (
                             <TouchableOpacity
                                 key={month}
                                 onPress={() => {
-                                    setSelectedMonth(month);
+                                    setSelectedMonth(index);
                                     setShowMonths(false);
                                 }}
                                 style={{ paddingHorizontal: 12, paddingVertical: 8 }}
