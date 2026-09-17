@@ -23,6 +23,7 @@ const BLUE = "#036BB4";
 
 const STATUS_COLORS: Record<PaymentRequestStatus, { bg: string; fg: string }> = {
   pending:           { bg: "#FEF3C7", fg: "#B45309" },
+  dmp_pending:       { bg: "#FEF3C7", fg: "#B45309" },
   online_processing: { bg: "#DBEAFE", fg: "#1D4ED8" },
   cash_pending:      { bg: "#FEF3C7", fg: "#B45309" },
   bank_pending:      { bg: "#FEF3C7", fg: "#B45309" },
@@ -34,6 +35,7 @@ const STATUS_COLORS: Record<PaymentRequestStatus, { bg: string; fg: string }> = 
 
 const STATUS_LABEL_KEY: Record<PaymentRequestStatus, ParseKeys> = {
   pending: "payment.status.pending",
+  dmp_pending: "payment.status.pending",
   online_processing: "payment.status.processing",
   cash_pending: "payment.status.cashPending",
   bank_pending: "payment.status.bankPending",

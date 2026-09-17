@@ -9,6 +9,7 @@ export const getMyPaymentRequests = async (): Promise<PaymentRequest[]> => {
   return (Array.isArray(list) ? list : []).map(mapPaymentRequest);
 };
 
+// These strings are the API contract for `payment_method` — never translate them.
 export type PayMethod = "online" | "cash" | "bank";
 
 export interface PayNowResult {
@@ -17,6 +18,7 @@ export interface PayNowResult {
   token?: string;
   amount?: number;
   message?: string;
+  reference_number?: string | null;
   bank_details?: {
     bank_name?: string;
     account_number?: string;
