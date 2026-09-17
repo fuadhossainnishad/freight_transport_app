@@ -30,7 +30,12 @@ interface Props {
 
 const BLUE = "#036BB4";
 
-const METHOD_ICONS: Record<PayMethod, any> = { online: Globe, bank: Landmark, cash: Truck };
+const METHOD_ICONS: Record<PayMethod, any> = {
+  online: Globe,
+  bank: Landmark,
+  cash: Truck,
+};
+// Order is display order only — the values themselves are the API contract.
 const METHOD_KEYS = ["online", "bank", "cash"] as const;
 
 export default function CompletePaymentModal({ visible, request, onClose }: Props) {
@@ -90,7 +95,10 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
     }
   };
 
-  const ctaLabel = method === "online" ? t("payment.complete.payOnline") : t("payment.complete.confirm");
+  const ctaLabel =
+    method === "online"
+      ? t("payment.complete.payOnline")
+      : t("payment.complete.confirm");
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
