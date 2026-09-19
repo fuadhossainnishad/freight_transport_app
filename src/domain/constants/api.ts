@@ -32,6 +32,7 @@ export const GET_INVOICE_DETAIL = (paymentId: string) => `/pay/invoices/${paymen
 
 export const GET_MY_PAYMENT_REQUESTS = "/pay/my-requests"
 export const PAY_NOW = (paymentId: string) => `/pay/pay-now/${paymentId}`
+export const DMP_STATUS = (paymentId: string) => `/pay/dmp-status/${paymentId}`
 
 // Transporter-side payments (/transporter-pay) — the transporter asks to be paid
 // for a shipment they carried. Distinct from /pay above, which is the shipper

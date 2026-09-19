@@ -859,7 +859,13 @@ export default {
       "emptyTitle": "Aucune demande de paiement",
       "emptySubtitle": "Lorsqu'un administrateur demande un paiement pour l'une de vos expéditions, il apparaîtra ici.",
       "noMatchTitle": "Aucune demande correspondante",
-      "noMatchSubtitle": "Nous n'avons trouvé aucune demande correspondant à \"{{query}}\"."
+      "noMatchSubtitle": "Nous n'avons trouvé aucune demande correspondant à \"{{query}}\".",
+      "dmpCheckStatus": "Déjà payé via le lien reçu par e-mail ? Vérifier le statut",
+      "dmpCheckPaidTitle": "Paiement reçu",
+      "dmpCheckPaidMessage": "Votre paiement a été confirmé.",
+      "dmpCheckPendingTitle": "Pas encore confirmé",
+      "dmpCheckPendingMessage": "Nous n'avons pas encore reçu la confirmation de ce paiement. Réessayez dans un instant, ou payez autrement ci-dessous.",
+      "dmpCheckFailedTitle": "Impossible de vérifier le statut"
     },
     "webView": {
       "title": "Paiement"

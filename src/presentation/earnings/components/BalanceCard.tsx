@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
 import { useTranslation } from "react-i18next";
 import { History } from "lucide-react-native";
+import { formatPrice } from "../../../shared/utils/price";
 
 const BG = require("../../../../assets/images/earning_bg.png");
 
@@ -25,7 +26,7 @@ const BalanceCard: React.FC<Props> = ({ balance, onWithdraw, onViewHistory }) =>
                     <View>
                         <Text className="text-white text-sm opacity-80">{t("earnings.balance.label")}</Text>
                         <Text className="text-white text-3xl font-bold mt-1">
-                            ${balance.toLocaleString()}
+                            {formatPrice(balance)}
                         </Text>
                     </View>
                     <TouchableOpacity
