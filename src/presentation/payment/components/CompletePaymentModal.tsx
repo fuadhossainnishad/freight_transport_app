@@ -19,6 +19,7 @@ import { PaymentRequest } from "../../../domain/entities/paymentRequest.entity";
 import { payNow, PayMethod } from "../../../data/services/paymentRequestService";
 import { usePaymentRequests } from "../PaymentRequestsContext";
 import { PaymentsStackParamList } from "../../../navigation/types";
+import { formatPrice } from "../../../shared/utils/price";
 
 type Nav = NativeStackNavigationProp<PaymentsStackParamList, "PaymentRequests">;
 
@@ -120,7 +121,7 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
             {/* Amount */}
             <View style={styles.amountBox}>
               <Text style={styles.amountLabel}>{t("payment.complete.totalAmount")}</Text>
-              <Text style={styles.amountValue}>${request.amount.toLocaleString()}</Text>
+              <Text style={styles.amountValue}>{formatPrice(request.amount)}</Text>
             </View>
 
             {/* Methods */}

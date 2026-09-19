@@ -859,7 +859,13 @@ export default {
       "emptyTitle": "No payment requests",
       "emptySubtitle": "When an admin requests a payment for one of your shipments, it'll show up here.",
       "noMatchTitle": "No matching requests",
-      "noMatchSubtitle": "We couldn't find a request matching \"{{query}}\"."
+      "noMatchSubtitle": "We couldn't find a request matching \"{{query}}\".",
+      "dmpCheckStatus": "Already paid via email link? Check status",
+      "dmpCheckPaidTitle": "Payment received",
+      "dmpCheckPaidMessage": "Your payment has been confirmed.",
+      "dmpCheckPendingTitle": "Not confirmed yet",
+      "dmpCheckPendingMessage": "We haven't received confirmation of this payment yet. Try again in a moment, or pay another way below.",
+      "dmpCheckFailedTitle": "Couldn't check status"
     },
     "webView": {
       "title": "Payment"

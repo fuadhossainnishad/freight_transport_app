@@ -51,7 +51,7 @@ export default function PayWebViewScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10} style={styles.closeBtn}>
+        <TouchableOpacity onPress={() => finish("cancel")} hitSlop={10} style={styles.closeBtn}>
           <X size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{t("payment.webView.title")}</Text>

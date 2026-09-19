@@ -8,15 +8,18 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
-import { Search, SearchX, ReceiptText, MapPin, CreditCard } from "lucide-react-native";
+import { Search, SearchX, ReceiptText, MapPin, CreditCard, RefreshCw } from "lucide-react-native";
 
 import { usePaymentRequests } from "../PaymentRequestsContext";
 import { PaymentRequest, PaymentRequestStatus, isPayable } from "../../../domain/entities/paymentRequest.entity";
+import { checkDmpStatus } from "../../../data/services/paymentRequestService";
+import { formatPrice } from "../../../shared/utils/price";
 import CompletePaymentModal from "../components/CompletePaymentModal";
 
 const BLUE = "#036BB4";
@@ -51,6 +54,34 @@ export default function PaymentRequestsScreen() {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [active, setActive] = useState<PaymentRequest | null>(null);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
+
+  // DMP has no webhook — a shipper who paid via the emailed pay link has no
+  // other way to make the app notice, so give them an explicit "Check status"
+  // action rather than leaving the request stuck at dmp_pending forever.
+  const handleCheckDmpStatus = useCallback(
+    async (item: PaymentRequest) => {
+      if (checkingId) return;
+      setCheckingId(item.id);
+      try {
+        const result = await checkDmpStatus(item.id);
+        if (result.dmp_status === "completed") {
+          await refresh();
+          Alert.alert(t("payment.requests.dmpCheckPaidTitle"), t("payment.requests.dmpCheckPaidMessage"));
+        } else {
+          Alert.alert(t("payment.requests.dmpCheckPendingTitle"), t("payment.requests.dmpCheckPendingMessage"));
+        }
+      } catch (err: any) {
+        Alert.alert(
+          t("payment.requests.dmpCheckFailedTitle"),
+          err?.response?.data?.message || err?.message || t("common.somethingWentWrong"),
+        );
+      } finally {
+        setCheckingId(null);
+      }
+    },
+    [checkingId, refresh, t],
+  );
 
   // Keep the list fresh whenever the tab regains focus (e.g. after paying).
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
@@ -92,7 +123,7 @@ export default function PaymentRequestsScreen() {
         </View>
 
         <View style={s.cardBottom}>
-          <Text style={s.amount}>${item.amount.toLocaleString()}</Text>
+          <Text style={s.amount}>{formatPrice(item.amount)}</Text>
           {payable ? (
             <TouchableOpacity style={s.payBtn} activeOpacity={0.85} onPress={() => setActive(item)}>
               <CreditCard size={16} color="#fff" />
@@ -102,6 +133,22 @@ export default function PaymentRequestsScreen() {
             <Text style={[s.statusNote, { color: colors.fg }]}>{label}</Text>
           )}
         </View>
+
+        {item.status === "dmp_pending" && (
+          <TouchableOpacity
+            style={s.checkStatusBtn}
+            activeOpacity={0.7}
+            disabled={checkingId === item.id}
+            onPress={() => handleCheckDmpStatus(item)}
+          >
+            {checkingId === item.id ? (
+              <ActivityIndicator size="small" color={BLUE} />
+            ) : (
+              <RefreshCw size={13} color={BLUE} />
+            )}
+            <Text style={s.checkStatusTxt}>{t("payment.requests.dmpCheckStatus")}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -222,6 +269,8 @@ const s = StyleSheet.create({
   },
   payTxt: { color: "#fff", fontWeight: "700", fontSize: 14 },
   statusNote: { fontSize: 13, fontWeight: "700" },
+  checkStatusBtn: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10, alignSelf: "flex-start" },
+  checkStatusTxt: { color: BLUE, fontWeight: "600", fontSize: 12.5 },
 
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   fullEmpty: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingBottom: 40 },
