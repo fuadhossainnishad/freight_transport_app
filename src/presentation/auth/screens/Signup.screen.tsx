@@ -94,8 +94,16 @@ export default function SignupScreen() {
     }
     setPhoneError(false);
 
-    if ((data.password ?? "").length < 6) {
-      Alert.alert(t("common.error"), t("validation.passwordMinLength", { min: 6 }));
+    const pwd = data.password ?? "";
+    if (pwd.length < 8) {
+      Alert.alert(t("common.error"), t("validation.passwordMinLength", { min: 8 }));
+      return;
+    }
+    const hasAlphabet = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /\d/.test(pwd);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+    if (!hasAlphabet || !hasNumber || !hasSymbol) {
+      Alert.alert(t("common.error"), t("validation.passwordComplexity"));
       return;
     }
     if (data.password !== data.confirmPassword) {
