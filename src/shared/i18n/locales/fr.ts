@@ -193,7 +193,8 @@ export default {
       "accountCreated": "Compte créé avec succès",
       "failedTitle": "Échec de l'inscription",
       "invalidPhoneTitle": "Numéro de téléphone invalide",
-      "invalidPhoneMessage": "Un numéro de téléphone {{country}} doit comporter {{lengths}} chiffres."
+      "invalidPhoneMessage": "Un numéro de téléphone {{country}} doit comporter {{lengths}} chiffres.",
+      "passwordRequirementTitle": "Exigences du mot de passe"
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
