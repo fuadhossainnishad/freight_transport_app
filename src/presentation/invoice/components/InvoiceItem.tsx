@@ -16,17 +16,17 @@ const InvoiceItem: React.FC<Props> = ({ invoice, onViewPress, onDownloadPress })
     const { t } = useTranslation();
 
     return (
-        <View className="flex-row border-t border-gray-200 bg-white">
+        <View className="flex-row border-t border-gray-200 bg-white min-h-[64px]">
 
             {/* Shipment Title */}
-            <View className="flex-1 p-3 border-r border-gray-200 justify-center">
+            <View className="flex-1 py-4 px-3 border-r border-gray-200 justify-center">
                 <Text className="text-gray-800 font-medium" numberOfLines={1}>
                     {invoice.shipment_title ?? invoice.invoice_no}
                 </Text>
             </View>
 
             {/* Status */}
-            <View className="w-28 p-3 border-r border-gray-200 items-center justify-center">
+            <View className="w-28 py-4 px-3 border-r border-gray-200 items-center justify-center">
                 {/* VERIFIED is a backend enum — never translate it. Unmapped
                     statuses still fall through as the raw value, as before. */}
                 <Text className="px-2 py-1 rounded text-black text-xs bg-green-500">
@@ -35,7 +35,7 @@ const InvoiceItem: React.FC<Props> = ({ invoice, onViewPress, onDownloadPress })
             </View>
 
             {/* Actions */}
-            <View className="w-28 flex-row items-center justify-center space-x-3">
+            <View className="w-28 py-4 px-3 flex-row items-center justify-center gap-3">
                 <TouchableOpacity
                     className="bg-[#9900FF]/10 p-2 rounded-full"
                     onPress={() => onViewPress(invoice)}

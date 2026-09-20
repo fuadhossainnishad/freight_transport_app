@@ -15,17 +15,17 @@ const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload }) => {
   const { t } = useTranslation();
 
   return (
-    <View className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+    <View className="flex-1 border border-gray-200 rounded-lg overflow-hidden mt-4 mb-4">
 
       {/* Table Header */}
       <View className="flex-row bg-[#036BB4]">
-        <View className="flex-1 p-3 border-r border-gray-200">
+        <View className="flex-1 py-4 px-3 border-r border-white/20">
           <Text className="text-white text-center font-semibold">{t("invoice.list.tableTitle")}</Text>
         </View>
-        <View className="w-28 p-3 border-r border-gray-200">
+        <View className="w-28 py-4 px-3 border-r border-white/20">
           <Text className="text-white text-center font-semibold">{t("invoice.list.tableStatus")}</Text>
         </View>
-        <View className="w-28 p-3">
+        <View className="w-28 py-4 px-3">
           <Text className="text-white text-center font-semibold">{t("invoice.list.tableActions")}</Text>
         </View>
       </View>

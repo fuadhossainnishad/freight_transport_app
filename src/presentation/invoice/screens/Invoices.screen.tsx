@@ -82,21 +82,22 @@ const InvoicesScreen = () => {
     };
 
     return (
-        <SafeAreaView edges={["top"]} className="flex-1 bg-white p-4">
-            <View className='bg-white flex-row w-full p-4 items-center px-4'>
-                <Text className='text-center text-lg font-semibold text-black w-full'>
+        <SafeAreaView edges={["top"]} className="flex-1 bg-white">
+            <View className='bg-white flex-row w-full p-4 items-center justify-center border-b border-gray-100'>
+                <Text className='text-lg font-semibold text-black'>
                     {t("invoice.list.title")}
                 </Text>
             </View>
 
-            {/* Search — only relevant once there are invoices (or an active search). */}
-            {!loading && (invoices.length > 0 || isSearching) && (
-                <SearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder={t("invoice.list.search")}
-                />
-            )}
+            <View className="flex-1 px-4 mt-2">
+                {/* Search — only relevant once there are invoices (or an active search). */}
+                {!loading && (invoices.length > 0 || isSearching) && (
+                    <SearchInput
+                        value={search}
+                        onChange={setSearch}
+                        placeholder={t("invoice.list.search")}
+                    />
+                )}
 
             {loading ? (
                 <View className="flex-1 justify-center items-center">
@@ -120,6 +121,7 @@ const InvoicesScreen = () => {
                     onDownload={handleDownload}
                 />
             )}
+                    </View>
         </SafeAreaView>
     );
 };
