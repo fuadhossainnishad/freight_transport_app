@@ -6,10 +6,10 @@ import WizardOptionCard from "../WizardOptionCard"
 const ICON = "#036BB4"
 
 const options = [
-  { label: "Less than 2,500", value: "lt-2500", icon: <Coins size={26} color={ICON} /> },
+  { label: "Less than 2,500", value: "0-2500", icon: <Coins size={26} color={ICON} /> },
   { label: "2,500 – 10,000", value: "2500-10000", icon: <Banknote size={26} color={ICON} /> },
   { label: "10,000 – 50,000", value: "10000-50000", icon: <Wallet size={26} color={ICON} /> },
-  { label: "More than 50,000", value: "gt-50000", icon: <TrendingUp size={26} color={ICON} /> }
+  { label: "More than 50,000", value: "50000+", icon: <TrendingUp size={26} color={ICON} /> }
 ]
 
 const cardWidth = (Dimensions.get("window").width - 52) / 2
