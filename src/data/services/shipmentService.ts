@@ -42,7 +42,7 @@ export const fetchShipmentDetails = async (id: string) => {
 
 export const fetchTransporterShipments = async (transporterId: string, page = 1, limit = 10) => {
     try {
-        const res = await axiosClient.get(`/shipment/transporter/${transporterId}`);
+        const res = await axiosClient.get(`/shipment/transporter/${transporterId}`, { params: { page, limit } });
         console.log("fetchTransporterShipments:", res.data);
         return res.data;
     } catch (err) {
@@ -53,7 +53,7 @@ export const fetchTransporterShipments = async (transporterId: string, page = 1,
 
 export const fetchShipments = async (role: string, id: string, page = 1, limit = 10) => {
     try {
-        const res = await axiosClient.get(`/shipment/${role}/${id}`);
+        const res = await axiosClient.get(`/shipment/${role}/${id}`, { params: { page, limit } });
         console.log("fetchShipments:", res.data);
         return res.data;
     } catch (err) {

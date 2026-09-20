@@ -46,24 +46,43 @@ const MyShipmentsScreen = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const load = useCallback(async (isRefresh = false) => {
+  const load = useCallback(async (isRefresh = false, pageNum = 1) => {
     if (isRefresh) setRefreshing(true);
+    else if (pageNum > 1) setLoadingMore(true);
 
     try {
-      const { shipments: result } = await getShipmentsUseCase("shipper", user?.shipper_id!);
-      setShipments(result);
+      const { shipments: result, pagination } = await getShipmentsUseCase("shipper", user?.shipper_id!, pageNum, 10);
+      
+      if (pageNum === 1) {
+        setShipments(result);
+      } else {
+        setShipments(prev => [...prev, ...result]);
+      }
+      
+      setHasMore(pagination?.hasNextPage ?? result.length === 10);
+      setPage(pageNum);
     } catch (e) {
       console.error("Failed to load shipments:", e);
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   }, [user?.shipper_id]);
 
+  const handleLoadMore = () => {
+    if (!loading && !loadingMore && hasMore && !search.trim()) {
+      load(false, page + 1);
+    }
+  };
+
   // Loads on mount and refetches whenever the tab regains focus
   // (e.g. after creating a shipment).
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { load(false, 1); }, [load]));
 
   const filtered = search.trim()
     ? shipments.filter((s) => s.title?.toLowerCase().includes(search.toLowerCase()))
@@ -152,8 +171,10 @@ const MyShipmentsScreen = () => {
           renderItem={renderRow}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} colors={[BLUE]} tintColor={BLUE} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => load(true, 1)} colors={[BLUE]} tintColor={BLUE} />
           }
           ListHeaderComponent={
             <View style={s.thead}>
@@ -163,6 +184,13 @@ const MyShipmentsScreen = () => {
             </View>
           }
           stickyHeaderIndices={[0]}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 16 }}>
+                <ActivityIndicator size="small" color={BLUE} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             // Reached only when a search filters everything out.
             <View style={s.empty}>
