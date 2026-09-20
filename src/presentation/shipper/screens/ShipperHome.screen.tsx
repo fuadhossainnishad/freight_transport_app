@@ -40,6 +40,7 @@ export default function ShipperHome() {
 
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [statsLoading, setStatsLoading] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
     const [bidShipments, setBidShipments] = useState<any[]>([])
     const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -64,11 +65,14 @@ export default function ShipperHome() {
 
     // ── Data fetchers ────────────────────────────────────────────────
     const fetchStats = useCallback(async () => {
+        setStatsLoading(true)
         try {
             const res = await getShipperStats(authUser?.shipper_id!, selectedMonth + 1, new Date().getFullYear())
             setStats(res.data)
         } catch (err) {
             console.log("Stats error:", err)
+        } finally {
+            setStatsLoading(false)
         }
     }, [authUser?.shipper_id, selectedMonth])
 
@@ -229,6 +233,7 @@ export default function ShipperHome() {
                             value={stats?.shipmentsInProgress ?? 0} 
                             selectedMonth={selectedMonth}
                             onMonthChange={setSelectedMonth}
+                            isLoading={statsLoading}
                         />
                     </View>
                     <View className="flex-row gap-3">
@@ -237,6 +242,7 @@ export default function ShipperHome() {
                             value={stats?.completedShipments ?? 0} 
                             selectedMonth={selectedMonth}
                             onMonthChange={setSelectedMonth}
+                            isLoading={statsLoading}
                         />
                         {/* NOTE: hardcoded € and locale-less toLocaleString — part of the
                             app-wide currency inconsistency flagged in CLAUDE.md. */}
@@ -245,6 +251,7 @@ export default function ShipperHome() {
                             value={`€${(stats?.totalMoneySpent ?? 0).toLocaleString()}`} 
                             selectedMonth={selectedMonth}
                             onMonthChange={setSelectedMonth}
+                            isLoading={statsLoading}
                         />
                     </View>
                 </View>

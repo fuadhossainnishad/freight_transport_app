@@ -27,10 +27,7 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
 }: Props) {
     const { t } = useTranslation();
 
-    // ── first load ──
-    if (status === "idle" || status === "loading") {
-        return <StatsSkeleton />;
-    }
+    const isLoading = status === "loading" || status === "fetching";
 
     // ── error with no data — nothing to show ──
     if (status === "error" && !data) {
@@ -40,15 +37,6 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
     // ── data exists ──
     return (
         <View className="gap-3">
-
-            {/* fetching indicator — data still visible */}
-            {status === "fetching" && (
-                <View className="flex-row items-center gap-2 mb-1">
-                    <View className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-                    <Text className="text-xs text-gray-400">{t("transporter.stats.updating")}</Text>
-                </View>
-            )}
-
             {/* error banner — stale data still visible */}
             {status === "error" && data && (
                 <View className="flex-row items-center justify-between bg-red-50 rounded-lg px-3 py-2 mb-1">
@@ -67,12 +55,14 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
                     value={data?.shipmentsInProgress || 0} 
                     selectedMonth={selectedMonth}
                     onMonthChange={onMonthChange}
+                    isLoading={isLoading}
                 />
                 <StatCard 
                     title={t("transporter.stats.completedShipments")} 
                     value={data?.completedShipments || 0} 
                     selectedMonth={selectedMonth}
                     onMonthChange={onMonthChange}
+                    isLoading={isLoading}
                 />
             </View>
 
@@ -82,6 +72,7 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
                 fullWidth
                 selectedMonth={selectedMonth}
                 onMonthChange={onMonthChange}
+                isLoading={isLoading}
             />
 
         </View>
