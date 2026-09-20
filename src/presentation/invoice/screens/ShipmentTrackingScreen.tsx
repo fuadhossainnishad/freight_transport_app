@@ -1,3 +1,4 @@
+import ShipmentDetailSkeleton from "../../../shared/components/ShipmentDetailSkeleton";
 // screens/shipments/ShipmentTrackingScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
@@ -45,10 +46,20 @@ const ShipmentTrackingScreen: React.FC = () => {
         loadShipment();
     }, [shipmentId]);
 
-    if (loading || !data) {
+
+    if (loading) {
+        return (
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+                <AppHeader text="Shipment Tracking" onpress={() => navigation.goBack()} />
+                <ShipmentDetailSkeleton />
+            </SafeAreaView>
+        );
+    }
+
+    if (!data) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#036BB4" />
+                <Text style={{ color: '#6B7280' }}>Not found</Text>
             </View>
         );
     }
