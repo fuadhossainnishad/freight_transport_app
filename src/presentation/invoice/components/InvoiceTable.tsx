@@ -4,14 +4,17 @@ import { useTranslation } from "react-i18next";
 import { SearchX } from "lucide-react-native";
 import { InvoiceListItem } from "../../../data/services/invoiceService";
 import InvoiceItem from "./InvoiceItem";
+import InvoiceRowSkeleton from "./InvoiceRowSkeleton";
 
 interface Props {
   invoices: InvoiceListItem[];
   onView: (invoice: InvoiceListItem) => void;
   onDownload: (invoice: InvoiceListItem) => void;
+  onEndReached?: () => void;
+  loadingMore?: boolean;
 }
 
-const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload }) => {
+const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload, onEndReached, loadingMore }) => {
   const { t } = useTranslation();
 
   return (
@@ -41,6 +44,9 @@ const InvoiceTable: React.FC<Props> = ({ invoices, onView, onDownload }) => {
             onDownloadPress={onDownload}
           />
         )}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loadingMore ? <InvoiceRowSkeleton /> : null}
         ListEmptyComponent={
           <View className="py-10 items-center px-6">
             <SearchX size={26} color="#9CA3AF" />

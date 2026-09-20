@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { InvoiceStackParamList } from "../../../navigation/types";
 import { getInvoices, getInvoiceDetail, InvoiceListItem } from "../../../data/services/invoiceService";
 import InvoiceTable from "../components/InvoiceTable";
+import InvoiceRowSkeleton from "../components/InvoiceRowSkeleton";
 import { SearchInput } from "../../settings/components/SearchInput";
 import { downloadInvoicePdf } from "../utils/invoicePdf";
 
@@ -26,35 +27,51 @@ const InvoicesScreen = () => {
     const [loading, setLoading] = useState(false);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
     const isSearching = search.trim().length > 0;
 
-    const loadInvoices = async (searchTerm?: string) => {
+    const loadInvoices = async (searchTerm?: string, pageNum = 1) => {
         try {
-            setLoading(true);
-            const res = await getInvoices(1, 20, searchTerm);
-            setInvoices(res.data);
+            if (pageNum === 1) setLoading(true);
+            else setLoadingMore(true);
+
+            const res = await getInvoices(pageNum, 15, searchTerm);
+            
+            if (pageNum === 1) {
+                setInvoices(res.data);
+            } else {
+                setInvoices(prev => [...prev, ...res.data]);
+            }
+            
+            setHasMore(pageNum < res.meta.totalPage);
+            setPage(pageNum);
         } catch (error: any) {
             console.error(error);
-            // The backend message wins when present — it is raw English and
-            // outside i18n. Only the fallback is ours.
             Alert.alert(t("common.error"), error?.response?.data?.message || error.message || t("invoice.list.loadFailed"));
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
-    // Mount-only. loadInvoices closes over `t`, so the linter wants it as a
-    // dependency — but it is not memoised, so adding it would re-create it every
-    // render and fire an endless fetch loop.
+    const loadMore = () => {
+        if (!loadingMore && hasMore && !loading) {
+            loadInvoices(search.trim() || undefined, page + 1);
+        }
+    };
+
     useEffect(() => {
-        loadInvoices();
+        loadInvoices(undefined, 1);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Debounced server-side search — same reasoning as above.
     useEffect(() => {
         const handler = setTimeout(() => {
-            loadInvoices(search.trim() || undefined);
+            loadInvoices(search.trim() || undefined, 1);
         }, 400);
         return () => clearTimeout(handler);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,8 +117,24 @@ const InvoicesScreen = () => {
                 )}
 
             {loading ? (
-                <View className="flex-1 justify-center items-center">
-                    <ActivityIndicator size="large" color="#2563EB" />
+                <View className="flex-1 border border-gray-200 rounded-lg overflow-hidden mt-4 mb-4">
+                    <View className="flex-row bg-[#036BB4]">
+                        <View className="flex-1 py-4 px-3 border-r border-white/20">
+                            <Text className="text-white text-center font-semibold">{t("invoice.list.tableTitle")}</Text>
+                        </View>
+                        <View className="w-28 py-4 px-3 border-r border-white/20">
+                            <Text className="text-white text-center font-semibold">{t("invoice.list.tableStatus")}</Text>
+                        </View>
+                        <View className="w-28 py-4 px-3">
+                            <Text className="text-white text-center font-semibold">{t("invoice.list.tableActions")}</Text>
+                        </View>
+                    </View>
+                    <InvoiceRowSkeleton />
+                    <InvoiceRowSkeleton />
+                    <InvoiceRowSkeleton />
+                    <InvoiceRowSkeleton />
+                    <InvoiceRowSkeleton />
+                    <InvoiceRowSkeleton />
                 </View>
             ) : invoices.length === 0 && !isSearching ? (
                 // No invoices at all — no search bar / table header, just a clean empty state.
@@ -119,6 +152,8 @@ const InvoicesScreen = () => {
                     invoices={invoices}
                     onView={handleView}
                     onDownload={handleDownload}
+                    onEndReached={loadMore}
+                    loadingMore={loadingMore}
                 />
             )}
                     </View>
