@@ -93,6 +93,8 @@ export default function PaymentRequestsScreen() {
     setRefreshing(false);
   }, [refresh]);
 
+  const { loadMore, loadingMore, hasMore } = usePaymentRequests();
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return requests;
@@ -101,22 +103,12 @@ export default function PaymentRequestsScreen() {
     );
   }, [requests, search]);
 
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
-  
-  const paginatedRequests = useMemo(() => {
-    return filtered.slice(0, page * PAGE_SIZE);
-  }, [filtered, page]);
-
-  const loadMore = () => {
-    if (page * PAGE_SIZE < filtered.length) {
-      setPage(p => p + 1);
+  const handleLoadMore = () => {
+    // Only load more if we are not actively searching
+    if (!search.trim() && hasMore) {
+      loadMore();
     }
   };
-
-  React.useEffect(() => {
-    setPage(1);
-  }, [search]);
 
   const renderCard = ({ item }: { item: PaymentRequest }) => {
     const colors = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
@@ -210,6 +202,15 @@ export default function PaymentRequestsScreen() {
           renderItem={renderCard}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 16, alignItems: "center" }}>
+                <ActivityIndicator size="small" color={BLUE} />
+              </View>
+            ) : null
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[BLUE]} tintColor={BLUE} />
           }

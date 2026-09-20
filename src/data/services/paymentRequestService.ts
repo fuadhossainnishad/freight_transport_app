@@ -2,11 +2,13 @@ import { DMP_STATUS, GET_MY_PAYMENT_REQUESTS, PAY_NOW } from "../../domain/const
 import axiosClient from "../../shared/config/axios.config";
 import { mapPaymentRequest, PaymentRequest } from "../../domain/entities/paymentRequest.entity";
 
-// GET /pay/my-requests — all payment requests addressed to the logged-in shipper.
-export const getMyPaymentRequests = async (): Promise<PaymentRequest[]> => {
-  const res = await axiosClient.get(GET_MY_PAYMENT_REQUESTS);
-  const list = res.data?.data ?? res.data ?? [];
-  return (Array.isArray(list) ? list : []).map(mapPaymentRequest);
+export const getMyPaymentRequests = async (page: number = 1, limit: number = 10): Promise<{ data: PaymentRequest[], meta: any }> => {
+  const res = await axiosClient.get(`${GET_MY_PAYMENT_REQUESTS}?page=${page}&limit=${limit}`);
+  const list = res.data?.data ?? [];
+  return {
+    data: (Array.isArray(list) ? list : []).map(mapPaymentRequest),
+    meta: res.data?.meta ?? { total: 0, page, limit, totalPage: 1 }
+  };
 };
 
 // These strings are the API contract for `payment_method` — never translate them.

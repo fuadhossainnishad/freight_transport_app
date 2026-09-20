@@ -5,8 +5,11 @@ import { PaymentRequest, isPayable } from "../../domain/entities/paymentRequest.
 interface Ctx {
   requests: PaymentRequest[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
   pendingCount: number;
   refresh: () => Promise<void>;
+  loadMore: () => Promise<void>;
 }
 
 const PaymentRequestsContext = createContext<Ctx | undefined>(undefined);
@@ -16,17 +19,38 @@ const PaymentRequestsContext = createContext<Ctx | undefined>(undefined);
 export function PaymentRequestsProvider({ children }: { children: React.ReactNode }) {
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const list = await getMyPaymentRequests();
-      setRequests(list);
+      const res = await getMyPaymentRequests(1, 10);
+      setRequests(res.data);
+      setPage(1);
+      setHasMore(res.meta.page < res.meta.totalPage);
     } catch (err) {
       console.log("Payment requests error:", err);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await getMyPaymentRequests(nextPage, 10);
+      setRequests((prev) => [...prev, ...res.data]);
+      setPage(nextPage);
+      setHasMore(res.meta.page < res.meta.totalPage);
+    } catch (err) {
+      console.log("Payment requests loadMore error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, page]);
 
   useEffect(() => {
     refresh();
@@ -35,7 +59,7 @@ export function PaymentRequestsProvider({ children }: { children: React.ReactNod
   const pendingCount = requests.filter((r) => isPayable(r.status)).length;
 
   return (
-    <PaymentRequestsContext.Provider value={{ requests, loading, pendingCount, refresh }}>
+    <PaymentRequestsContext.Provider value={{ requests, loading, loadingMore, hasMore, pendingCount, refresh, loadMore }}>
       {children}
     </PaymentRequestsContext.Provider>
   );
