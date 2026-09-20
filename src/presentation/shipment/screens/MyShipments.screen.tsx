@@ -196,8 +196,9 @@ const MyShipmentsScreen = () => {
           stickyHeaderIndices={[0]}
           ListFooterComponent={
             loadingMore ? (
-              <View style={{ paddingVertical: 16 }}>
-                <ActivityIndicator size="small" color={BLUE} />
+              <View>
+                <ShipmentRowSkeleton />
+                <ShipmentRowSkeleton />
               </View>
             ) : null
           }
