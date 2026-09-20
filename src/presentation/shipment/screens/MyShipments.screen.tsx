@@ -20,6 +20,7 @@ import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { Shipment } from "../../../domain/entities/shipment.entity";
 import { useAuth } from "../../../app/context/Auth.context";
 import { getShipmentsUseCase } from "../../../domain/usecases/shipment.usecase";
+import { ShipmentRowSkeleton } from "../components/ShipmentRowSkeleton";
 
 const BLUE = "#036BB4";
 
@@ -150,8 +151,17 @@ const MyShipmentsScreen = () => {
       )}
 
       {loading ? (
-        <View style={s.centered}>
-          <ActivityIndicator size="large" color={BLUE} />
+        <View style={{ paddingHorizontal: 16 }}>
+          <View style={s.thead}>
+            <Text style={[s.theadTxt, s.titleCell]}>{t("shipper.myShipments.tableTitle")}</Text>
+            <Text style={[s.theadTxt, s.statusCell, { textAlign: "center" }]}>{t("shipper.myShipments.tableStatus")}</Text>
+            <Text style={[s.theadTxt, s.actionCell, { textAlign: "center" }]}>{t("shipper.myShipments.tableAction")}</Text>
+          </View>
+          <ShipmentRowSkeleton />
+          <ShipmentRowSkeleton />
+          <ShipmentRowSkeleton />
+          <ShipmentRowSkeleton />
+          <ShipmentRowSkeleton />
         </View>
       ) : shipments.length === 0 ? (
         // No shipments at all — no search bar / table header, just a clean empty state.
