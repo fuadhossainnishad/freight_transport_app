@@ -66,10 +66,22 @@ export const updateProfile = async (
         return data.data;
     }
 
-    // Shipper: backend route only updates `company_name` (JSON, no file upload).
+    // Shipper: backend route accepts multipart with `company_name` + `logo`.
+    const formData = new FormData();
+    formData.append("company_name", payload.name);
+
+    if (payload.avatar && isLocalFile(payload.avatar.uri)) {
+        formData.append("logo", {
+            uri: payload.avatar.uri,
+            name: payload.avatar.name,
+            type: payload.avatar.type,
+        } as any);
+    }
+
     const { data } = await axiosClient.patch(
         `/shipper/edit/${user.shipper_id}`,
-        { company_name: payload.name }
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
     );
 
     return data.data;
