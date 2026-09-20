@@ -8,17 +8,18 @@ type Props = {
     title: string;
     value: string | number;
     fullWidth?: boolean;
+    selectedMonth?: number | null;
+    onMonthChange?: (month: number) => void;
 };
 
-export default function StatCard({ title, value, fullWidth }: Props) {
+export default function StatCard({ title, value, fullWidth, selectedMonth, onMonthChange }: Props) {
     const { t } = useTranslation();
     const months = useMonthNames();
-    // Store the index, not the label: a stored label would stay in the old
-    // language after the user switches languages.
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
     const [showMonths, setShowMonths] = useState(false);
     const monthLabel =
-        selectedMonth === null ? t("components.statCard.thisMonth") : months[selectedMonth];
+        selectedMonth === undefined || selectedMonth === null 
+            ? t("components.statCard.thisMonth") 
+            : months[selectedMonth];
 
     return (
         <View
@@ -37,7 +38,6 @@ export default function StatCard({ title, value, fullWidth }: Props) {
             <View className="flex-row items-center justify-between">
                 {/* Value */}
                 <Text className="text-2xl font-bold text-black mt-2">{value}</Text>
-
 
                 <TouchableOpacity
                     className="items-center"
@@ -66,7 +66,7 @@ export default function StatCard({ title, value, fullWidth }: Props) {
                             <TouchableOpacity
                                 key={month}
                                 onPress={() => {
-                                    setSelectedMonth(index);
+                                    if (onMonthChange) onMonthChange(index);
                                     setShowMonths(false);
                                 }}
                                 style={{ paddingHorizontal: 12, paddingVertical: 8 }}

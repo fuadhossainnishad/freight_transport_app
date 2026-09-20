@@ -13,6 +13,8 @@ type Props = {
     status: StatStatus
     error: string | null;
     onRetry: () => void;
+    selectedMonth: number | null;
+    onMonthChange: (month: number) => void;
 };
 
 const TransporterStatsSection = memo(function TransporterStatsSection({
@@ -20,6 +22,8 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
     status,
     error,
     onRetry,
+    selectedMonth,
+    onMonthChange,
 }: Props) {
     const { t } = useTranslation();
 
@@ -58,14 +62,26 @@ const TransporterStatsSection = memo(function TransporterStatsSection({
             )}
 
             <View className="flex-row gap-3">
-                <StatCard title={t("transporter.stats.shipmentsInProgress")} value={data?.shipmentsInProgress || 0} />
-                <StatCard title={t("transporter.stats.completedShipments")} value={data?.completedShipments || 0} />
+                <StatCard 
+                    title={t("transporter.stats.shipmentsInProgress")} 
+                    value={data?.shipmentsInProgress || 0} 
+                    selectedMonth={selectedMonth}
+                    onMonthChange={onMonthChange}
+                />
+                <StatCard 
+                    title={t("transporter.stats.completedShipments")} 
+                    value={data?.completedShipments || 0} 
+                    selectedMonth={selectedMonth}
+                    onMonthChange={onMonthChange}
+                />
             </View>
 
             <StatCard
                 title={t("transporter.stats.totalEarnings")}
                 value={`€${data?.totalEarnings || 0}`}
                 fullWidth
+                selectedMonth={selectedMonth}
+                onMonthChange={onMonthChange}
             />
 
         </View>

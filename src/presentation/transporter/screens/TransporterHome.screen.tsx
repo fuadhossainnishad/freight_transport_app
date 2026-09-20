@@ -128,6 +128,7 @@ export default function TransporterHomeScreen() {
   // STATE
   // ─────────────────────────────
   const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
 
   // ─────────────────────────────
   // REFS
@@ -137,7 +138,7 @@ export default function TransporterHomeScreen() {
   const lastFiredIndex = useRef(-1);
   const activeShipmentsRef = useRef<Shipment[]>([]);
 
-  const { data, status, error, refresh } = useTransporterStats(authUser?.transporter_id!)
+  const { data, status, error, refresh } = useTransporterStats(authUser?.transporter_id!, selectedMonth + 1, new Date().getFullYear())
   const { data: activeShipmentsData, status: activeShipmentsStatus, error: activeShipmentsError, refresh: activeShipmentsRefresh } = useActiveShipments(authUser?.transporter_id!)
 
   const activeShipments: Shipment[] = activeShipmentsData ?? [];
@@ -251,6 +252,8 @@ export default function TransporterHomeScreen() {
           status={status}
           error={error}
           onRetry={refresh}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
         />
 
         {/* ───── SECTION HEADER ───── */}

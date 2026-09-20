@@ -17,7 +17,7 @@ export type UseStatResult = {
     refresh: () => void
 };
 
-export default function useTransporterStats(transporterId: string | undefined): UseStatResult {
+export default function useTransporterStats(transporterId: string | undefined, month?: number, year?: number): UseStatResult {
 
     const [data, setData] = useState<TransporterStats | null>(null);
     const [status, setStatus] = useState<StatStatus>('idle');
@@ -48,7 +48,7 @@ export default function useTransporterStats(transporterId: string | undefined): 
             setError(null);
 
             try {
-                const res = await getTransporterStats(transporterId)
+                const res = await getTransporterStats(transporterId, month, year)
                 if (cancelled || currentId !== requestIdRef.current) return
                 setData(res);
                 setStatus('success');
@@ -65,7 +65,7 @@ export default function useTransporterStats(transporterId: string | undefined): 
         run()
         return () => { cancelled = true }
 
-    }, [transporterId, trigger])
+    }, [transporterId, trigger, month, year])
 
 
     return { data, status, error, refresh }

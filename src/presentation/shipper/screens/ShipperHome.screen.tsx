@@ -46,6 +46,7 @@ export default function ShipperHome() {
     const [shipmentBids, setShipmentBids] = useState<any[]>([])
     const [bidsLoading, setBidsLoading] = useState(false)
     const [activeTab, setActiveTab] = useState<'bids' | 'assigned'>('bids')
+    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth())
 
     const carouselRef = useRef<ScrollView>(null)
     const isJumping = useRef(false)
@@ -64,12 +65,18 @@ export default function ShipperHome() {
     // ── Data fetchers ────────────────────────────────────────────────
     const fetchStats = useCallback(async () => {
         try {
-            const res = await getShipperStats(authUser?.shipper_id!)
+            const res = await getShipperStats(authUser?.shipper_id!, selectedMonth + 1, new Date().getFullYear())
             setStats(res.data)
         } catch (err) {
             console.log("Stats error:", err)
         }
-    }, [authUser?.shipper_id])
+    }, [authUser?.shipper_id, selectedMonth])
+
+    // Update stats when selectedMonth changes
+    useEffect(() => {
+        if (!authUser?.shipper_id) return
+        fetchStats()
+    }, [selectedMonth])
 
     const fetchBidShipments = useCallback(async () => {
         try {
@@ -217,13 +224,28 @@ export default function ShipperHome() {
                                 {t('shipper.home.createShipment')}
                             </Text>
                         </TouchableOpacity>
-                        <StatCard title={t('shipper.home.shipmentsInProgress')} value={stats?.shipmentsInProgress ?? 0} />
+                        <StatCard 
+                            title={t('shipper.home.shipmentsInProgress')} 
+                            value={stats?.shipmentsInProgress ?? 0} 
+                            selectedMonth={selectedMonth}
+                            onMonthChange={setSelectedMonth}
+                        />
                     </View>
                     <View className="flex-row gap-3">
-                        <StatCard title={t('shipper.home.completedShipments')} value={stats?.completedShipments ?? 0} />
+                        <StatCard 
+                            title={t('shipper.home.completedShipments')} 
+                            value={stats?.completedShipments ?? 0} 
+                            selectedMonth={selectedMonth}
+                            onMonthChange={setSelectedMonth}
+                        />
                         {/* NOTE: hardcoded € and locale-less toLocaleString — part of the
                             app-wide currency inconsistency flagged in CLAUDE.md. */}
-                        <StatCard title={t('shipper.home.totalMoneySpent')} value={`€${(stats?.totalMoneySpent ?? 0).toLocaleString()}`} />
+                        <StatCard 
+                            title={t('shipper.home.totalMoneySpent')} 
+                            value={`€${(stats?.totalMoneySpent ?? 0).toLocaleString()}`} 
+                            selectedMonth={selectedMonth}
+                            onMonthChange={setSelectedMonth}
+                        />
                     </View>
                 </View>
 
