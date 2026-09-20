@@ -5,15 +5,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run android   # Build and run on Android (see Windows note below)
+npm run start     # Start Metro bundler — MUST be run from the real repo path, never C:\p (see below)
+npm run android   # Build and install on Android (see Windows note below); does NOT start Metro
 npm run ios       # Build and run on iOS
-npm run start     # Start Metro bundler
 npm run lint      # ESLint
 npm run test      # Jest
 npx tsc --noEmit  # Type-check (no dedicated npm script; also catches typo'd i18n keys, see below)
 ```
 
-**Windows MAX_PATH workaround:** The `android` script runs via `C:\p` (a junction to this repo root). If `npm run android` fails with path-too-long errors, ensure the junction exists: `cmd /c mklink /J C:\p "C:\Users\Mozammel\Desktop\Projects\freight_transport_app-master"`.
+**Windows MAX_PATH workaround:** The `android` script runs via `C:\p` (a junction to this repo root). If `npm run android` fails with path-too-long errors, ensure the junction exists: `cmd /c mklink /J C:\p "C:\Users\Mozammel\Desktop\Projects\Lawapan_app"`. If it exists but points at an old folder name, remove it first with `cmd /c rmdir C:\p`.
+
+### Never start Metro from `C:\p` — it silently kills every NativeWind style
+
+The junction is a Gradle-only workaround. `metro.config.js` resolves NativeWind's `input` through `fs.realpathSync`, so when Metro is launched with `C:\p` as its cwd, NativeWind compares the module path Metro reports (`C:\p\global.css`) against its resolved input (`C:\Users\...\Lawapan_app\global.css`), never matches, and **emits an empty stylesheet**. `node_modules/react-native-css-interop/.cache/android.js` is written as a 0-byte file and the bundle contains no `injectData({"$compiled":true,...})` call.
+
+The symptom is not an error — nothing fails, nothing logs. Every `className` just resolves to nothing, so screens render as unstyled stacked text while any component styled with `StyleSheet.create` still looks perfect. That **partial** breakage is the tell, and it is why it reads as a caching bug: clearing Metro's cache changes nothing, because the cache was never the problem.
+
+This is why `android` passes `--no-packager`. Run Metro yourself, from the real path:
+
+```bash
+npm run start                      # terminal 1, from the repo root (NOT C:\p)
+npm run android                    # terminal 2, builds + installs only
+```
+
+To verify the styles actually made it into the bundle:
+
+```bash
+curl "http://localhost:8081/index.bundle?platform=android&dev=true" | grep -c '"$compiled":true'
+```
+
+`1` is correct; `0` means Metro was started from the junction. Don't debug this from the tailwind side — `npx tailwindcss -i global.css -o out.css` compiles fine either way, because the break is in Metro's path matching, not in Tailwind.
 
 **Environment variables:** Managed by `react-native-config`. All variables must be in `.env` at the repo root. The three active vars are `BASE_URL`, `SOCKET_URL`, and `GOOGLE_MAPS_API_KEY`. After editing `.env` on Android, rebuild (Metro cache alone won't pick up changes).
 
