@@ -18,6 +18,24 @@ export default function StepBasicInfo({ onSuccess }: any) {
 
     const handleSubmit = async () => {
         const data = getValues()
+
+        const requiredFields = [
+            "employee_size",
+            "shipments_per_month",
+            "monthly_budget_for_shipment",
+            "type_of_shipment",
+            "shipping_marchandise_at",
+            "ship_type",
+            "shipper_type",
+        ];
+
+        for (const field of requiredFields) {
+            if (!data[field]) {
+                Alert.alert("Missing Information", "Please go back and complete all previous steps before finishing.");
+                return;
+            }
+        }
+
         if (!data.company_address?.trim()) {
             Alert.alert("Company address required", "Please enter your company address to finish.")
             return

@@ -6,9 +6,9 @@ import WizardOptionCard from "../WizardOptionCard"
 const ICON = "#036BB4"
 
 const options = [
-  { label: "Regional", sublabel: "Within your region", icon: <MapPin size={24} color={ICON} /> },
-  { label: "National", sublabel: "Across the country", icon: <Flag size={24} color={ICON} /> },
-  { label: "International", sublabel: "Across borders", icon: <Globe size={24} color={ICON} /> },
+  { label: "Regional", value: "Regional", sublabel: "Within your region", icon: <MapPin size={24} color={ICON} /> },
+  { label: "National", value: "National", sublabel: "Across the country", icon: <Flag size={24} color={ICON} /> },
+  { label: "International", value: "International", sublabel: "Across borders", icon: <Globe size={24} color={ICON} /> },
 ]
 
 export default function StepRegion({ next }: any) {
@@ -24,14 +24,14 @@ export default function StepRegion({ next }: any) {
       <View style={{ gap: 12 }}>
         {options.map((item) => (
           <WizardOptionCard
-            key={item.label}
+            key={item.value}
             layout="row"
             label={item.label}
             sublabel={item.sublabel}
-            selected={current === item.label}
+            selected={current === item.value}
             icon={item.icon}
             onPress={() => {
-              setValue("shipping_marchandise_at", item.label)
+              setValue("shipping_marchandise_at", item.value)
               next()
             }}
           />
