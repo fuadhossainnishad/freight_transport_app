@@ -1,3 +1,4 @@
+import ShipmentDetailSkeleton from "../../../shared/components/ShipmentDetailSkeleton";
 import React, { useEffect, useState, useCallback } from "react";
 import {
     View,
@@ -88,12 +89,9 @@ export default function ShipmentDetailsScreen() {
         fetchBidCount();
     }, [fetchDetails, fetchBidCount]);
 
+
     if (loading) {
-        return (
-            <SafeAreaView className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" />
-            </SafeAreaView>
-        );
+        return <ShipmentDetailSkeleton onBack={() => navigation.goBack()} />;
     }
 
     if (!shipmentData) {

@@ -1,3 +1,4 @@
+import ShipmentDetailSkeleton from "../../../shared/components/ShipmentDetailSkeleton";
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -51,6 +52,7 @@ function Field({
   );
 }
 
+
 export default function ShipmentDetailScreen() {
   const { t } = useTranslation();
   // data.category / data.packaging arrive from the API as English values.
@@ -77,11 +79,7 @@ export default function ShipmentDetailScreen() {
   }, [shipmentId]);
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#036BB4" />
-      </SafeAreaView>
-    );
+    return <ShipmentDetailSkeleton onBack={() => navigation.goBack()} />;
   }
 
   if (!data) {
