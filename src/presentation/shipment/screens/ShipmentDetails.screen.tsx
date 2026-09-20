@@ -112,7 +112,12 @@ export default function ShipmentDetailsScreen() {
 
 
   if (loading) {
-    return <ShipmentDetailSkeleton onBack={() => navigation.goBack()} />;
+    return (
+      <SafeAreaView edges={["top"]} style={styles.screen}>
+        <Header onBack={() => navigation.goBack()} />
+        <ShipmentDetailSkeleton />
+      </SafeAreaView>
+    );
   }
 
   if (!shipment) {

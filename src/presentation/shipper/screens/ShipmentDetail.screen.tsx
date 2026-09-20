@@ -79,7 +79,12 @@ export default function ShipmentDetailScreen() {
   }, [shipmentId]);
 
   if (loading) {
-    return <ShipmentDetailSkeleton onBack={() => navigation.goBack()} />;
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <AppHeader text={t("shipper.detail.title")} onpress={() => navigation.goBack()} />
+        <ShipmentDetailSkeleton />
+      </SafeAreaView>
+    );
   }
 
   if (!data) {

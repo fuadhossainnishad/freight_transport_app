@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { View, Animated, StyleSheet, SafeAreaView, Dimensions } from "react-native";
-import AppHeader from "./AppHeader";
+import { View, Animated, StyleSheet, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-export default function ShipmentDetailSkeleton({ onBack }: { onBack: () => void }) {
+export default function ShipmentDetailSkeleton() {
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -17,49 +16,41 @@ export default function ShipmentDetailSkeleton({ onBack }: { onBack: () => void 
   }, [opacity]);
 
   return (
-    <SafeAreaView style={s.safeArea}>
-      <AppHeader text="Loading..." onpress={onBack} />
+    <Animated.View style={[s.container, { opacity }]}>
+      {/* Status Badge Skeleton */}
+      <View style={s.badge} />
       
-      <Animated.View style={[s.container, { opacity }]}>
-        {/* Status Badge Skeleton */}
-        <View style={s.badge} />
-        
-        {/* Hero Image Skeleton */}
-        <View style={s.hero} />
-        
-        {/* Card 1 Skeleton */}
-        <View style={s.card}>
-          <View style={s.cardHeader} />
-          <View style={s.row}>
-            <View style={s.field} />
-            <View style={s.field} />
-          </View>
-          <View style={s.row}>
-            <View style={s.field} />
-            <View style={s.field} />
-          </View>
+      {/* Hero Image Skeleton */}
+      <View style={s.hero} />
+      
+      {/* Card 1 Skeleton */}
+      <View style={s.card}>
+        <View style={s.cardHeader} />
+        <View style={s.row}>
+          <View style={s.field} />
+          <View style={s.field} />
         </View>
+        <View style={s.row}>
+          <View style={s.field} />
+          <View style={s.field} />
+        </View>
+      </View>
 
-        {/* Card 2 Skeleton */}
-        <View style={s.card}>
-          <View style={s.cardHeader} />
-          <View style={s.row}>
-            <View style={s.field} />
-            <View style={s.field} />
-          </View>
-          <View style={s.fieldFull} />
+      {/* Card 2 Skeleton */}
+      <View style={s.card}>
+        <View style={s.cardHeader} />
+        <View style={s.row}>
+          <View style={s.field} />
+          <View style={s.field} />
         </View>
-        
-      </Animated.View>
-    </SafeAreaView>
+        <View style={s.fieldFull} />
+      </View>
+      
+    </Animated.View>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
   container: {
     padding: 16,
     gap: 16,

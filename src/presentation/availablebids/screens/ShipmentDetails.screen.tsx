@@ -91,7 +91,12 @@ export default function ShipmentDetailsScreen() {
 
 
     if (loading) {
-        return <ShipmentDetailSkeleton onBack={() => navigation.goBack()} />;
+        return (
+        <SafeAreaView className="flex-1 bg-gray-50">
+            <AppHeader text={t("availableBids.shipmentDetails.title")} onpress={() => navigation.goBack()} />
+            <ShipmentDetailSkeleton />
+        </SafeAreaView>
+    );
     }
 
     if (!shipmentData) {
