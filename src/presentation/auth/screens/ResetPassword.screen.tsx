@@ -62,6 +62,19 @@ export default function ResetPasswordScreen() {
     }, [])
 
     const onSubmit = async (data: ResetPasswordForm) => {
+        const pwd = data.newPassword;
+        if (pwd.length < 8) {
+            Alert.alert(t("auth.signup.passwordRequirementTitle"), t("validation.passwordMinLength", { min: 8 }));
+            return;
+        }
+        const hasAlphabet = /[a-zA-Z]/.test(pwd);
+        const hasNumber = /\d/.test(pwd);
+        const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+        if (!hasAlphabet || !hasNumber || !hasSymbol) {
+            Alert.alert(t("auth.signup.passwordRequirementTitle"), t("validation.passwordComplexity"));
+            return;
+        }
+
         try {
             await submitResetPassword(
                 verificationToken,
@@ -129,10 +142,6 @@ export default function ResetPasswordScreen() {
                                     name="newPassword"
                                     rules={{
                                         required: t("validation.newPasswordRequired"),
-                                        minLength: {
-                                            value: 6,
-                                            message: t("validation.passwordMinLength", { min: 6 }),
-                                        },
                                     }}
                                     render={({ field: { onChange, value } }) => (
                                         <View className="relative">

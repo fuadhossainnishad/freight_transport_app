@@ -35,6 +35,24 @@ export default function ChangePasswordScreen() {
     });
 
     const onSubmit = async (data: ChangePassword) => {
+        if (data.new_pasword !== data.confirmed_pasword) {
+            Alert.alert(t("common.error"), t("validation.passwordsDoNotMatch"));
+            return;
+        }
+
+        const pwd = data.new_pasword;
+        if (pwd.length < 8) {
+            Alert.alert(t("auth.signup.passwordRequirementTitle"), t("validation.passwordMinLength", { min: 8 }));
+            return;
+        }
+        const hasAlphabet = /[a-zA-Z]/.test(pwd);
+        const hasNumber = /\d/.test(pwd);
+        const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+        if (!hasAlphabet || !hasNumber || !hasSymbol) {
+            Alert.alert(t("auth.signup.passwordRequirementTitle"), t("validation.passwordComplexity"));
+            return;
+        }
+
         try {
 
             await changePassword(data);
