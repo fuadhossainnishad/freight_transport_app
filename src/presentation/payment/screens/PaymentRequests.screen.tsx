@@ -21,6 +21,7 @@ import { PaymentRequest, PaymentRequestStatus, isPayable } from "../../../domain
 import { checkDmpStatus } from "../../../data/services/paymentRequestService";
 import { formatPrice } from "../../../shared/utils/price";
 import CompletePaymentModal from "../components/CompletePaymentModal";
+import PaymentRequestSkeleton from "../components/PaymentRequestSkeleton";
 
 const BLUE = "#036BB4";
 
@@ -99,6 +100,23 @@ export default function PaymentRequestsScreen() {
       (r) => r.shipmentTitle.toLowerCase().includes(q) || r.shortId.toLowerCase().includes(q),
     );
   }, [requests, search]);
+
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+  
+  const paginatedRequests = useMemo(() => {
+    return filtered.slice(0, page * PAGE_SIZE);
+  }, [filtered, page]);
+
+  const loadMore = () => {
+    if (page * PAGE_SIZE < filtered.length) {
+      setPage(p => p + 1);
+    }
+  };
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const renderCard = ({ item }: { item: PaymentRequest }) => {
     const colors = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
