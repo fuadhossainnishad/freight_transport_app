@@ -43,7 +43,9 @@ export const mapPaymentRequest = (item: any): PaymentRequest => {
 };
 
 // Only un-actioned requests count as outstanding for the tab badge / "Pay Now".
-// dmp_pending is included: admin already sent a DMP pay link by email, but the
-// shipper can still switch to cash/bank/online instead from here.
+// dmp_pending is excluded: DMP is admin-only (backend locks request_method
+// to 'dmp' and rejects a shipper switching to cash/bank/online for it), so
+// the only way to settle it is the emailed PayDunya pay link, tracked here
+// via the separate "Check DMP status" action instead of Pay Now.
 export const isPayable = (status: PaymentRequestStatus) =>
-  status === "pending" || status === "dmp_pending";
+  status === "pending";
