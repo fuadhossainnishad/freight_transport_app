@@ -48,4 +48,4 @@ export const mapPaymentRequest = (item: any): PaymentRequest => {
 // the only way to settle it is the emailed PayDunya pay link, tracked here
 // via the separate "Check DMP status" action instead of Pay Now.
 export const isPayable = (status: PaymentRequestStatus) =>
-  status === "pending";
+  status === "pending" || status === "online_processing";
