@@ -22,6 +22,7 @@ export function PaymentRequestsProvider({ children }: { children: React.ReactNod
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -29,6 +30,11 @@ export function PaymentRequestsProvider({ children }: { children: React.ReactNod
       setRequests(res.data);
       setPage(1);
       setHasMore(res.meta.page < res.meta.totalPage);
+      if (typeof res.meta.pendingCount === 'number') {
+        setPendingCount(res.meta.pendingCount);
+      } else {
+        setPendingCount(res.data.filter((r: PaymentRequest) => isPayable(r.status)).length);
+      }
     } catch (err) {
       console.log("Payment requests error:", err);
     } finally {
@@ -45,6 +51,9 @@ export function PaymentRequestsProvider({ children }: { children: React.ReactNod
       setRequests((prev) => [...prev, ...res.data]);
       setPage(nextPage);
       setHasMore(res.meta.page < res.meta.totalPage);
+      if (typeof res.meta.pendingCount === 'number') {
+        setPendingCount(res.meta.pendingCount);
+      }
     } catch (err) {
       console.log("Payment requests loadMore error:", err);
     } finally {
@@ -55,8 +64,6 @@ export function PaymentRequestsProvider({ children }: { children: React.ReactNod
   useEffect(() => {
     refresh();
   }, [refresh]);
-
-  const pendingCount = requests.filter((r) => isPayable(r.status)).length;
 
   return (
     <PaymentRequestsContext.Provider value={{ requests, loading, loadingMore, hasMore, pendingCount, refresh, loadMore }}>
