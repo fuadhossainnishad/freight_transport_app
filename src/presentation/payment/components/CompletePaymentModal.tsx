@@ -15,11 +15,12 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Globe, Landmark, Truck, Check } from "lucide-react-native";
 
-import { PaymentRequest } from "../../../domain/entities/paymentRequest.entity";
+import { BankDetails, PaymentRequest } from "../../../domain/entities/paymentRequest.entity";
 import { payNow, PayMethod } from "../../../data/services/paymentRequestService";
 import { usePaymentRequests } from "../PaymentRequestsContext";
 import { PaymentsStackParamList } from "../../../navigation/types";
 import { formatPrice } from "../../../shared/utils/price";
+import { getApiErrorMessage } from "../../../shared/utils/apiError";
 
 type Nav = NativeStackNavigationProp<PaymentsStackParamList, "PaymentRequests">;
 
@@ -27,6 +28,9 @@ interface Props {
   visible: boolean;
   request: PaymentRequest | null;
   onClose: () => void;
+  // Bank details are shown by the parent screen, which can also reopen them
+  // later from the request card — this sheet is gone by then.
+  onShowBankDetails?: (paymentId: string, details?: BankDetails | null) => void;
 }
 
 const BLUE = "#036BB4";
@@ -39,10 +43,10 @@ const METHOD_ICONS: Record<PayMethod, any> = {
 // Order is display order only — the values themselves are the API contract.
 const METHOD_KEYS = ["online", "bank", "cash"] as const;
 
-export default function CompletePaymentModal({ visible, request, onClose }: Props) {
+export default function CompletePaymentModal({ visible, request, onClose, onShowBankDetails }: Props) {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
-  const { refresh } = usePaymentRequests();
+  const { refresh, cacheBankDetails } = usePaymentRequests();
   const [method, setMethod] = useState<PayMethod>("online");
   const [submitting, setSubmitting] = useState(false);
 
@@ -52,8 +56,34 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
 
   if (!request) return null;
 
+  // The request is already mid-payment. Paying again mints a second PayDunya
+  // checkout, so make the shipper say so explicitly rather than letting a
+  // not-yet-settled webhook look like an unpaid request.
+  const confirmSecondPayment = () =>
+    new Promise<boolean>((resolve) => {
+      Alert.alert(
+        t("payment.complete.alerts.alreadyProcessingTitle"),
+        t("payment.complete.alerts.alreadyProcessingMessage"),
+        [
+          { text: t("payment.complete.cancel"), style: "cancel", onPress: () => resolve(false) },
+          {
+            text: t("payment.complete.alerts.alreadyProcessingConfirm"),
+            style: "destructive",
+            onPress: () => resolve(true),
+          },
+        ],
+        { cancelable: true, onDismiss: () => resolve(false) },
+      );
+    });
+
   const handleConfirm = async () => {
     if (submitting) return;
+
+    if (method === "online" && request.status === "online_processing") {
+      const proceed = await confirmSecondPayment();
+      if (!proceed) return;
+    }
+
     try {
       setSubmitting(true);
       const result = await payNow(request.id, method);
@@ -73,24 +103,19 @@ export default function CompletePaymentModal({ visible, request, onClose }: Prop
         onClose();
         Alert.alert(t("payment.complete.alerts.cashRecordedTitle"), result.message ?? t("payment.complete.alerts.cashRecordedFallback"));
       } else if (method === "bank") {
+        // Cache before refreshing: the request becomes bank_pending, which
+        // isPayable() excludes, so this sheet can never be reopened to fetch
+        // them again.
+        if (result.bank_details) cacheBankDetails(request.id, result.bank_details);
         await refresh();
         onClose();
-        const b = result.bank_details;
-        let message = t("payment.complete.alerts.bankDetailsUnavailable");
-        if (b) {
-          message = t("payment.complete.alerts.bankLine", {
-            bank: b.bank_name ?? "—",
-            account: b.account_number ?? "—",
-            holder: b.account_holder ?? "—",
-          });
-          if (b.routing_number) {
-            message += t("payment.complete.alerts.bankRoutingLine", { routing: b.routing_number });
-          }
-        }
-        Alert.alert(t("payment.complete.alerts.bankDetailsTitle"), message);
+        onShowBankDetails?.(request.id, result.bank_details);
       }
     } catch (err: any) {
-      Alert.alert(t("payment.complete.alerts.failedTitle"), err?.response?.data?.message || err?.message || t("common.somethingWentWrong"));
+      Alert.alert(
+        t("payment.complete.alerts.failedTitle"),
+        getApiErrorMessage(err, t("common.somethingWentWrong")),
+      );
     } finally {
       setSubmitting(false);
     }

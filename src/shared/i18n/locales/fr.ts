@@ -858,6 +858,7 @@ export default {
       "title": "Demandes de paiement",
       "search": "Rechercher par titre d'expédition ou ID",
       "payNow": "Payer maintenant",
+      "viewBankDetails": "Voir les détails du virement",
       "emptyTitle": "Aucune demande de paiement",
       "emptySubtitle": "Lorsqu'un administrateur demande un paiement pour l'une de vos expéditions, il apparaîtra ici.",
       "noMatchTitle": "Aucune demande correspondante",
@@ -866,8 +867,21 @@ export default {
       "dmpCheckPaidTitle": "Paiement reçu",
       "dmpCheckPaidMessage": "Votre paiement a été confirmé.",
       "dmpCheckPendingTitle": "Pas encore confirmé",
-      "dmpCheckPendingMessage": "Nous n'avons pas encore reçu la confirmation de ce paiement. Réessayez dans un instant, ou payez autrement ci-dessous.",
+      "dmpCheckPendingMessage": "Nous n'avons pas encore reçu la confirmation de ce paiement. Réessayez dans un instant.",
       "dmpCheckFailedTitle": "Impossible de vérifier le statut"
+    },
+    "bankDetails": {
+      "title": "Détails du virement bancaire",
+      "amount": "Montant à virer",
+      "reference": "Référence",
+      "bankName": "Nom de la banque",
+      "accountNumber": "Numéro de compte",
+      "accountHolder": "Titulaire du compte",
+      "routingNumber": "Code de routage",
+      "bankAddress": "Adresse de la banque",
+      "copyHint": "Appuyez longuement sur une valeur pour la copier.",
+      "unavailable": "Les coordonnées bancaires ne sont pas encore disponibles. Veuillez contacter le support.",
+      "close": "Fermer"
     },
     "webView": {
       "title": "Paiement"
@@ -903,7 +917,10 @@ export default {
         "bankDetailsUnavailable": "Les coordonnées bancaires ne sont pas encore disponibles. Veuillez contacter le support.",
         "bankLine": "Banque : {{bank}}\nCompte : {{account}}\nTitulaire : {{holder}}",
         "bankRoutingLine": "\nCode d'acheminement : {{routing}}",
-        "failedTitle": "Échec du paiement"
+        "failedTitle": "Échec du paiement",
+        "alreadyProcessingTitle": "Paiement déjà en cours",
+        "alreadyProcessingMessage": "Un paiement pour cette demande est déjà en cours de traitement. En lancer un autre pourrait vous débiter deux fois. Continuer quand même ?",
+        "alreadyProcessingConfirm": "Payer à nouveau"
       }
     },
     "requestModal": {

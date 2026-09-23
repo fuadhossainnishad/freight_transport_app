@@ -858,6 +858,7 @@ export default {
       "title": "Payment Requests",
       "search": "Search by shipment title or ID",
       "payNow": "Pay Now",
+      "viewBankDetails": "View transfer details",
       "emptyTitle": "No payment requests",
       "emptySubtitle": "When an admin requests a payment for one of your shipments, it'll show up here.",
       "noMatchTitle": "No matching requests",
@@ -866,8 +867,21 @@ export default {
       "dmpCheckPaidTitle": "Payment received",
       "dmpCheckPaidMessage": "Your payment has been confirmed.",
       "dmpCheckPendingTitle": "Not confirmed yet",
-      "dmpCheckPendingMessage": "We haven't received confirmation of this payment yet. Try again in a moment, or pay another way below.",
+      "dmpCheckPendingMessage": "We haven't received confirmation of this payment yet. Try again in a moment.",
       "dmpCheckFailedTitle": "Couldn't check status"
+    },
+    "bankDetails": {
+      "title": "Bank transfer details",
+      "amount": "Amount to transfer",
+      "reference": "Reference",
+      "bankName": "Bank name",
+      "accountNumber": "Account number",
+      "accountHolder": "Account holder",
+      "routingNumber": "Routing number",
+      "bankAddress": "Bank address",
+      "copyHint": "Long-press any value to copy it.",
+      "unavailable": "Bank details are not available yet. Please contact support.",
+      "close": "Close"
     },
     "webView": {
       "title": "Payment"
@@ -903,7 +917,10 @@ export default {
         "bankDetailsUnavailable": "Bank details are not available yet. Please contact support.",
         "bankLine": "Bank: {{bank}}\nAccount: {{account}}\nHolder: {{holder}}",
         "bankRoutingLine": "\nRouting: {{routing}}",
-        "failedTitle": "Payment failed"
+        "failedTitle": "Payment failed",
+        "alreadyProcessingTitle": "Payment already in progress",
+        "alreadyProcessingMessage": "A payment for this request is already being processed. Starting another one could charge you twice. Continue anyway?",
+        "alreadyProcessingConfirm": "Pay again"
       }
     },
     "requestModal": {

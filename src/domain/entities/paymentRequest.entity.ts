@@ -12,6 +12,20 @@ export type PaymentRequestStatus =
   | "rejected"
   | "cancelled";
 
+// The company's receiving account for a manual bank transfer. Returned by
+// POST /pay/pay-now with payment_method "bank"; also read off the list payload
+// when the backend includes it, so the shipper can retrieve it later.
+export interface BankDetails {
+  bank_name?: string;
+  account_number?: string;
+  account_holder?: string;
+  bank_address?: string;
+  routing_number?: string;
+}
+
+export const hasBankDetails = (b?: BankDetails | null): boolean =>
+  !!b && Object.values(b).some((v) => typeof v === "string" && v.trim() !== "");
+
 export interface PaymentRequest {
   id: string;            // payment _id
   shortId: string;       // "#" + last 7 chars, like the web "Request ID"
@@ -23,6 +37,10 @@ export interface PaymentRequest {
   requestedBy: string;   // admin email
   createdAt?: string;
   paydunyaUrl?: string;
+  // Only present once a bank transfer has been chosen, and only if the backend
+  // returns it on the list. Undefined is normal — see the session cache in
+  // PaymentRequestsContext for the fallback.
+  bankDetails?: BankDetails;
 }
 
 export const mapPaymentRequest = (item: any): PaymentRequest => {
@@ -39,6 +57,7 @@ export const mapPaymentRequest = (item: any): PaymentRequest => {
     requestedBy: item?.requested_by?.email ?? "—",
     createdAt: item?.createdAt,
     paydunyaUrl: item?.paydunya_url,
+    bankDetails: item?.bank_details ?? undefined,
   };
 };
 

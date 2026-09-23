@@ -18,7 +18,7 @@ export type ShipperTabParamList = {
 
 export type PaymentsStackParamList = {
     PaymentRequests: undefined
-    PayWebView: { paymentId: string; url: string; title?: string; pollDmp?: boolean }
+    PayWebView: { paymentId: string; url: string; title?: string }
 }
 
 export type AuthParamList = {
@@ -63,7 +63,7 @@ export type TransporterHomeStackParamList = {
     ActiveShipments: undefined
     ActiveShipmentDetailsScreen: { shipmentId: string }
     AssignVehicleDriver: { shipmentId: string }
-    PayWebView: { paymentId: string; url: string; title?: string; pollDmp?: boolean }
+    PayWebView: { paymentId: string; url: string; title?: string }
 };
 export type AvailableBidsStackParamList = {
     AvailableBids: undefined;
@@ -79,7 +79,7 @@ export type ActiveShipmentsStackParamList = {
     ShipmentDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
     ShipperShipmentDetail: { shipmentId: string }
-    PayWebView: { paymentId: string; url: string; title?: string; pollDmp?: boolean }
+    PayWebView: { paymentId: string; url: string; title?: string }
 };
 
 export type InvoiceStackParamList = {

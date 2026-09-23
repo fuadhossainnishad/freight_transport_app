@@ -1,6 +1,6 @@
 import { DMP_STATUS, GET_MY_PAYMENT_REQUESTS, PAY_NOW } from "../../domain/constants/api";
 import axiosClient from "../../shared/config/axios.config";
-import { mapPaymentRequest, PaymentRequest } from "../../domain/entities/paymentRequest.entity";
+import { BankDetails, mapPaymentRequest, PaymentRequest } from "../../domain/entities/paymentRequest.entity";
 
 export const getMyPaymentRequests = async (page: number = 1, limit: number = 10): Promise<{ data: PaymentRequest[], meta: any }> => {
   const res = await axiosClient.get(`${GET_MY_PAYMENT_REQUESTS}?page=${page}&limit=${limit}`);
@@ -21,13 +21,7 @@ export interface PayNowResult {
   amount?: number;
   message?: string;
   reference_number?: string | null;
-  bank_details?: {
-    bank_name?: string;
-    account_number?: string;
-    account_holder?: string;
-    bank_address?: string;
-    routing_number?: string;
-  } | null;
+  bank_details?: BankDetails | null;
 }
 
 // POST /pay/pay-now/:paymentId — choose a method and initiate payment.

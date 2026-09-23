@@ -14,13 +14,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
-import { Search, SearchX, ReceiptText, MapPin, CreditCard, RefreshCw } from "lucide-react-native";
+import { Search, SearchX, ReceiptText, MapPin, CreditCard, RefreshCw, Landmark } from "lucide-react-native";
 
 import { usePaymentRequests } from "../PaymentRequestsContext";
-import { PaymentRequest, PaymentRequestStatus, isPayable } from "../../../domain/entities/paymentRequest.entity";
+import { BankDetails, PaymentRequest, PaymentRequestStatus, hasBankDetails, isPayable } from "../../../domain/entities/paymentRequest.entity";
 import { checkDmpStatus } from "../../../data/services/paymentRequestService";
 import { formatPrice } from "../../../shared/utils/price";
+import { getApiErrorMessage } from "../../../shared/utils/apiError";
 import CompletePaymentModal from "../components/CompletePaymentModal";
+import BankTransferDetails from "../components/BankTransferDetails";
 import PaymentRequestSkeleton from "../components/PaymentRequestSkeleton";
 
 const BLUE = "#036BB4";
@@ -51,11 +53,18 @@ const STATUS_LABEL_KEY: Record<PaymentRequestStatus, ParseKeys> = {
 
 export default function PaymentRequestsScreen() {
   const { t } = useTranslation();
-  const { requests, loading, refresh } = usePaymentRequests();
+  const { requests, loading, refresh, loadMore, loadingMore, hasMore, settlingIds, getCachedBankDetails } =
+    usePaymentRequests();
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [active, setActive] = useState<PaymentRequest | null>(null);
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [bankView, setBankView] = useState<{ request: PaymentRequest; details?: BankDetails | null } | null>(null);
+
+  // Either the backend returned them on the list, or we still hold what
+  // pay-now handed us earlier this session.
+  const bankDetailsFor = (item: PaymentRequest) =>
+    hasBankDetails(item.bankDetails) ? item.bankDetails : getCachedBankDetails(item.id);
 
   // DMP has no webhook — a shipper who paid via the emailed pay link has no
   // other way to make the app notice, so give them an explicit "Check status"
@@ -75,7 +84,7 @@ export default function PaymentRequestsScreen() {
       } catch (err: any) {
         Alert.alert(
           t("payment.requests.dmpCheckFailedTitle"),
-          err?.response?.data?.message || err?.message || t("common.somethingWentWrong"),
+          getApiErrorMessage(err, t("common.somethingWentWrong")),
         );
       } finally {
         setCheckingId(null);
@@ -92,8 +101,6 @@ export default function PaymentRequestsScreen() {
     await refresh();
     setRefreshing(false);
   }, [refresh]);
-
-  const { loadMore, loadingMore, hasMore } = usePaymentRequests();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -113,7 +120,11 @@ export default function PaymentRequestsScreen() {
   const renderCard = ({ item }: { item: PaymentRequest }) => {
     const colors = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
     const label = t(STATUS_LABEL_KEY[item.status] ?? STATUS_LABEL_KEY.pending);
-    const payable = isPayable(item.status);
+    const settling = settlingIds.includes(item.id);
+    // Disabled while a bounded re-check is in flight, so the stale-status
+    // window after returning from PayDunya isn't tappable.
+    const payable = isPayable(item.status) && !settling;
+    const bankDetails = bankDetailsFor(item);
     return (
       <View style={s.card}>
         <View style={s.cardTop}>
@@ -139,10 +150,23 @@ export default function PaymentRequestsScreen() {
               <CreditCard size={16} color="#fff" />
               <Text style={s.payTxt}>{t("payment.requests.payNow")}</Text>
             </TouchableOpacity>
+          ) : settling ? (
+            <ActivityIndicator size="small" color={BLUE} />
           ) : (
             <Text style={[s.statusNote, { color: colors.fg }]}>{label}</Text>
           )}
         </View>
+
+        {item.status === "bank_pending" && hasBankDetails(bankDetails) && (
+          <TouchableOpacity
+            style={s.checkStatusBtn}
+            activeOpacity={0.7}
+            onPress={() => setBankView({ request: item, details: bankDetails })}
+          >
+            <Landmark size={13} color={BLUE} />
+            <Text style={s.checkStatusTxt}>{t("payment.requests.viewBankDetails")}</Text>
+          </TouchableOpacity>
+        )}
 
         {item.status === "dmp_pending" && (
           <TouchableOpacity
@@ -226,7 +250,23 @@ export default function PaymentRequestsScreen() {
         />
       )}
 
-      <CompletePaymentModal visible={!!active} request={active} onClose={() => setActive(null)} />
+      <CompletePaymentModal
+        visible={!!active}
+        request={active}
+        onClose={() => setActive(null)}
+        onShowBankDetails={(paymentId, details) => {
+          const request = requests.find((r) => r.id === paymentId) ?? active;
+          if (request) setBankView({ request, details });
+        }}
+      />
+
+      <BankTransferDetails
+        visible={!!bankView}
+        details={bankView?.details}
+        reference={bankView?.request.shortId}
+        amount={bankView ? formatPrice(bankView.request.amount) : undefined}
+        onClose={() => setBankView(null)}
+      />
     </SafeAreaView>
   );
 }
