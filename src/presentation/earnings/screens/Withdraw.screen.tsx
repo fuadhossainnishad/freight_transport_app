@@ -7,12 +7,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
-import { Wallet, DollarSign, Globe, Truck, Check, ChevronDown } from "lucide-react-native";
+import { Wallet, DollarSign, Globe, Landmark, Truck, Check, ChevronDown } from "lucide-react-native";
 import AppHeader from "../../../shared/components/AppHeader";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { EarningsStackParamList } from "../../../navigation/types";
 import { formatPrice } from "../../../shared/utils/price";
+import { getApiErrorMessage, getApiErrorStatus } from "../../../shared/utils/apiError";
 import {
     getWithdrawalBalance,
     requestWithdrawal,
@@ -32,6 +33,7 @@ const METHODS: {
     icon: any;
 }[] = [
     { value: "online", titleKey: "earnings.withdraw.methods.onlineTitle", subKey: "earnings.withdraw.methods.onlineSub", icon: Globe },
+    { value: "bank", titleKey: "earnings.withdraw.methods.bankTitle", subKey: "earnings.withdraw.methods.bankSub", icon: Landmark },
     { value: "cash", titleKey: "earnings.withdraw.methods.cashTitle", subKey: "earnings.withdraw.methods.cashSub", icon: Truck },
 ];
 
@@ -49,6 +51,11 @@ const WithdrawScreen: React.FC = () => {
     const [accountAlias, setAccountAlias] = useState("");
     const [accountHolder, setAccountHolder] = useState("");
 
+    // bank — the backend rejects a bank payout missing any of these three.
+    const [bankName, setBankName] = useState("");
+    const [accountNumber, setAccountNumber] = useState("");
+    const [bankAccountHolder, setBankAccountHolder] = useState("");
+
     // cash
     const [cashAccountHolder, setCashAccountHolder] = useState("");
 
@@ -63,7 +70,7 @@ const WithdrawScreen: React.FC = () => {
                 const res = await getWithdrawalBalance();
                 setBalance(res.available_balance);
             } catch (err) {
-                console.error("Failed to load withdrawal balance:", err);
+                // console.error("Failed to load withdrawal balance:", err);
                 Alert.alert(t("common.error"), t("earnings.withdraw.loadBalanceFailed"));
             } finally {
                 setLoadingBalance(false);
@@ -74,20 +81,25 @@ const WithdrawScreen: React.FC = () => {
 
     const amountValid = amount.trim() !== "" && !isNaN(Number(amount)) && Number(amount) > 0;
 
+    const bankFieldsComplete =
+        bankName.trim() !== "" && accountNumber.trim() !== "" && bankAccountHolder.trim() !== "";
+
     const validate = (): string | null => {
         if (!amount.trim()) return t("validation.amountRequired");
         if (isNaN(Number(amount)) || Number(amount) <= 0) return t("validation.amountInvalid");
         if (balance != null && Number(amount) > balance) return t("earnings.withdraw.alerts.amountExceedsBalance");
         if (!countryName) return t("validation.regionRequired");
         if (method === "online" && !accountAlias.trim()) return t("earnings.withdraw.alerts.accountAliasRequired");
+        if (method === "bank" && !bankFieldsComplete) return t("earnings.withdraw.alerts.bankFieldsRequired");
         return null;
     };
 
     const canSubmit = useMemo(() => {
         if (!amountValid || !countryName) return false;
         if (method === "online") return accountAlias.trim() !== "";
+        if (method === "bank") return bankFieldsComplete;
         return true;
-    }, [amountValid, countryName, method, accountAlias]);
+    }, [amountValid, countryName, method, accountAlias, bankFieldsComplete]);
 
     const buildPayload = (): RequestWithdrawalPayload => {
         const amountNum = Number(amount);
@@ -97,6 +109,16 @@ const WithdrawScreen: React.FC = () => {
                 region: countryName,
                 payout_method: "cash",
                 ...(cashAccountHolder.trim() ? { account_holder_name: cashAccountHolder.trim() } : {}),
+            };
+        }
+        if (method === "bank") {
+            return {
+                amount: amountNum,
+                region: countryName,
+                payout_method: "bank",
+                bank_name: bankName.trim(),
+                account_number: accountNumber.trim(),
+                account_holder: bankAccountHolder.trim(),
             };
         }
         return {
@@ -117,10 +139,10 @@ const WithdrawScreen: React.FC = () => {
             Alert.alert(t("common.success"), t("earnings.withdraw.alerts.requestSubmittedMessage"));
             navigation.goBack();
         } catch (err: any) {
-            if (err?.statusCode === 409) {
+            if (getApiErrorStatus(err) === 409) {
                 Alert.alert(t("earnings.withdraw.alerts.pendingTitle"), t("earnings.withdraw.alerts.pendingMessage"));
             } else {
-                Alert.alert(t("common.error"), err?.message || t("common.tryAgain"));
+                Alert.alert(t("common.error"), getApiErrorMessage(err, t("common.tryAgain")));
             }
         } finally {
             setLoading(false);
@@ -216,6 +238,37 @@ const WithdrawScreen: React.FC = () => {
                                 value={accountHolder}
                                 onChangeText={setAccountHolder}
                                 placeholder={t("earnings.withdraw.accountHolderPlaceholder")}
+                                placeholderTextColor="#9CA3AF"
+                                style={styles.input}
+                            />
+                        </View>
+                    )}
+
+                    {method === "bank" && (
+                        <View style={styles.detailsCard}>
+                            <Text style={styles.detailsHeading}>{t("earnings.withdraw.bankNameLabel")}</Text>
+                            <TextInput
+                                value={bankName}
+                                onChangeText={setBankName}
+                                placeholder={t("earnings.withdraw.bankNamePlaceholder")}
+                                placeholderTextColor="#9CA3AF"
+                                style={styles.input}
+                            />
+
+                            <Text style={[styles.detailsHeading, { marginTop: 14 }]}>{t("earnings.withdraw.accountNumberLabel")}</Text>
+                            <TextInput
+                                value={accountNumber}
+                                onChangeText={setAccountNumber}
+                                placeholder={t("earnings.withdraw.accountNumberPlaceholder")}
+                                placeholderTextColor="#9CA3AF"
+                                style={styles.input}
+                            />
+
+                            <Text style={[styles.detailsHeading, { marginTop: 14 }]}>{t("earnings.withdraw.bankAccountHolderLabel")}</Text>
+                            <TextInput
+                                value={bankAccountHolder}
+                                onChangeText={setBankAccountHolder}
+                                placeholder={t("earnings.withdraw.bankAccountHolderPlaceholder")}
                                 placeholderTextColor="#9CA3AF"
                                 style={styles.input}
                             />

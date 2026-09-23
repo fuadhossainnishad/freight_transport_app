@@ -27,6 +27,7 @@ import { TransporterPaymentMethod } from "../../../domain/entities/transporterPa
 import { ActiveShipmentsStackParamList } from "../../../navigation/types";
 import { formatPrice } from "../../../shared/utils/price";
 import AppConfig from "../../../shared/config/app.config";
+import { getApiErrorMessage } from "../../../shared/utils/apiError";
 
 type Nav = NativeStackNavigationProp<
   ActiveShipmentsStackParamList,
@@ -46,9 +47,10 @@ interface Props {
 
 const BLUE = "#036BB4";
 
-// An empty .env value would come through as "", which PayDunya treats the same
-// as no phone at all — so fall back rather than prefill a blank.
-const DEFAULT_PHONE = AppConfig.default_mobile_money_phone?.trim() || "+22670189869";
+// Shown as a PLACEHOLDER only — never as the field's value. Prefilling it meant
+// a transporter who didn't overwrite it raised a request against a number that
+// wasn't theirs (the fallback is a PayDunya sandbox number).
+const PHONE_PLACEHOLDER = AppConfig.default_mobile_money_phone?.trim() || "+22670189869";
 
 const METHODS: {
   value: TransporterPaymentMethod;
@@ -87,7 +89,7 @@ export default function RequestPaymentModal({
     setMethod("online");
     setAmount(price != null ? String(price) : "");
     setNotes("");
-    setPhone(DEFAULT_PHONE);
+    setPhone("");
     setBankName("");
     setAccountNumber("");
     setAccountHolder("");
@@ -164,7 +166,7 @@ export default function RequestPaymentModal({
     } catch (err: any) {
       Alert.alert(
         t("payment.requestModal.alerts.failedTitle"),
-        err?.response?.data?.message || err?.message || t("payment.requestModal.alerts.failedMessage"),
+        getApiErrorMessage(err, t("payment.requestModal.alerts.failedMessage")),
       );
     } finally {
       setSubmitting(false);
@@ -241,7 +243,7 @@ export default function RequestPaymentModal({
                   value={phone}
                   onChangeText={setPhone}
                   keyboardType="phone-pad"
-                  placeholder={DEFAULT_PHONE}
+                  placeholder={PHONE_PLACEHOLDER}
                   placeholderTextColor="#9CA3AF"
                   style={styles.input}
                 />
