@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, ActivityIndicator, Alert, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ReceiptText } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +12,7 @@ import InvoiceTable from "../components/InvoiceTable";
 import InvoiceRowSkeleton from "../components/InvoiceRowSkeleton";
 import { SearchInput } from "../../settings/components/SearchInput";
 import { downloadInvoicePdf } from "../utils/invoicePdf";
+import { getApiErrorMessage } from "../../../shared/utils/apiError";
 
 type Props = NativeStackNavigationProp<
     InvoiceStackParamList,
@@ -50,8 +51,8 @@ const InvoicesScreen = () => {
             setHasMore(pageNum < res.meta.totalPage);
             setPage(pageNum);
         } catch (error: any) {
-            console.error(error);
-            Alert.alert(t("common.error"), error?.response?.data?.message || error.message || t("invoice.list.loadFailed"));
+            // console.error(error);
+            Alert.alert(t("common.error"), getApiErrorMessage(error, t("invoice.list.loadFailed")));
         } finally {
             setLoading(false);
             setLoadingMore(false);
@@ -64,10 +65,22 @@ const InvoicesScreen = () => {
         }
     };
 
-    useEffect(() => {
-        loadInvoices(undefined, 1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // Invoices are derived from payments, and nothing pushes a change here —
+    // there are no payment socket events, and this is a sibling tab that stays
+    // mounted, so without this it kept showing pre-payment data until restart.
+    const focusedOnce = useRef(false);
+    useFocusEffect(
+        useCallback(() => {
+            // The debounce effect below already fetches on mount; only refetch
+            // on RE-focus, otherwise opening the tab fires two requests.
+            if (!focusedOnce.current) {
+                focusedOnce.current = true;
+                return;
+            }
+            loadInvoices(search.trim() || undefined, 1);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [search]),
+    );
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -91,7 +104,7 @@ const InvoicesScreen = () => {
                 Alert.alert(t("invoice.download.successTitle"), t("invoice.download.successMessage"));
             }
         } catch (error: any) {
-            console.error(error);
+            // console.error(error);
             Alert.alert(t("invoice.download.failedTitle"), error?.response?.data?.message || error?.message || t("invoice.download.failedMessage"));
         } finally {
             setDownloadingId(null);

@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { InvoiceStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -10,6 +10,8 @@ import { getInvoiceDetail, InvoiceDetail } from "../../../data/services/invoiceS
 import { useFormatDate } from "../../../shared/i18n/useFormatDate";
 import { useShipmentOptions } from "../../../shared/i18n/useShipmentOptions";
 import { downloadInvoicePdf } from "../utils/invoicePdf";
+import { isInvoicePaid } from "../utils/invoiceStatus";
+import { getApiErrorMessage } from "../../../shared/utils/apiError";
 
 type RoutePropType = RouteProp<InvoiceStackParamList, 'InvoiceDetails'>;
 type NavigationPropType = NativeStackNavigationProp<InvoiceStackParamList, 'InvoiceDetails'>;
@@ -48,17 +50,21 @@ export default function InvoiceDetailsScreen() {
             const data = await getInvoiceDetail(paymentId);
             setInvoice(data);
         } catch (err: any) {
-            console.error("Error fetching invoice detail:", err);
+            // console.error("Error fetching invoice detail:", err);
             // Backend message wins when present — raw English, outside i18n.
-            setError(err?.response?.data?.message || err.message || t("invoice.detail.loadFailed"));
+            setError(getApiErrorMessage(err, t("invoice.detail.loadFailed")));
         } finally {
             setLoading(false);
         }
     }, [paymentId, t]);
 
-    useEffect(() => {
-        fetchDetail();
-    }, [fetchDetail]);
+    // Refetch on focus: paying a request changes the invoice, and nothing
+    // pushes that here (there are no payment socket events).
+    useFocusEffect(
+        useCallback(() => {
+            fetchDetail();
+        }, [fetchDetail]),
+    );
 
     const handleDownload = useCallback(async () => {
         if (!invoice || downloading) return;
@@ -69,7 +75,7 @@ export default function InvoiceDetailsScreen() {
                 Alert.alert(t("invoice.download.successTitle"), t("invoice.download.successMessage"));
             }
         } catch (err: any) {
-            console.error("Error downloading invoice:", err);
+            // console.error("Error downloading invoice:", err);
             Alert.alert(t("invoice.download.failedTitle"), err?.message || t("invoice.download.failedMessage"));
         } finally {
             setDownloading(false);
@@ -99,7 +105,7 @@ export default function InvoiceDetailsScreen() {
     }
 
     const { invoice_summary, shipment_info, cost_breakdown } = invoice;
-    const isPaid = invoice.status === "VERIFIED";
+    const isPaid = isInvoicePaid(invoice.status);
 
     const weightCategory = [
         shipment_info.weight != null ? t("invoice.detail.weightValue", { value: shipment_info.weight }) : null,

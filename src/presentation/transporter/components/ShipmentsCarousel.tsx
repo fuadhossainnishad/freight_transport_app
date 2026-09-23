@@ -26,7 +26,9 @@ type NavigationProp = NativeStackNavigationProp<
 type Props = {
   shipments: Shipment[];
   onShipmentFocus: (shipment: Shipment) => void; // ← tells parent which shipment is focused
-  onActiveIndexChange: (index: number) => void;
+  // Optional: not every parent tracks the index. Called with ?. below — when it
+  // was required, the one caller that omitted it crashed the carousel on swipe.
+  onActiveIndexChange?: (index: number) => void;
 };
 
 export function ShipmentsCarousel({
@@ -80,7 +82,7 @@ export function ShipmentsCarousel({
       const realIndex = ((rawIndex - CLONE_COUNT) % totalReal + totalReal) % totalReal;
 
       setActiveIndex(realIndex);
-      onActiveIndexChange(realIndex);     // ← notify parent of index change
+      onActiveIndexChange?.(realIndex);   // ← notify parent of index change
       onShipmentFocus(list[realIndex]);   // ← notify parent which shipment is focused
 
       if (rawIndex < CLONE_COUNT) {

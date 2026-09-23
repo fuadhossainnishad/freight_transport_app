@@ -2,6 +2,7 @@ import { generatePDF } from "react-native-html-to-pdf";
 import Share from "react-native-share";
 import { saveDocuments, errorCodes, isErrorWithCode } from "@react-native-documents/picker";
 import { InvoiceDetail } from "../../../data/services/invoiceService";
+import { isInvoicePaid } from "./invoiceStatus";
 
 const CURRENCY = "€";
 
@@ -25,7 +26,7 @@ const safeFileName = (invoiceNo: string) =>
 
 export const buildInvoiceHtml = (invoice: InvoiceDetail): string => {
     const { invoice_summary, shipment_info, cost_breakdown } = invoice;
-    const isPaid = invoice.status === "VERIFIED";
+    const isPaid = isInvoicePaid(invoice.status);
     const statusLabel = isPaid ? "Paid" : invoice.status;
     const statusColor = isPaid ? "#15803d" : "#c2410c";
     const statusBg = isPaid ? "#dcfce7" : "#ffedd5";

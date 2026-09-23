@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Download from "../../../../assets/icons/download2.svg";
 import ViewIcon from "../../../../assets/icons/view2.svg";
 import { InvoiceListItem } from "../../../data/services/invoiceService";
+import { isInvoicePaid } from "../utils/invoiceStatus";
 
 interface Props {
     invoice: InvoiceListItem;
@@ -27,10 +28,11 @@ const InvoiceItem: React.FC<Props> = ({ invoice, onViewPress, onDownloadPress })
 
             {/* Status */}
             <View className="w-28 py-4 px-3 border-r border-gray-200 items-center justify-center">
-                {/* VERIFIED is a backend enum — never translate it. Unmapped
+                {/* Status is a backend enum and never translated. Casing is
+                    unconfirmed, so the compare is case-insensitive; unmapped
                     statuses still fall through as the raw value, as before. */}
                 <Text className="px-2 py-1 rounded text-black text-xs bg-green-500">
-                    {invoice.status === "VERIFIED" ? t("invoice.status.paid") : invoice.status}
+                    {isInvoicePaid(invoice.status) ? t("invoice.status.paid") : invoice.status}
                 </Text>
             </View>
 

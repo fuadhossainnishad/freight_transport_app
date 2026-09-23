@@ -11,9 +11,16 @@ export type TransporterPaymentStatus =
 
 export type TransporterPaymentMethod = "cash" | "bank" | "online";
 
-// The backend only accepts a request for a shipment in one of these states.
-// Gate the UI on the same rule so we don't fire a request that 400s.
-export const PAYABLE_SHIPMENT_STATUSES = ["IN_PROGRESS", "COMPLETED"];
+// Shipment lifecycle is PENDING -> IN_PROGRESS -> IN_TRANSIT -> COMPLETED
+// (see LiveTrackingScreen). A transporter may ask to be paid once the job is
+// under way, so every state from IN_PROGRESS onwards qualifies.
+//
+// IN_TRANSIT was missing, which hid the Request Payment button for the whole
+// delivery and brought it back only on completion. Backend parity is
+// unconfirmed: if it rejects IN_TRANSIT the request 400s and the shipper now
+// sees the server's own message (see shared/utils/apiError.ts). Revert to
+// ["IN_PROGRESS", "COMPLETED"] if that turns out to be the case.
+export const PAYABLE_SHIPMENT_STATUSES = ["IN_PROGRESS", "IN_TRANSIT", "COMPLETED"];
 
 export const canRequestPayment = (status?: string) =>
   !!status && PAYABLE_SHIPMENT_STATUSES.includes(status);
