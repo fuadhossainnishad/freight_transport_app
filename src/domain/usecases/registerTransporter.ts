@@ -1,6 +1,6 @@
 import { signupApi } from "../../shared/api/auth.api";
 import { getDefaultLogoFile } from "../../shared/utils/defaultLogo";
-import { CompanyRegistrationForm } from "../entities/companyRegistrationForm";
+import { CompanyRegistrationForm } from "../entities/CompanyRegistrationForm";
 
 export const registerTransporter = async (
   payload: CompanyRegistrationForm,

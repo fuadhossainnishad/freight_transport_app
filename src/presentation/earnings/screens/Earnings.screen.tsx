@@ -35,7 +35,7 @@ const EarningsScreen: React.FC = () => {
             setEarnings(earningsRes.data.map(mapEarning));
             setBalance(balanceRes.available_balance);
         } catch (err) {
-            console.error("Failed to load earnings:", err);
+            // console.error("Failed to load earnings:", err);
         } finally {
             setLoading(false);
             setRefreshing(false);

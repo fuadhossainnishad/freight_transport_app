@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { ActiveShipmentsStackParamList } from './types';
 import ActiveShipmentsScreen from '../presentation/shipment/screens/ActiveShipments.screen';
-import CreateShipmentScreen from '../presentation/transporter/screens/CreateShipmentScreen';
 import ShipmentDetailsScreen from '../presentation/shipment/screens/ShipmentDetails.screen';
 import ShipmentTrackingScreen from '../presentation/shipment/screens/ShipmentTrackingScreen';
 import ActiveShipmentDetailsScreen from '../presentation/availablebids/screens/ActiveShipmentDetailsScreen';
@@ -25,7 +24,7 @@ export default function ActiveShipmentsStack() {
         component={ActiveShipmentDetailsScreen}
       />
 
-      <Stack.Screen name="CreateShipment" component={CreateShipmentScreen} />
+      
       
       <Stack.Screen name="ShipmentDetails" component={ShipmentDetailsScreen} />
 

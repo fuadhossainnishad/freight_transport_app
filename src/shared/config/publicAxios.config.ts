@@ -8,7 +8,7 @@ export const publicAxios = axios.create({
     "Content-Type": "application/json",
   },
 })
-console.log("base_url:", appConfig.base_url)
-console.log("BASE URL:", publicAxios.defaults.baseURL)
-console.log("HEADERS:", publicAxios.defaults.headers)
+// console.log("base_url:", appConfig.base_url)
+// console.log("BASE URL:", publicAxios.defaults.baseURL)
+// console.log("HEADERS:", publicAxios.defaults.headers)
 export default publicAxios

@@ -4,6 +4,8 @@ import { AvailableBidsStackParamList } from "./types";
 import AvailableBidsScreen from "../presentation/availablebids/screens/AvailableBidsScreen";
 import ShipmentDetailsScreen from '../presentation/availablebids/screens/ShipmentDetails.screen';
 import AssignVehicleDriverScreen from "../presentation/availablebids/screens/AssignVehicleDriverScreen";
+import AddDriverScreen from "../presentation/driver/screens/AddDriverScreen";
+import AddVehicleScreen from "../presentation/Vehicle/screens/AddVehicle.screen";
 
 const Stack = createNativeStackNavigator<AvailableBidsStackParamList>();
 
@@ -26,6 +28,14 @@ export default function AvailableBidsStack() {
       <Stack.Screen
         name='AssignVehicleDriver'
         component={AssignVehicleDriverScreen}
+      />
+      <Stack.Screen
+        name='AddDriver'
+        component={AddDriverScreen}
+      />
+      <Stack.Screen
+        name='AddVehicle'
+        component={AddVehicleScreen}
       />
     </Stack.Navigator>
   );

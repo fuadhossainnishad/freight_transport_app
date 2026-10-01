@@ -607,9 +607,11 @@ export default {
       "selectDriverTitle": "Sélectionner un chauffeur",
       "searchDriverPlaceholder": "Rechercher par nom, téléphone ou e-mail…",
       "noDriversFound": "Aucun chauffeur trouvé",
+      "noDriversDesc": "Vous n'avez pas encore ajouté de chauffeur, ou aucun ne correspond à votre recherche.",
       "selectVehicleTitle": "Sélectionner un véhicule",
       "searchVehiclePlaceholder": "Rechercher par type ou plaque…",
       "noVehiclesFound": "Aucun véhicule trouvé",
+      "noVehiclesDesc": "Vous n'avez pas encore ajouté de véhicule, ou aucun ne correspond à votre recherche.",
       "errors": {
         "selectDriver": "Veuillez sélectionner un chauffeur",
         "selectVehicle": "Veuillez sélectionner un véhicule",
@@ -622,6 +624,11 @@ export default {
         "errorTitle": "Erreur",
         "errorMessage": "Une erreur s'est produite"
       }
+    }
+  },
+  "vehicle": {
+    "list": {
+      "addVehicle": "Ajouter un véhicule"
     }
   },
   "driver": {
@@ -741,7 +748,8 @@ export default {
       "loadFailed": "Échec du chargement de vos chauffeurs. Veuillez réessayer.",
       "deleteTitle": "Supprimer le chauffeur",
       "deleteMessage": "Voulez-vous vraiment supprimer ce chauffeur ?",
-      "deleteFailed": "Échec de la suppression du chauffeur."
+      "deleteFailed": "Échec de la suppression du chauffeur.",
+      "viewProfile": "Voir le profil"
     },
     "add": {
       "title": "Ajouter un chauffeur",
@@ -767,7 +775,8 @@ export default {
       "confirmTitle": "Confirmer",
       "confirmMessage": "Voulez-vous vraiment supprimer ce chauffeur ?",
       "removed": "Chauffeur supprimé avec succès",
-      "removeFailed": "Échec de la suppression du chauffeur"
+      "removeFailed": "Échec de la suppression du chauffeur",
+      "contactInfo": "Coordonnées"
     },
     "profile": {
       "title": "Profil",

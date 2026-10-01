@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import axiosClient from "../../shared/config/axios.config"
 
 export const completeShipperProfile = async (body: any) => {
@@ -6,6 +7,6 @@ export const completeShipperProfile = async (body: any) => {
     "/shipper/complete-shipper-profile",
     body
   )
-  console.log("completeShipperProfile", res.data)
+  logger.info("completeShipperProfile", res.data)
   return res.data
 }

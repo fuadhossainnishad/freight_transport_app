@@ -12,8 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import InfoSection from "../components/InfoSection";
 import InfoRow from "../components/InfoRow";
+import { Package } from "lucide-react-native";
 import { getShipmentDetailsUseCase } from "../../../domain/usecases/shipment.usecase";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { AvailableBidsStackParamList } from "../../../navigation/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AppHeader from "../../../shared/components/AppHeader";
@@ -27,11 +28,6 @@ import ArrowIcon from "../../../../assets/icons/arrow4.svg"
 
 const { width } = Dimensions.get("window");
 
-const carosoul = [
-    "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg",
-    "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg",
-    "https://onepullwire.com/wp-content/uploads/2020/10/0001.jpg"
-]
 
 // Status values mirror the backend ShipmentStatus enum
 // (Shipment/shipment.type.ts): PENDING, BIDDING, IN_PROGRESS,
@@ -66,10 +62,10 @@ export default function ShipmentDetailsScreen() {
         try {
             setLoading(true);
             const res = await getShipmentDetailsUseCase(shipmentId);
-            console.log("Fetched shipment:", res);
+            // console.log("Fetched shipment:", res);
             setShipmentData(res);
         } catch (err) {
-            console.error("Error fetching shipment details:", err);
+            // console.error("Error fetching shipment details:", err);
         } finally {
             setLoading(false);
         }
@@ -80,14 +76,16 @@ export default function ShipmentDetailsScreen() {
             const bids = await getShipmentBids(shipmentId);
             setBidCount(bids.length);
         } catch (error) {
-            console.log("Bid count error:", error);
+            // console.log("Bid count error:", error);
         }
     }, [shipmentId]);
 
-    useEffect(() => {
-        fetchDetails();
-        fetchBidCount();
-    }, [fetchDetails, fetchBidCount]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchDetails();
+            fetchBidCount();
+        }, [fetchDetails, fetchBidCount])
+    );
 
 
     if (loading) {
@@ -142,62 +140,75 @@ export default function ShipmentDetailsScreen() {
                 showsVerticalScrollIndicator={false}
                 className="flex-1 px-4"
                 contentContainerStyle={{ paddingBottom: 24 }}>
-                <ScrollView
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                >
-                    {carosoul.map((item, i) => (
-                        <Image
-                            key={i}
-                            source={{ uri: item }}
-                            style={{ width: width - 32, height: 200 }}
-                            className="rounded-xl"
-                            resizeMode="cover"
-                        />
-                    ))}
-                </ScrollView>
-                <View className="flex-row justify-between items-start my-5">
-                    <View className="flex-1 pr-3">
-                        <Text className="text-xl font-bold">{title}</Text>
-                        <View
-                            className="self-start mt-2 px-3 py-1 rounded-full"
-                            style={{ backgroundColor: statusInfo.bg }}
-                        >
-                            <Text className="text-xs font-semibold text-white">
-                                {statusInfo.label}
-                            </Text>
-                        </View>
-                        <Text className="text-gray-600 mt-1">{description}</Text>
+                {images && images.length > 0 ? (
+                    <ScrollView
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                    >
+                        {images.map((item: string, i: number) => (
+                            <Image
+                                key={i}
+                                source={{ uri: item }}
+                                style={{ width: width - 32, height: 200 }}
+                                className="rounded-xl"
+                                resizeMode="cover"
+                            />
+                        ))}
+                    </ScrollView>
+                ) : (
+                    <View
+                        style={{ width: width - 32, height: 200, backgroundColor: "#EEF2F6" }}
+                        className="rounded-xl items-center justify-center"
+                    >
+                        <Package size={50} color="#9AA8B5" />
                     </View>
-                    {isBidding && (viewMode === "details" ? (
-                        <TouchableOpacity
-                            onPress={() => setViewMode("bids")}
-                            className="bg-white px-5 py-2 rounded-xl items-center justify-center border border-black/10  flex-row gap-2"
-                        >
-                            <Text className="text-base font-semibold text-white bg-[#036BB4] p-1 px-2 rounded-full">
-                                {bidCount}
-                            </Text>
-
-                            <Text className="text-base text-[#036BB4]">{t("availableBids.shipmentDetails.bids")}</Text>
-                            <ArrowIcon height={20} width={20} />
-
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity
-                            onPress={() => setViewMode("details")}
-                            className="bg-white px-5 py-2 rounded-xl items-center justify-center border border-black/10  flex-row gap-2"
-                        >
-                            <View style={{ transform: [{ rotate: "180deg" }] }}>
-                                <ArrowIcon height={20} width={20} />
+                )}
+                <View className="flex-col my-5">
+                    <View className="flex-row justify-between items-start">
+                        <View className="flex-1 pr-3">
+                            <Text className="text-xl font-bold">{title}</Text>
+                            <View
+                                className="self-start mt-2 px-3 py-1 rounded-full"
+                                style={{ backgroundColor: statusInfo.bg }}
+                            >
+                                <Text className="text-xs font-semibold text-white">
+                                    {statusInfo.label}
+                                </Text>
                             </View>
-
-
-                            <Text className="text-blue-500 font-medium">
-                                {t("availableBids.shipmentDetails.backToDetails")}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                        </View>
+                        {isBidding && (viewMode === "details" ? (
+                            <TouchableOpacity
+                                onPress={() => setViewMode("bids")}
+                                className="bg-[#F0F7FF] px-4 py-2 rounded-full items-center justify-center border border-[#BDE0FF] flex-row gap-2 shadow-sm"
+                            >
+                                <View className="h-6 min-w-[24px] px-1 rounded-full bg-[#036BB4] items-center justify-center">
+                                    <Text className="text-xs font-bold text-white">
+                                        {bidCount}
+                                    </Text>
+                                </View>
+    
+                                <Text className="text-sm font-semibold text-[#036BB4]">{t("availableBids.shipmentDetails.bids")}</Text>
+                                <ArrowIcon height={16} width={16} />
+    
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={() => setViewMode("details")}
+                                className="bg-[#F0F7FF] px-4 py-2 rounded-full items-center justify-center border border-[#BDE0FF] flex-row gap-2 shadow-sm"
+                            >
+                                <View style={{ transform: [{ rotate: "180deg" }] }}>
+                                    <ArrowIcon height={16} width={16} />
+                                </View>
+    
+                                <Text className="text-sm font-semibold text-[#036BB4]">
+                                    {t("availableBids.shipmentDetails.backToDetails")}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    {/* Description now takes full width */}
+                    <Text className="text-gray-600 mt-4 leading-relaxed">{description}</Text>
                 </View>
                 {/* 🔹 Content */}
                 {(!isBidding || viewMode === "details") && (
@@ -221,7 +232,7 @@ export default function ShipmentDetailsScreen() {
 
                         {/* Pickup & Delivery */}
                         <InfoSection title={t("availableBids.shipmentDetails.pickupDeliveryDetails")}>
-                            <View className="flex-row flex-1">
+                            <View className="flex-col">
                                 <InfoRow label={t("availableBids.shipmentDetails.pickup")} value={pickup} />
                                 <InfoRow label={t("availableBids.shipmentDetails.delivery")} value={delivery} />
                             </View>
@@ -229,13 +240,11 @@ export default function ShipmentDetailsScreen() {
                                 <InfoRow label={t("availableBids.shipmentDetails.timeWindow")} value={timeWindow} />
                                 <InfoRow label={t("availableBids.shipmentDetails.datePreference")} value={datePreference} />
                             </View>
-
-
                         </InfoSection>
 
                         {/* Amount */}
                         <InfoSection title={t("availableBids.shipmentDetails.amount")}>
-                            <InfoRow label={t("availableBids.shipmentDetails.price")} value={`€${price}`} />
+                            <InfoRow label={t("availableBids.shipmentDetails.price")} value={price != null ? `€${price}` : "N/A"} />
                         </InfoSection>
 
                         {/* Driver Info */}

@@ -94,7 +94,7 @@ export default function TransporterProfileWizard() {
                 throw new Error(res?.message || "Submission failed")
             }
         } catch (error: any) {
-            console.error("Transporter profile error:", error)
+            // console.error("Transporter profile error:", error)
             Alert.alert(
                 "Submission Failed",
                 error?.response?.data?.message || error?.message || "Unable to complete profile. Please try again."

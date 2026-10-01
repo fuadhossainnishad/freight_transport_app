@@ -159,12 +159,12 @@ const LiveTrackingScreen = () => {
 
   // ── Effect 0: driver's real GPS → initial truck position ─────────────────
   useEffect(() => {
-    console.log('📍 Requesting driver GPS position...');
+    // console.log('📍 Requesting driver GPS position...');
     Geolocation.getCurrentPosition(
       ({ coords }) => {
         gpsObtained.current = true;
         const coord = { latitude: coords.latitude, longitude: coords.longitude };
-        console.log('✅ Initial GPS position obtained:', coord);
+        // console.log('✅ Initial GPS position obtained:', coord);
         setTruckCoord(coord);
         mapRef.current?.animateToRegion(
           { ...coord, latitudeDelta: 0.05, longitudeDelta: 0.05 },
@@ -173,7 +173,7 @@ const LiveTrackingScreen = () => {
       },
       (err) => {
         // GPS unavailable — truck will appear from REST or socket
-        console.log('❌ GPS error:', err.code, err.message);
+        // console.log('❌ GPS error:', err.code, err.message);
       },
       { enableHighAccuracy: false, timeout: 20000, maximumAge: 10000 },
     );
@@ -186,7 +186,7 @@ const LiveTrackingScreen = () => {
     if (!truckCoord || !pickupCoord || pickupRouteFetched.current) return;
     pickupRouteFetched.current = true;
     fetchRoute(truckCoord, pickupCoord).then(pts => {
-      console.log("📍 Pickup route obtained:", pickupCoord);
+      // console.log("📍 Pickup route obtained:", pickupCoord);
       setPickupRoute(pts);
       // Frame both the driver and the pickup so the whole leg is visible.
       mapRef.current?.fitToCoordinates([truckCoord, pickupCoord], {
@@ -271,7 +271,7 @@ const LiveTrackingScreen = () => {
           t('driver.tracking.activeRideAlertGeneric'),
         );
       } else {
-        console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message);
+        // console.log('⚠️ Failed to mark IN_TRANSIT:', err?.message);
       }
     });
   };
@@ -311,7 +311,7 @@ const LiveTrackingScreen = () => {
       setShowProofModal(false);
       navigation.goBack();
     } catch (err: any) {
-      console.log('⚠️ Failed to complete with proof:', err?.message);
+      // console.log('⚠️ Failed to complete with proof:', err?.message);
       setSubmittingProof(false);
       Alert.alert(
         t('driver.tracking.proofFailedTitle'),
@@ -335,18 +335,7 @@ const LiveTrackingScreen = () => {
             : geocodeAddress(shipment.deliveryAddress),
         ]);
 
-        // TEMP DEBUG — confirms where the pickup/delivery pins come from.
-        // backend coord present  → rawPickupCoord is set, geocode skipped
-        // backend coord missing  → rawPickupCoord undefined, geocodedPickup used
-        // both null              → location unavailable (no more silent fallback)
-        console.log('🧭 Coord resolution:', {
-          pickupAddress:    shipment.pickupAddress,
-          rawPickupCoord:   shipment.pickupCoord,
-          resolvedPickup:   pickup,
-          deliveryAddress:  shipment.deliveryAddress,
-          rawDeliveryCoord: shipment.deliveryCoord,
-          resolvedDropoff:  dropoff,
-        });
+
 
         // No hardcoded fallback: a missing coordinate is surfaced, not faked.
         if (!isValidCoord(pickup) || !isValidCoord(dropoff)) {
@@ -487,7 +476,7 @@ const LiveTrackingScreen = () => {
             });
           }
         },
-        (err) => { console.log('❌ GPS push error:', err.code, err.message); },
+        (_err) => { /* GPS push error suppressed in production */ },
         { enableHighAccuracy: false, timeout: 15000, maximumAge: 7000 },
       );
     };

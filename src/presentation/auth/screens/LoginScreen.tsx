@@ -41,43 +41,12 @@ export default function LoginScreen() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      console.log("logindata:", data)
-
       await login(data.email, data.password)
-
-      // if (res.role === "TRANSPORTER") {
-
-      //   const profile = await getTransporterProfile(res.id)
-
-      //   const isComplete = isTransporterProfileComplete(profile)
-
-      //   if (!isComplete) {
-      //     navigation.navigate("CompleteTransporterProfile")
-      //     return
-      //   }
-
-      //   navigation.navigate("TransporterDashboard")
-      // }
-
-      // if (res.role === "SHIPPER") {
-
-      //   const profile = await getShipperProfile(res.userId)
-
-      //   if (!profile) {
-      //     navigation.navigate("CompleteShipperProfile")
-      //     return
-      //   }
-
-      //   navigation.navigate("ShipperDashboard")
-      // }
-
     } catch (error: any) {
-
       Alert.alert(
         t("auth.login.failedTitle"),
         error?.response?.data?.message || t("common.somethingWentWrong")
       )
-
     }
   }
 

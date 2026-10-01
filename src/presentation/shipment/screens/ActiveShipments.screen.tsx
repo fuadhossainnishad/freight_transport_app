@@ -162,13 +162,15 @@ const ActiveShipmentsScreen = () => {
     else setLoading(true);
 
     try {
-      const role = user?.role.toLowerCase();
-      const id = user?.role === "TRANSPORTER" ? user.transporter_id : user?.shipper_id;
-      const { shipments: result } = await getShipmentsUseCase(role!, id!);
+      if (!user?.role) return;
+      const role = user.role.toLowerCase();
+      const id = user.role === "TRANSPORTER" ? user.transporter_id : user.shipper_id;
+      if (!id) return;
+      const { shipments: result } = await getShipmentsUseCase(role, id);
       setShipments(result);
       setFiltered(result);
     } catch (e) {
-      console.error("Failed to load shipments:", e);
+      // console.error("Failed to load shipments:", e);
     } finally {
       setLoading(false);
       setRefreshing(false);

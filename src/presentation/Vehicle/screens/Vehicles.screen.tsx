@@ -35,7 +35,7 @@ const VehiclesScreen = () => {
             const data = await getVehicles(user?.transporter_id!);
             setVehicles(data);
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             Alert.alert("Error", "Failed to load your vehicles. Please try again.");
         } finally {
             setLoading(false);

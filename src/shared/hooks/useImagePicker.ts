@@ -13,13 +13,13 @@ export const pickShipmentImages = async (): Promise<Asset[]> => {
     }
 
     if (res.errorCode) {
-      console.log("ImagePicker Error: ", res.errorMessage)
+      // console.log("ImagePicker Error: ", res.errorMessage)
       return []
     }
 
     return res.assets ?? []
   } catch (error) {
-    console.log("Picker Error:", error)
+    // console.log("Picker Error:", error)
     return []
   }
 }

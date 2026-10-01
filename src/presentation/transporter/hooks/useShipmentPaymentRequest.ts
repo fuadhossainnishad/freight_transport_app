@@ -31,7 +31,7 @@ export const useShipmentPaymentRequest = (shipmentId: string, enabled: boolean) 
     } catch (err) {
       // Non-fatal — fall back to showing the button. A genuine duplicate still
       // gets caught server-side and surfaces its message in the modal.
-      console.log("Payment request lookup failed:", err);
+      // console.log("Payment request lookup failed:", err);
       setPendingRequest(undefined);
     } finally {
       setLoading(false);

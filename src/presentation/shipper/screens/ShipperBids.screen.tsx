@@ -28,12 +28,12 @@ export default function ShipperBids() {
             const res = await getAvailableBids(undefined, 1, 100)
             setBids(res.data ?? [])
         } catch (err) {
-            console.log("Bids error:", err)
+            // console.log("Bids error:", err)
         }
     }, [])
 
     useEffect(() => {
-        fetchBids().then(() => setLoading(false))
+        fetchBids().finally(() => setLoading(false))
     }, [fetchBids])
 
     const onRefresh = useCallback(async () => {

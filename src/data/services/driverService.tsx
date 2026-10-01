@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { DELETE_DRIVER, GET_DRIVER, GET_DRIVERS, POST_DRIVER, UPDATE_DRIVER } from "../../domain/constants/api";
 import axiosClient from "../../shared/config/axios.config";
 
@@ -8,7 +9,7 @@ export const searchDrivers = async (
     const res = await axiosClient.get(
         `${GET_DRIVERS(transporterId)}?searchTerm=${searchTerm}`
     );
-    console.log("Driver search data:", res.data);
+    logger.info("Driver search data:", res.data);
     return res.data?.data?.drivers || [];
 };
 
@@ -25,19 +26,19 @@ export const fetchTransporterDrivers = async (
         GET_DRIVERS(transporterId),
         { params }
     );
-    console.log("fetchDrivers:", res.data)
+    logger.info("fetchDrivers:", res.data)
     return res.data;
 };
 
 export const fetchDriverById = async (driverId: string) => {
     const res = await axiosClient.get(GET_DRIVER(driverId));
-    console.log("fetchDriverById:", res.data.data)
+    logger.info("fetchDriverById:", res.data.data)
     return res.data.data
 };
 
 
 export const createDriver = async (formData: FormData) => {
-    console.log("createDriver formData:", formData)
+    logger.info("createDriver formData:", formData)
 
     const res = await axiosClient.post(
         POST_DRIVER,
@@ -48,7 +49,7 @@ export const createDriver = async (formData: FormData) => {
             },
         }
     );
-    console.log("createDriver:", res.data)
+    logger.info("createDriver:", res.data)
 
     return res.data;
 };

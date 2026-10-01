@@ -8,6 +8,8 @@ import ShipmentTrackingScreen from "../presentation/shipment/screens/ShipmentTra
 import TransporterHomeScreen2 from "../presentation/transporter/screens/TransporterHome.screen2";
 import AssignVehicleDriverScreen from "../presentation/availablebids/screens/AssignVehicleDriverScreen";
 import PayWebViewScreen from "../presentation/payment/screens/PayWebView.screen";
+import NotificationsScreen from "../presentation/notifications/screens/Notifications.screen";
+
 
 const Stack = createNativeStackNavigator<TransporterHomeStackParamList>();
 
@@ -47,6 +49,10 @@ export default function TransporterHomeStack() {
       <Stack.Screen
         name='PayWebView'
         component={PayWebViewScreen}
+      />
+      <Stack.Screen
+        name='Notifications'
+        component={NotificationsScreen}
       />
     </Stack.Navigator>
   );

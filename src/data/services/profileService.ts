@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { GET_SHIIPER_PROFILE, GET_TRANSPORTER_PROFILE } from './../../domain/constants/api';
 import axiosClient from "../../shared/config/axios.config"
 import { UserProfile } from '../../domain/entities/user.entity';
@@ -7,10 +8,10 @@ export const ProfileService = {
     async getTransporterProfile(id: string) {
         try {
             const res = await axiosClient.get(GET_TRANSPORTER_PROFILE(id))
-            console.log("GET_TRANSPORTER_PROFILE:", res.data.data)
+            logger.info("GET_TRANSPORTER_PROFILE:", res.data.data)
             return res.data?.data
         } catch (error) {
-            console.error("Transporter profile fetch error:", error)
+            logger.error("Transporter profile fetch error:", error)
             throw error
         }
     },
@@ -18,10 +19,10 @@ export const ProfileService = {
     async getShipperProfile(id: string) {
         try {
             const res = await axiosClient.get(GET_SHIIPER_PROFILE(id))
-            console.log("GET_SHIIPER_PROFILE:", res.data.data)
+            logger.info("GET_SHIIPER_PROFILE:", res.data.data)
             return res.data?.data
         } catch (error) {
-            console.error("Shipper profile fetch error:", error)
+            logger.error("Shipper profile fetch error:", error)
             throw error
         }
     },

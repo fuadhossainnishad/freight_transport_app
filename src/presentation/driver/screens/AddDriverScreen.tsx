@@ -71,7 +71,7 @@ export default function AddDriverScreen() {
 
       setSuccess(true);
     } catch (error: any) {
-      console.log(error);
+      // console.log(error);
 
       Alert.alert(
         t("common.error"),

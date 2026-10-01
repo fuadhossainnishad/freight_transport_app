@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 import { logger } from "../../../shared/utils/logger";
 import { Driver } from "../../driver/types";
@@ -10,7 +10,7 @@ export default function useDriverMap() {
     const [driversMap, setDriversMap] = useState<DriverMap>({});
     const cacheRef = useRef(new Set<string>());
 
-    const fetchDriver = async (driverId: string) => {
+    const fetchDriver = useCallback(async (driverId: string) => {
         if (!driverId) return;
         if (cacheRef.current.has(driverId)) return;
 
@@ -34,7 +34,7 @@ export default function useDriverMap() {
                 logger.error("Driver fetch failed:", e);
             }
         }
-    };
+    }, []);
 
     return { driversMap, fetchDriver };
 }

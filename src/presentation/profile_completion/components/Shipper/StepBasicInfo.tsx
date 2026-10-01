@@ -59,7 +59,7 @@ export default function StepBasicInfo({ onSuccess }: any) {
                 onSuccess?.()
             }
         } catch (error) {
-            console.error("Profile submit error:", error)
+            // console.error("Profile submit error:", error)
             Alert.alert("Something went wrong")
         } finally {
             setLoading(false)

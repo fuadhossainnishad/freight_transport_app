@@ -13,7 +13,7 @@ function App() {
   // const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider className="flex-1 bg-white">
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: 'white' }} className="flex-1 bg-white">
       {/* <StatusBar
         translucent
         backgroundColor="transparent"

@@ -27,7 +27,7 @@ let lastCallAt = 0;
 function schedule<T>(task: () => Promise<T>): Promise<T> {
   const run = chain.then(async () => {
     const wait = lastCallAt + MIN_INTERVAL_MS - Date.now();
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    if (wait > 0) await new Promise<void>((r) => setTimeout(r, wait));
     lastCallAt = Date.now();
     return task();
   });

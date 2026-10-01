@@ -5,6 +5,8 @@ import ShipperHome from "../presentation/shipper/screens/ShipperHome.screen";
 import CreateShipmentScreen from "../presentation/shipper/screens/CreateShipmentScreen";
 import ShipperBids from "../presentation/shipper/screens/ShipperBids.screen";
 import BidDetails from "../presentation/shipper/screens/BidDetails.screen";
+import NotificationsScreen from "../presentation/notifications/screens/Notifications.screen";
+
 
 const Stack = createNativeStackNavigator<ShipperHomeStackParamList>();
 
@@ -33,6 +35,10 @@ export default function ShipperHomeStack() {
         component={BidDetails}
       />
 
+      <Stack.Screen
+        name='Notifications'
+        component={NotificationsScreen}
+      />
     </Stack.Navigator>
   );
 }

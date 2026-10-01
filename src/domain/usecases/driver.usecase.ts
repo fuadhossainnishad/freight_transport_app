@@ -19,7 +19,7 @@ export const getDriverByIdsUseCase = async (
   if (!driverId) throw new Error("Driver ID is required");
 
   const driver = await fetchDriverById(driverId);
-  console.log("fetchDriverById:", driver)
+  // console.log("fetchDriverById:", driver)
   return mapDriverApiToEntity(driver)
 };
 
@@ -68,7 +68,7 @@ export const CreateDriverUseCase = async (
     });
   }
 
-  console.log("createDriver formData:", formData)
+  // console.log("createDriver formData:", formData)
 
   return await createDriver(formData);
 };

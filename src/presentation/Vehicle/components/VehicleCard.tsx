@@ -13,90 +13,81 @@ interface Props {
 const PRIMARY = "#036BB4";
 const DANGER = "#EF4444";
 
-// Capacity is stored as a plain string. If it's just a number, append the unit
-// so "4" reads as "4 Tons"; otherwise show whatever the backend has ("20 Tons").
 const formatCapacity = (capacity?: string) => {
     if (!capacity) return null;
     const trimmed = capacity.trim();
     return /^\d+(\.\d+)?$/.test(trimmed) ? `${trimmed} Tons` : trimmed;
 };
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-    <View className="flex-1">
-        <Text className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">{label}</Text>
-        <Text className="text-[15px] font-semibold text-gray-900 mt-1" numberOfLines={1}>
-            {value}
-        </Text>
-    </View>
-);
-
 const VehicleCard: React.FC<Props> = ({ vehicle, onView, onEdit, onDelete }) => {
     const cover = vehicle.images?.[0];
     const capacity = formatCapacity(vehicle.capacity);
 
     return (
-        <View className="bg-white rounded-2xl mb-4 border border-gray-100 shadow-sm overflow-hidden">
-            {/* Tap the card body to open details */}
-            <TouchableOpacity activeOpacity={0.85} onPress={onView}>
-                {/* Photo — fills the card width, full vehicle visible */}
-                <View
-                    className="w-full bg-gray-100 items-center justify-center"
-                    style={{ aspectRatio: 4 / 3 }}
-                >
-                    {cover ? (
-                        <Image
-                            source={{ uri: cover }}
-                            style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <Truck size={36} color="#9CA3AF" strokeWidth={1.5} />
-                    )}
-                </View>
+        <TouchableOpacity 
+            activeOpacity={0.9} 
+            onPress={onView}
+            className="bg-white rounded-3xl mb-5 shadow-sm shadow-black/5 border border-gray-100 overflow-hidden"
+        >
+            {/* Top: Banner Image (16:9) */}
+            <View className="w-full bg-gray-50 items-center justify-center border-b border-gray-50" style={{ aspectRatio: 16 / 9 }}>
+                {cover ? (
+                    <Image
+                        source={{ uri: cover }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <Truck size={40} color="#9CA3AF" strokeWidth={1.5} />
+                )}
+            </View>
 
-                {/* Identity */}
-                <View className="px-4 pt-3.5">
+            {/* Body */}
+            <View className="p-5">
+                <View>
                     {!!vehicle.type && (
-                        <Text className="text-[11px] font-bold tracking-wider uppercase" style={{ color: PRIMARY }}>
+                        <Text className="text-[10px] font-extrabold tracking-widest text-[#036BB4] uppercase mb-1.5">
                             {vehicle.type}
                         </Text>
                     )}
-                    <Text className="text-[16px] font-bold text-gray-900 mt-1 leading-5" numberOfLines={1}>
+                    <Text className="text-xl font-extrabold text-gray-900 leading-tight">
                         {vehicle.name || "Unnamed vehicle"}
                     </Text>
                 </View>
 
-                {/* Spec row */}
-                <View className="flex-row mx-4 mt-4 pt-4 pb-4 border-t border-gray-100">
-                    <Stat label="Capacity" value={capacity || "—"} />
-                    <View className="w-px bg-gray-100 mx-3" />
-                    <Stat label="Model" value={vehicle.modelYear || "—"} />
+                <View className="flex-row items-center mt-4 gap-8">
+                    <View>
+                        <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Capacity</Text>
+                        <Text className="text-[15px] font-bold text-gray-800 mt-0.5">{capacity || "—"}</Text>
+                    </View>
+                    <View>
+                        <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Model</Text>
+                        <Text className="text-[15px] font-bold text-gray-800 mt-0.5">{vehicle.modelYear || "—"}</Text>
+                    </View>
                 </View>
-            </TouchableOpacity>
+            </View>
 
-            {/* Secondary actions */}
-            <View className="flex-row border-t border-gray-100">
+            {/* Footer Actions */}
+            <View className="flex-row border-t border-gray-50 bg-gray-50/50 p-1.5">
                 <TouchableOpacity
-                    className="flex-1 flex-row items-center justify-center gap-2 py-3.5"
                     onPress={onEdit}
+                    className="flex-1 flex-row justify-center items-center py-3 gap-2 rounded-xl"
                 >
-                    <Pencil size={16} color="#4B5563" strokeWidth={2} />
-                    <Text className="text-[13px] font-semibold text-gray-600">Edit</Text>
+                    <Pencil size={16} color="#4B5563" strokeWidth={2.5} />
+                    <Text className="text-[#4B5563] font-bold text-[14px]">Edit</Text>
                 </TouchableOpacity>
-
-                <View className="w-px bg-gray-100" />
-
+                
+                <View className="w-px bg-gray-200 my-2" />
+                
                 <TouchableOpacity
-                    className="flex-1 flex-row items-center justify-center gap-2 py-3.5"
                     onPress={onDelete}
+                    className="flex-1 flex-row justify-center items-center py-3 gap-2 rounded-xl"
                 >
-                    <Trash2 size={16} color={DANGER} strokeWidth={2} />
-                    <Text className="text-[13px] font-semibold" style={{ color: DANGER }}>
-                        Delete
-                    </Text>
+                    <Trash2 size={16} color="#EF4444" strokeWidth={2.5} />
+                    <Text className="text-[#EF4444] font-bold text-[14px]">Delete</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 

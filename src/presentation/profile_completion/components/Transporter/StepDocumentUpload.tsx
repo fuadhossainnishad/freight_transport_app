@@ -52,7 +52,7 @@ export default function StepDocumentUpload({
         size: picked.size,
       })
     } catch (error) {
-      console.error("File pick error:", error)
+      // console.error("File pick error:", error)
       Alert.alert("Upload failed", "Failed to upload document. Please try again.")
     }
   }

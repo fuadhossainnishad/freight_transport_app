@@ -25,8 +25,8 @@ export function LocationGate({ children }: Props) {
   if (status === "denied" || status === "blocked") {
     return (
       <LocationPermissionGateScreen
-        status={status}
         onRequest={request}
+        onDeny={() => {}}
       />
     );
   }

@@ -62,7 +62,7 @@ const ShipmentTrackingScreen: React.FC = () => {
                 const res = await getShipmentDetailsUseCase(shipmentId);
                 setData(res);
             } catch (err) {
-                console.error(err);
+                // console.error(err);
             } finally {
                 setLoading(false);
             }

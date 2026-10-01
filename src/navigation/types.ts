@@ -50,13 +50,16 @@ export type ShipperRootParamList = {
 };
 
 export type ShipperHomeStackParamList = {
+    Notifications: undefined;
     Home: undefined;
-    CreateShipment: undefined
+    CreateShipment: { selectedLocation?: any; field?: any } | undefined
     Bids: undefined
     BidDetails: { shipmentId: string; shipment?: any }
 };
 
+
 export type TransporterHomeStackParamList = {
+    Notifications: undefined;
     Home: undefined;
     ShipmentDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
@@ -69,13 +72,15 @@ export type AvailableBidsStackParamList = {
     AvailableBids: undefined;
     ShipmentDetails: { shipmentId: string }
     AssignVehicleDriver: { shipmentId: string }
+    AddDriver: undefined;
+    AddVehicle: undefined;
 };
 
 
 export type ActiveShipmentsStackParamList = {
     ActiveShipments: undefined;
     ActiveShipmentDetailsScreen: { shipmentId: string}
-    CreateShipment: undefined
+    CreateShipment: { selectedLocation?: any; field?: any } | undefined
     ShipmentDetails: { shipmentId: string }
     ShipmentTracking: { shipmentId: string }
     ShipperShipmentDetail: { shipmentId: string }
@@ -84,7 +89,7 @@ export type ActiveShipmentsStackParamList = {
 
 export type InvoiceStackParamList = {
     Invoices: undefined;
-    CreateShipment: undefined
+    CreateShipment: { selectedLocation?: any; field?: any } | undefined
     InvoiceDetails: { paymentId: string }
     ShipmentTracking: { shipmentId: string }
 };
@@ -150,6 +155,7 @@ export type DriverStackParamList = {
 };
 
 export type DriverHomeStackParamList = {
+    Notifications: undefined;
     DriverHome: undefined;
     DriverProfileDetails: { driverId: string }
     UpdateDriverProfile: { driverId: string }

@@ -52,11 +52,12 @@ const MyShipmentsScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const load = useCallback(async (isRefresh = false, pageNum = 1) => {
+    if (!user?.shipper_id) return;
     if (isRefresh) setRefreshing(true);
     else if (pageNum > 1) setLoadingMore(true);
 
     try {
-      const { shipments: result, pagination } = await getShipmentsUseCase("shipper", user?.shipper_id!, pageNum, 10);
+      const { shipments: result, pagination } = await getShipmentsUseCase("shipper", user.shipper_id, pageNum, 10);
       
       if (pageNum === 1) {
         setShipments(result);
@@ -67,7 +68,7 @@ const MyShipmentsScreen = () => {
       setHasMore(pagination?.hasNextPage ?? result.length === 10);
       setPage(pageNum);
     } catch (e) {
-      console.error("Failed to load shipments:", e);
+      // console.error("Failed to load shipments:", e);
     } finally {
       setLoading(false);
       setRefreshing(false);

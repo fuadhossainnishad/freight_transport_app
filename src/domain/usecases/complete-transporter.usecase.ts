@@ -3,7 +3,6 @@ import { completeTransporterProfile } from "../../data/services/transporterServi
 export class CompleteTransporterProfileUseCase {
 
     static async execute(formData: FormData) {
-
         if (!formData) {
             throw new Error("Form data missing")
         }
@@ -11,5 +10,4 @@ export class CompleteTransporterProfileUseCase {
         // ✅ Call service layer
         return await completeTransporterProfile(formData)
     }
-
 }

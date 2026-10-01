@@ -42,7 +42,7 @@ export default function ImageCarouselFocus() {
         const item = MockImages[index];
 
         if (item) {
-          console.log("🎯 Marker Hit:", item.id);
+          // console.log("🎯 Marker Hit:", item.id);
         }
       }
     },
@@ -53,7 +53,7 @@ export default function ImageCarouselFocus() {
   // RENDER ITEM
   // ─────────────────────────────
   const renderItem = useCallback(
-    ({ item, index }) => {
+    ({ item, index }: { item: { id: string, uri: string }, index: number }) => {
       const isActive = index === activeIndex;
 
       return (

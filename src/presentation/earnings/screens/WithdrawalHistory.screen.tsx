@@ -68,7 +68,7 @@ export default function WithdrawalHistoryScreen() {
             const res = await getMyWithdrawals(1, 20);
             setItems(res.data);
         } catch (err) {
-            console.error("Failed to load withdrawal history:", err);
+            // console.error("Failed to load withdrawal history:", err);
         } finally {
             setLoading(false);
             setRefreshing(false);

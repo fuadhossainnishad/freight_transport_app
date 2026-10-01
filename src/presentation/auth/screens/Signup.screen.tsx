@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
+import { CompanyRegistrationForm } from "../../../domain/entities/CompanyRegistrationForm";
 import { TRUCK_TYPES } from "../../../domain/constants/truckTypes";
 import {
   Country,

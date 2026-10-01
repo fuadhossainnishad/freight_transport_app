@@ -607,9 +607,11 @@ export default {
       "selectDriverTitle": "Select Driver",
       "searchDriverPlaceholder": "Search by name, phone or email…",
       "noDriversFound": "No drivers found",
+      "noDriversDesc": "You haven't added any drivers yet, or none match your search.",
       "selectVehicleTitle": "Select Vehicle",
       "searchVehiclePlaceholder": "Search by type or plate…",
       "noVehiclesFound": "No vehicles found",
+      "noVehiclesDesc": "You haven't added any vehicles yet, or none match your search.",
       "errors": {
         "selectDriver": "Please select a driver",
         "selectVehicle": "Please select a vehicle",
@@ -622,6 +624,11 @@ export default {
         "errorTitle": "Error",
         "errorMessage": "Something went wrong"
       }
+    }
+  },
+  "vehicle": {
+    "list": {
+      "addVehicle": "Add Vehicle"
     }
   },
   "driver": {
@@ -741,7 +748,8 @@ export default {
       "loadFailed": "Failed to load your drivers. Please try again.",
       "deleteTitle": "Delete driver",
       "deleteMessage": "Are you sure you want to remove this driver?",
-      "deleteFailed": "Failed to delete driver."
+      "deleteFailed": "Failed to delete driver.",
+      "viewProfile": "View Profile"
     },
     "add": {
       "title": "Add Driver",
@@ -767,7 +775,8 @@ export default {
       "confirmTitle": "Confirm",
       "confirmMessage": "Are you sure you want to remove this driver?",
       "removed": "Driver removed successfully",
-      "removeFailed": "Failed to remove driver"
+      "removeFailed": "Failed to remove driver",
+      "contactInfo": "Contact Information"
     },
     "profile": {
       "title": "Profile",

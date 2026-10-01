@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UserProfile } from "../../../domain/entities/user.entity";
-import { updateProfileUseCase } from "../../../domain/entities/profile.usecase";
+import { updateProfileUseCase } from "../../../domain/usecases/profile.usecase";
 import { useAuth } from "../../../app/context/Auth.context";
 
 export const useUpdateProfile = () => {
@@ -17,7 +17,7 @@ export const useUpdateProfile = () => {
 
       const res = await updateProfileUseCase(
         {
-          role: user?.role,
+          role: user?.role as "SHIPPER" | "TRANSPORTER" | "DRIVER",
           shipper_id: user?.shipper_id,
           transporter_id: user?.transporter_id,
         },

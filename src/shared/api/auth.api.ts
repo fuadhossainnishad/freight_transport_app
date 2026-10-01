@@ -12,11 +12,11 @@ export const signupApi = async (
           : { "Content-Type": "application/json" },
     });
 
-    console.log("✅ Signup Response:", response.data);
+    // console.log("✅ Signup Response:", response.data);
 
     return response.data;
   } catch (error: any) {
-    console.log("❌ Signup API Error:", error.response?.data || error.message);
+    // console.log("❌ Signup API Error:", error.response?.data || error.message);
     throw error;
   }
 };

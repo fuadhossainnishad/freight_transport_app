@@ -66,7 +66,7 @@ export default function UpdateDriverScreen() {
         setLoading(true);
 
         const res = await getDriverByIdsUseCase(driverId);
-        console.log("fetchDriverById:", res)
+        // console.log("fetchDriverById:", res)
 
         // Restore the country + national number from the stored phone.
         const { country: parsedCountry, national } = splitInternationalPhone(
@@ -130,7 +130,7 @@ export default function UpdateDriverScreen() {
       navigation.goBack();
     } catch (err) {
       Alert.alert(t("common.error"), t("driver.update.updateFailed"));
-      console.error(err);
+      // console.error(err);
     } finally {
       setSaving(false);
     }

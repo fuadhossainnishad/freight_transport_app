@@ -25,7 +25,7 @@ const IssuesScreen = () => {
     const { user } = useAuth()
 
     const { issues, setIssues, loading, error, loadIssues } =
-        useIssues(user?.shipper_id!);
+        useIssues(user?.shipper_id ?? "");
 
     const [search, setSearch] = useState("");
 

@@ -12,7 +12,7 @@ export const useLogin = () => {
     const login = async (email: string, password: string) => {
         try {
             setLoading(true)
-            console.log(email, password)
+            // console.log(email, password)
             const data = await signIn(email, password)
 
             const decoded = decodeAccessToken(data.accessToken)
@@ -24,7 +24,7 @@ export const useLogin = () => {
                 transporter_id: decoded.transporter_id!,
                 driver_id: decoded.driver_id!,
             };
-            console.log("login:", user)
+            // console.log("login:", user)
 
             await saveAuth(data.accessToken, data.refreshToken)
             setAuthUser(user);

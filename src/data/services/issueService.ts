@@ -1,15 +1,16 @@
+import { logger } from '../../shared/utils/logger';
 import { GET_SHIPMENT_ISSUE, GET_SHIPPER_ISSUES, SINGLE_ISSUE } from "../../domain/constants/api";
 import { ApiResponse, Issue, IssueSummery } from "../../domain/entities/Issue.entity";
 import axiosClient from "../../shared/config/axios.config";
 
 // GET all shipper issues
 export const getAllIssuesAPI = async (shipperId: string): Promise<Issue[]> => {
-    console.log("shipperId:", shipperId)
+    logger.info("shipperId:", shipperId)
     const response = await axiosClient.get<ApiResponse<Issue[]>>(
         GET_SHIPPER_ISSUES(shipperId)
     );
 
-    console.log("API raw response:", response.data);
+    logger.info("API raw response:", response.data);
 
     return response.data?.data ?? [];
 };
@@ -22,12 +23,12 @@ export const getShipmentIssuesAPI = async (shipmentId: string): Promise<Issue[]>
 
 // GET single issue by issue ID
 export const getSingleIssueAPI = async (issueId: string): Promise<IssueSummery | null> => {
-    console.log("API raw issueId:", issueId);
+    logger.info("API raw issueId:", issueId);
 
     const { data } = await axiosClient.get<ApiResponse<IssueSummery>>(
         SINGLE_ISSUE(issueId)
     );
-    console.log("API raw getSingleIssueAPI:", data);
+    logger.info("API raw getSingleIssueAPI:", data);
 
     return data?.data ?? null;
 };

@@ -100,7 +100,7 @@ export default function ShipmentDetailsScreen() {
         setDriver(null);
       }
     } catch (err) {
-      console.error("ShipmentDetails fetch error:", err);
+      // console.error("ShipmentDetails fetch error:", err);
     } finally {
       setLoading(false);
     }

@@ -4,55 +4,60 @@ import { getAccessToken } from "../../shared/storage/authStorage";
 
 let socket: Socket | null = null;
 let isConnecting = false;
+let connectingPromise: Promise<Socket> | null = null;
 
 export const connectSocket = async (): Promise<Socket> => {
     if (socket && socket.connected) {
         return socket;
     }
 
-    if (isConnecting) {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (socket && socket.connected) {
-                    clearInterval(interval);
-                    resolve(socket);
-                } else if (socket && !isConnecting) {
-                    // connection attempt finished (failed/errored); resolve so callers don't hang
-                    clearInterval(interval);
-                    resolve(socket);
-                }
-            }, 100);
-        });
+    // If already connecting, wait for the same promise instead of polling
+    if (isConnecting && connectingPromise) {
+        return connectingPromise;
+    }
+
+    // Destroy stale disconnected socket before creating a new one
+    if (socket && !socket.connected) {
+        socket.disconnect();
+        socket = null;
     }
 
     isConnecting = true;
 
-    const token = await getAccessToken();
+    connectingPromise = new Promise(async (resolve, reject) => {
+        const token = await getAccessToken();
 
-    socket = io(appConfig.socket_url, {
-        auth: { token },
-        transports: ["websocket"],
-        reconnection: true,
-        reconnectionAttempts: 20,
-        reconnectionDelay: 3000,
-        reconnectionDelayMax: 10000,
+        socket = io(appConfig.socket_url, {
+            auth: { token },
+            transports: ["websocket"],
+            reconnection: true,
+            reconnectionAttempts: 20,
+            reconnectionDelay: 3000,
+            reconnectionDelayMax: 10000,
+        });
+
+        const onConnect = () => {
+            isConnecting = false;
+            connectingPromise = null;
+            resolve(socket!);
+        };
+
+        const onConnectError = (err: Error) => {
+            isConnecting = false;
+            connectingPromise = null;
+            // Still resolve so callers don't hang — socket can retry via reconnection
+            resolve(socket!);
+        };
+
+        socket.once("connect", onConnect);
+        socket.once("connect_error", onConnectError);
+
+        socket.on("disconnect", () => {
+            // noop — reconnection is handled automatically by socket.io
+        });
     });
 
-    socket.on("connect", () => {
-        console.log("✅ Socket connected:", socket?.id);
-        isConnecting = false;
-    });
-
-    socket.on("disconnect", (reason) => {
-        console.log("⚠️ Socket disconnected:", reason);
-    });
-
-    socket.on("connect_error", (err) => {
-        console.log("❌ Socket error:", err.message);
-        isConnecting = false;
-    });
-
-    return socket;
+    return connectingPromise;
 };
 
 export const getSocket = (): Socket | null => socket;

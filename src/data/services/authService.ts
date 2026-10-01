@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { FORGOT_PASSWORD, RESET_PASSWORD, SIGNIN, VERIFY_OTP } from "../../domain/constants/api"
 import publicAxios from "../../shared/config/publicAxios.config"
 
@@ -14,27 +15,27 @@ export const signIn = async (
 
     try {
 
-        console.log("Sending login request:", email)
+        logger.info("Sending login request:", email)
 
         const response = await publicAxios.post(
             SIGNIN,
             { email, password }
         )
 
-        console.log("Raw API Response:", response.data)
+        logger.info("Raw API Response:", response.data)
 
         if (!response.data.success) {
             throw new Error(response.data.message || "Login failed")
         }
 
-        console.log("LoginResponse:", response.data.data)
+        logger.info("LoginResponse:", response.data.data)
 
         return response.data.data
 
     } catch (error: any) {
 
 
-        console.log("LOGIN API ERROR:", error.response?.data || error.message)
+        logger.info("LOGIN API ERROR:", error.response?.data || error.message)
 
         throw error
     }
@@ -59,7 +60,7 @@ export const forgotPassword = async (
         if (!response.data.success) {
             throw new Error(response.data.message)
         }
-        console.log("forgotPassword:", response.data.data)
+        logger.info("forgotPassword:", response.data.data)
         return response.data.data
 
     } catch (error: any) {
@@ -83,7 +84,7 @@ export const verifyOtp = async (
 ): Promise<boolean> => {
 
     try {
-        console.log("VERIFY_OTP payload:", payload)
+        logger.info("VERIFY_OTP payload:", payload)
 
         const response = await publicAxios.post(
             VERIFY_OTP,
@@ -93,12 +94,12 @@ export const verifyOtp = async (
         if (!response.data.success) {
             throw new Error(response.data.message || "OTP verification failed")
         }
-        console.log("VERIFY_OTP:", response.data.data)
+        logger.info("VERIFY_OTP:", response.data.data)
         return response.data.data
 
     } catch (error: any) {
 
-        console.log(
+        logger.info(
             "VERIFY OTP ERROR:",
             error?.response?.data || error.message
         )
@@ -122,7 +123,7 @@ export const resetPassword = async (
         RESET_PASSWORD,
         payload
     )
-    console.log("RESET_PASSWORD:", response)
+    logger.info("RESET_PASSWORD:", response)
     if (!response.data.success) {
         throw new Error(response.data.message || "Password reset failed")
     }

@@ -38,7 +38,7 @@ export default function AvailableBidsScreen() {
             const res = await getAvailableBids();
             setBids(res?.data ?? []);
         } catch (error) {
-            console.log("Bid fetch error:", error);
+            // console.log("Bid fetch error:", error);
             setBids([]);
         }
     }, []);

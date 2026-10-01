@@ -1,9 +1,11 @@
+import { logger } from '../shared/utils/logger'
 import { useEffect, useState, useCallback } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, ActivityIndicator } from "react-native";
 
 import ShipperProfileWizard from "../presentation/profile_completion/screens/ShipperProfileWizard";
 import ShipperTab from "./ShipperTab";
+import { useUser } from "../app/context/User.context";
 import { ProfileService } from "../data/services/profileService";
 import { ShipperRootParamList } from "./types";
 
@@ -12,12 +14,13 @@ const Stack = createNativeStackNavigator<ShipperRootParamList>();
 export default function ShipperRootStack({ userId }: { userId: string }) {
 
   const [loading, setLoading] = useState(true);
+  const { setUser } = useUser();
   const [profileComplete, setProfileComplete] = useState<boolean>(false);
-  console.log("userid:", userId)
+  logger.info("userid:", userId)
   const checkProfile = useCallback(async () => {
     try {
       const profile = await ProfileService.getShipperProfile(userId);
-      console.log("checkProfile:", profile)
+      logger.info("checkProfile:", profile)
       const isComplete = Boolean(
         profile?.company_address &&
         profile?.employee_size &&
@@ -26,11 +29,12 @@ export default function ShipperRootStack({ userId }: { userId: string }) {
         profile?.shipping_marchandise_at &&
         profile?.ship_type
       );
-      console.log("isComplete:", isComplete)
+      logger.info("isComplete:", isComplete)
       setProfileComplete(isComplete);
+      setUser({ shipperProfile: profile } as any);
 
     } catch (error) {
-      console.error("Profile check failed:", error);
+      logger.error("Profile check failed:", error);
       setProfileComplete(false);
     } finally {
       setLoading(false);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CompanyRegistrationForm } from "../../../domain/entities/companyRegistrationForm";
+import { CompanyRegistrationForm } from "../../../domain/entities/CompanyRegistrationForm";
 import { registerTransporter } from "../../../domain/usecases/registerTransporter";
 import { registerShipper } from "../../../domain/usecases/registerShipper";
 
@@ -9,7 +9,7 @@ export const useSignup = () => {
     const signup = async (data: CompanyRegistrationForm) => {
         try {
             setLoading(true);
-            console.log("data:", data)
+            // console.log("data:", data)
 
             // Await the registration so `loading` stays true for the whole
             // request — returning the promise unawaited would let `finally`

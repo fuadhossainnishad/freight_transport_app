@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, ScrollView, Alert, View, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Text, ScrollView, Alert, View, StyleSheet, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SETTINGS_MENU } from "../../../domain/constants/settingsMenu";
 import { BRAND_NAME } from "../../../domain/constants/brand";
@@ -19,37 +19,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation()
   const navigation = useNavigation<props>()
   const [avatar, setAvatar] = useState<PickedFile | null>(null);
-  const [loading, setLoading] = useState(false);
   const { user, logout } = useAuth()
-
-  // const performLogout = useCallback(async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     await logout();
-
-  //     navigation.reset({
-  //       index: 0,
-  //       routes: [{ name: "SignIn" as never }],
-  //     });
-  //   } catch (error) {
-  //     console.error("Logout failed:", error);
-
-  //     Alert.alert(
-  //       "Logout Failed",
-  //       "Something went wrong while logging out. Please try again."
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, [navigation]);
-
-  // const confirmLogout = useCallback(() => {
-  //   Alert.alert("Logout", "Are you sure you want to log out?", [
-  //     { text: "Cancel", style: "cancel" },
-  //     { text: "Logout", style: "destructive", onPress: performLogout },
-  //   ]);
-  // }, [performLogout]);
 
 
   const handlePress = async (id: string) => {
@@ -162,16 +132,10 @@ export default function SettingsScreen() {
         <TouchableOpacity
           onPress={handleLogout}
           className="bg-[#FF0000]/10 p-4 rounded-full my-5"
-          disabled={loading}
         >
-          {loading ?
-            <ActivityIndicator color="#fff" />
-            :
-            <Text className="text-[#FF0702] text-center font-semibold">
-              {t("settings.logOut")}
-            </Text>
-          }
-
+          <Text className="text-[#FF0702] text-center font-semibold">
+            {t("settings.logOut")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 

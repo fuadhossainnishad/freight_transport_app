@@ -70,7 +70,7 @@ export default function ShipperHome() {
             const res = await getShipperStats(authUser?.shipper_id!, selectedMonth + 1, new Date().getFullYear())
             setStats(res.data)
         } catch (err) {
-            console.log("Stats error:", err)
+            // console.log("Stats error:", err)
         } finally {
             setStatsLoading(false)
         }
@@ -80,18 +80,19 @@ export default function ShipperHome() {
     useEffect(() => {
         if (!authUser?.shipper_id) return
         fetchStats()
-    }, [selectedMonth])
+    }, [selectedMonth, fetchStats])
 
     const fetchBidShipments = useCallback(async () => {
+        if (!authUser?.shipper_id) return
         try {
             // Only the shipper's OWN shipments that are currently open for
             // bidding — not the global available-bids feed (that's transporter-side).
-            const { shipments } = await getShipmentsUseCase("shipper", authUser?.shipper_id!)
+            const { shipments } = await getShipmentsUseCase("shipper", authUser.shipper_id)
             const bidding = (shipments ?? []).filter((s: any) => s.status === "BIDDING")
             setBidShipments(bidding)
             if (bidding.length > 0) setSelectedId(bidding[0].id)
         } catch (err) {
-            console.log("Bid shipments error:", err)
+            // console.log("Bid shipments error:", err)
         }
     }, [authUser?.shipper_id])
 
@@ -101,7 +102,7 @@ export default function ShipperHome() {
             const res = await getShipmentBids(id)
             setShipmentBids(Array.isArray(res) ? res : (res?.data ?? []))
         } catch (err) {
-            console.log("Shipment bids error:", err)
+            // console.log("Shipment bids error:", err)
         } finally {
             setBidsLoading(false)
         }
@@ -159,11 +160,13 @@ export default function ShipperHome() {
         return () => clearTimeout(timer)
     }, [loopItems.length])
 
-    // ── Socket: live bid updates ─────────────────────────────────────
+    // ── Socket: live bid updates (with unmount guard) ────────────────
     useEffect(() => {
+        let cancelled = false
         let socket: any
         const init = async () => {
             socket = await connectSocket()
+            if (cancelled) return
             socket.on("new_bid", (bid: any) => {
                 setShipmentBids(prev => {
                     const id = bid._id ?? bid.id
@@ -174,14 +177,20 @@ export default function ShipperHome() {
             })
         }
         init()
-        return () => { socket?.off?.("new_bid") }
+        return () => {
+            cancelled = true
+            socket?.off?.("new_bid")
+        }
     }, [selectedId])
 
     // ── Initial load ─────────────────────────────────────────────────
     useEffect(() => {
-        if (!authUser?.shipper_id) return
-        Promise.all([fetchStats(), fetchBidShipments()]).then(() => setLoading(false))
-    }, [user?.id])
+        if (!authUser?.shipper_id) {
+            setLoading(false)
+            return
+        }
+        Promise.all([fetchStats(), fetchBidShipments()]).finally(() => setLoading(false))
+    }, [authUser?.shipper_id])
 
     // ── Fetch bids when selected card changes ────────────────────────
     useEffect(() => {
@@ -200,7 +209,7 @@ export default function ShipperHome() {
         <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#f9fafb' }}>
             <HomeHeader
                 onpressLogo={() => navigation.navigate('Home')}
-                onpressNotification={() => navigation.navigate('Home')}
+                onpressNotification={() => navigation.navigate('Notifications')}
             />
 
             <ScrollView

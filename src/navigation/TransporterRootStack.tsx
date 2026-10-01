@@ -1,9 +1,11 @@
+import { logger } from '../shared/utils/logger'
 import { useEffect, useState, useCallback } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, ActivityIndicator } from "react-native";
 
 import TransporterProfileWizard from "../presentation/profile_completion/screens/TransporterProfileWizard";
 import TransporterTab from "./TransporterTab";
+import { useUser } from "../app/context/User.context";
 import { ProfileService } from "../data/services/profileService";
 import { TransporterRootParamList } from "./types";
 
@@ -12,6 +14,7 @@ const Stack = createNativeStackNavigator<TransporterRootParamList>();
 export default function TransporterRootStack({ userId }: { userId: string }) {
 
   const [loading, setLoading] = useState(true);
+  const { setUser } = useUser();
   const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
 
   const checkProfile = useCallback(async () => {
@@ -24,9 +27,10 @@ export default function TransporterRootStack({ userId }: { userId: string }) {
       );
 
       setProfileComplete(isComplete);
+      setUser({ transporterProfile: profile } as any);
 
     } catch (error) {
-      console.error("Transporter profile check failed:", error);
+      logger.error("Transporter profile check failed:", error);
       setProfileComplete(false);
     } finally {
       setLoading(false);

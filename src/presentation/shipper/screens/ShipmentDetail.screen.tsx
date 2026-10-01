@@ -70,7 +70,7 @@ export default function ShipmentDetailScreen() {
         const res = await getShipmentDetailsUseCase(shipmentId);
         setData(res);
       } catch (err) {
-        console.error('ShipmentDetail fetch error:', err);
+        // console.error('ShipmentDetail fetch error:', err);
       } finally {
         setLoading(false);
       }

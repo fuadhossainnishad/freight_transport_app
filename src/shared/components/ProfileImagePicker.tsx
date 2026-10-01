@@ -9,23 +9,8 @@ interface Props {
 }
 
 export default function ProfileImagePicker({ image, onChange }: Props) {
-
-    // const pickImage = async () => {
-    //     const result = await launchImageLibrary({
-    //         mediaType: "photo",
-    //         quality: 0.8,
-    //     });
-
-    //     if (result.assets && result.assets.length > 0) {
-    //         const uri = result.assets[0].uri;
-    //         if (uri) {
-    //             onChange(uri);
-    //         }
-    //     }
-    // };
     const pickImage = async () => {
         const file = await DocPicker();
-
         if (file) {
             onChange(file);
         }
@@ -33,15 +18,17 @@ export default function ProfileImagePicker({ image, onChange }: Props) {
 
     return (
         <View className="items-center mt-4">
-
             <View className="relative">
-
-                <Image
-                    source={{
-                        uri: image?.uri || "https://forkast.news/wp-content/uploads/2022/03/NFT-Avatar.png",
-                    }}
-                    className="w-24 h-24 rounded-full"
-                />
+                {image?.uri ? (
+                    <Image
+                        source={{ uri: image.uri }}
+                        className="w-24 h-24 rounded-full"
+                    />
+                ) : (
+                    <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center">
+                        {/* Placeholder avatar — shown before user picks an image */}
+                    </View>
+                )}
 
                 <TouchableOpacity
                     onPress={pickImage}
@@ -49,9 +36,7 @@ export default function ProfileImagePicker({ image, onChange }: Props) {
                 >
                     <EditIcon width={16} height={16} />
                 </TouchableOpacity>
-
             </View>
-
         </View>
     );
-}
+}

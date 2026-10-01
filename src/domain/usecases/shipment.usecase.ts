@@ -7,7 +7,7 @@ export const getShipmentDetailsUseCase = async (id: string) => {
   if (!res?.success) {
     throw new Error("Failed to fetch shipment details");
   }
-  console.log("getShipmentDetailsUseCase:", mapShipmentDetails(res.data!))
+  // console.log("getShipmentDetailsUseCase:", mapShipmentDetails(res.data!))
 
   const mapped = mapShipmentDetails(res.data!);
 
@@ -20,7 +20,7 @@ export const getTransporterShipmentsUseCase = async (transporterId: string, page
   if (!res?.success) {
     throw new Error("Failed to fetch shipments");
   }
-  console.log("getTransporterShipmentsUseCase:", res.data)
+  // console.log("getTransporterShipmentsUseCase:", res.data)
   return {
     shipments: mapShipments(res),
     pagination: res.data.pagination,
@@ -33,7 +33,7 @@ export const getShipmentsUseCase = async (role: string, id: string, page = 1, li
   if (!res?.success) {
     throw new Error("Failed to fetch shipments");
   }
-  console.log("getShipmentsUseCase:", res.data)
+  // console.log("getShipmentsUseCase:", res.data)
   return {
     shipments: mapShipments(res),
     pagination: res.data.pagination,

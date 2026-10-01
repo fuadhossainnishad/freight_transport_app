@@ -7,7 +7,7 @@ import DriverStackStack from "./DriverStack";
 
 export default function AppStack() {
     const { user } = useAuth();
-    console.log("AppStack", user)
+    
     if (!user) {
         // User not loaded yet
         return (
@@ -16,11 +16,11 @@ export default function AppStack() {
             </View>
         );
     }
-    return user?.role === "SHIPPER" ? (
-        <ShipperRootStack userId={user?.shipper_id!} />
-    ) : user?.role === "DRIVER" ? (
+    return user.role === "SHIPPER" ? (
+        <ShipperRootStack userId={user.shipper_id ?? ""} />
+    ) : user.role === "DRIVER" ? (
         <DriverStackStack />
     ) : (
-        <TransporterRootStack userId={user?.transporter_id!} />
+        <TransporterRootStack userId={user.transporter_id ?? ""} />
     );
 }

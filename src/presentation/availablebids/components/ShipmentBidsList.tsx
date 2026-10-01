@@ -10,7 +10,7 @@ import {
 import { BlurView } from "@react-native-community/blur";
 import { connectSocket } from "../../../data/socket/socketClient";
 import { getShipmentBids } from "../../../data/services/shipmentService";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AvailableBidsStackParamList } from "../../../navigation/types";
 import { useAuth } from "../../../app/context/Auth.context";
@@ -101,17 +101,19 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
             const data = await getShipmentBids(shipmentId!);
             setBids(data);
         } catch (error) {
-            console.log("Fetch bids error:", error);
+            // console.log("Fetch bids error:", error);
         } finally {
             setLoading(false);
         }
     }, [shipmentId]);
 
     useEffect(() => {
+        let cancelled = false;
         let socket: any;
 
         const init = async () => {
             socket = await connectSocket();
+            if (cancelled) return;
 
             socket.emit("join_shipment_room", shipmentId);
 
@@ -128,12 +130,19 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
         fetchBids();
 
         return () => {
+            cancelled = true;
             if (socket) {
                 socket.emit("leave_shipment_room", shipmentId);
                 socket.off("new_bid");
             }
         };
     }, [shipmentId, fetchBids]);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchBids();
+        }, [fetchBids])
+    );
 
     if (loading) {
         return (
@@ -167,7 +176,9 @@ export default function ShipmentBidsList({ shipmentId }: { shipmentId: string })
             {/* ── Table ── */}
             {bids.length === 0 ? (
                 <View style={s.empty}>
-                    <Text style={s.emptyText}>No bids yet. Be the first!</Text>
+                    <Text style={{ fontSize: 40, marginBottom: 12 }}>📦</Text>
+                    <Text style={s.emptyTitle}>No bids yet</Text>
+                    <Text style={s.emptyText}>Be the first to place a bid on this shipment!</Text>
                 </View>
             ) : (
                 <View style={s.table}>
@@ -297,11 +308,12 @@ const s = StyleSheet.create({
     },
     countBadge: {
         backgroundColor: BLUE,
-        borderRadius: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
+        borderRadius: 12,
         minWidth: 24,
+        height: 24,
         alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 6,
     },
     countText: {
         color: "#fff",
@@ -313,17 +325,18 @@ const s = StyleSheet.create({
         alignItems: "center",
         gap: 6,
         backgroundColor: BLUE,
-        paddingHorizontal: 14,
-        paddingVertical: 9,
-        borderRadius: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
         shadowColor: BLUE,
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
+        shadowOpacity: 0.25,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 3 },
         elevation: 3,
     },
     placeBtnText: {
         color: "#fff",
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: "700",
     },
 
@@ -348,13 +361,27 @@ const s = StyleSheet.create({
     },
 
     empty: {
-        paddingVertical: 28,
+        paddingVertical: 40,
+        paddingHorizontal: 20,
         alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#F8FAFC",
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: "#E2E8F0",
+        borderStyle: "dashed",
+    },
+    emptyTitle: {
+        fontSize: 17,
+        color: "#334155",
+        fontWeight: "700",
+        marginBottom: 6,
     },
     emptyText: {
         fontSize: 14,
-        color: "#9ca3af",
+        color: "#64748B",
         fontWeight: "500",
+        textAlign: "center",
     },
 
     privacyNote: {

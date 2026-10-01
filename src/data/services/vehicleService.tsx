@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { DELETE_VEHICLE, GET_VEHICLE, GET_VEHICLES, POST_VEHICLE, UPDATE_VEHICLE } from "../../domain/constants/api";
 import { Vehicle } from "../../domain/entities/vehicle";
 import axiosClient from "../../shared/config/axios.config";
@@ -10,7 +11,7 @@ export const searchVehicles = async (
     const res = await axiosClient.get(`/vehicle/transporter/${transporterId}`, {
         params: { searchTerm }
     });
-    console.log("Vehicle search data:", res.data);
+    logger.info("Vehicle search data:", res.data);
 
     return res.data?.data?.vehicles || [];
 };
@@ -24,7 +25,7 @@ export const getVehicles = async (transporterId: string): Promise<Vehicle[]> => 
 
 export const getVehicleById = async (vehicleId: string): Promise<Vehicle> => {
     const res = await axiosClient.get(GET_VEHICLE(vehicleId));
-    console.log("getVehicleById:", res.data.data)
+    logger.info("getVehicleById:", res.data.data)
     return mapVehicleFromApi(res.data.data);
 };
 

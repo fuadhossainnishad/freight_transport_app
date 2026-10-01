@@ -72,7 +72,7 @@ export default function ActiveShipmentDetailsScreen() {
         const res = await getShipmentDetailsUseCase(shipmentId);
         setData(res);
       } catch (err) {
-        console.error('ActiveShipmentDetails fetch error:', err);
+        // console.error('ActiveShipmentDetails fetch error:', err);
       } finally {
         setLoading(false);
       }

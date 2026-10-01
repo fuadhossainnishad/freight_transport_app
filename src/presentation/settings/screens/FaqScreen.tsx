@@ -43,7 +43,7 @@ export default function FaqScreen() {
     try {
       await loadFaqs();
     } catch (err) {
-      console.log("FAQ fetch error:", err);
+      // console.log("FAQ fetch error:", err);
     }
   }, [loadFaqs]);
 

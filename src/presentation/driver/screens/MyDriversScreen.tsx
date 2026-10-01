@@ -39,7 +39,7 @@ const MyDriversScreen = () => {
             const data = await getTransporterDriversUseCase(user?.transporter_id!);
             setDrivers(data);
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             Alert.alert(t("common.error"), t("driver.list.loadFailed"));
         } finally {
             setLoading(false);

@@ -22,7 +22,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   User, Truck, DollarSign, Search, Check,
   ChevronRight, X, Phone, Mail, Hash,
-  Gauge, CalendarDays, ArrowLeft,
+  Gauge, CalendarDays, ArrowLeft, Plus
 } from 'lucide-react-native';
 
 import { AvailableBidsStackParamList } from '../../../navigation/types';
@@ -165,9 +165,13 @@ function VehicleCard({ item, selected, onPress }: { item: any; selected: boolean
   const { t } = useTranslation();
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.72} style={[s.listCard, selected && s.listCardSelected]}>
-      {/* Icon */}
+      {/* Icon/Image */}
       <View style={[s.avatarCircle, { borderRadius: 12 }, selected && { backgroundColor: BLUE }]}>
-        <Truck size={20} color={selected ? '#fff' : '#9ca3af'} />
+        {item.vehicle_images?.[0] ? (
+          <Image source={{ uri: normalizeImageUrl(item.vehicle_images[0]) }} style={s.avatarImg} />
+        ) : (
+          <Truck size={20} color={selected ? '#fff' : '#9ca3af'} />
+        )}
       </View>
 
       {/* Info */}
@@ -202,6 +206,7 @@ function VehicleCard({ item, selected, onPress }: { item: any; selected: boolean
 ───────────────────────────────────────────────────── */
 function SelectorButton({
   icon,
+  imageUrl,
   label,
   sublabel,
   onPress,
@@ -209,6 +214,7 @@ function SelectorButton({
   onClear,
 }: {
   icon: React.ReactNode;
+  imageUrl?: string;
   label: string;
   sublabel?: string;
   onPress: () => void;
@@ -217,8 +223,12 @@ function SelectorButton({
 }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78} style={[s.selector, hasValue && s.selectorFilled]}>
-      <View style={[s.selectorIconBox, hasValue && { backgroundColor: BLUE }]}>
-        {icon}
+      <View style={[s.selectorIconBox, hasValue && { backgroundColor: BLUE }, imageUrl ? { padding: 0, overflow: 'hidden' } : {}]}>
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+        ) : (
+          icon
+        )}
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[s.selectorLabel, hasValue && { color: BLUE, fontWeight: '700' }]}>{label}</Text>
@@ -355,6 +365,7 @@ export default function AssignVehicleDriverScreen() {
           <Text style={s.fieldLabel}>{t('availableBids.placeBid.driver')}</Text>
           <SelectorButton
             icon={<User size={18} color={selectedDriver ? '#fff' : '#9ca3af'} />}
+            imageUrl={selectedDriver?.profile_picture?.[0] ? normalizeImageUrl(selectedDriver.profile_picture[0]) : undefined}
             label={selectedDriver ? selectedDriver.driver_name : t('availableBids.placeBid.selectDriver')}
             sublabel={selectedDriver ? selectedDriver.phone : undefined}
             hasValue={!!selectedDriver}
@@ -367,6 +378,7 @@ export default function AssignVehicleDriverScreen() {
           <Text style={[s.fieldLabel, { marginTop: 16 }]}>{t('availableBids.placeBid.vehicle')}</Text>
           <SelectorButton
             icon={<Truck size={18} color={selectedVehicle ? '#fff' : '#9ca3af'} />}
+            imageUrl={selectedVehicle?.vehicle_images?.[0] ? normalizeImageUrl(selectedVehicle.vehicle_images[0]) : undefined}
             label={selectedVehicle ? `${selectedVehicle.vehicle_type} — ${selectedVehicle.capicity}T` : t('availableBids.placeBid.selectVehicle')}
             sublabel={selectedVehicle ? t('availableBids.placeBid.plate', { plate: selectedVehicle.plate_number }) : undefined}
             hasValue={!!selectedVehicle}
@@ -392,33 +404,27 @@ export default function AssignVehicleDriverScreen() {
 
           {/* ── SUMMARY CARD ── */}
           {(selectedDriver || selectedVehicle || price) ? (
-            <View style={s.summaryCard}>
-              <Text style={s.summaryHeading}>{t('availableBids.placeBid.bidSummary')}</Text>
+            <View style={[s.summaryCard, { backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: 1, borderRadius: 16, marginTop: 32, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1 }]}>
+              <Text style={[s.summaryHeading, { color: '#111827', fontSize: 16, marginBottom: 16, fontWeight: '700' }]}>{t('availableBids.placeBid.bidSummary')}</Text>
 
               {selectedDriver && (
-                <View style={s.summaryRow}>
-                  <User size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.driver')}</Text>
-                  <Text style={s.summaryValue}>{selectedDriver.driver_name}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{t('availableBids.placeBid.driver')}</Text>
+                  <Text style={{ fontSize: 14, color: '#111827', fontWeight: '600' }}>{selectedDriver.driver_name}</Text>
                 </View>
               )}
               {selectedVehicle && (
-                <View style={s.summaryRow}>
-                  <Truck size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.vehicle')}</Text>
-                  <Text style={s.summaryValue}>
-                    {t('availableBids.placeBid.vehicleSummary', {
-                      type: selectedVehicle.vehicle_type,
-                      plate: selectedVehicle.plate_number,
-                    })}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: price ? 16 : 0 }}>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{t('availableBids.placeBid.vehicle')}</Text>
+                  <Text style={{ fontSize: 14, color: '#111827', fontWeight: '600', flex: 1, textAlign: 'right', marginLeft: 16 }}>
+                    {selectedVehicle.vehicle_type} ({selectedVehicle.plate_number})
                   </Text>
                 </View>
               )}
               {price ? (
-                <View style={s.summaryRow}>
-                  <DollarSign size={13} color="#9ca3af" />
-                  <Text style={s.summaryLabel}>{t('availableBids.placeBid.amount')}</Text>
-                  <Text style={[s.summaryValue, { color: BLUE, fontWeight: '800' }]}>${price}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6' }}>
+                  <Text style={{ fontSize: 16, color: '#111827', fontWeight: '700' }}>{t('availableBids.placeBid.amount')}</Text>
+                  <Text style={{ fontSize: 22, color: BLUE, fontWeight: '900' }}>${price}</Text>
                 </View>
               ) : null}
             </View>
@@ -448,9 +454,42 @@ export default function AssignVehicleDriverScreen() {
           {loadingDrivers ? (
             <ActivityIndicator color={BLUE} style={{ marginTop: 24 }} />
           ) : filteredDrivers.length === 0 ? (
-            <View style={s.emptyState}>
-              <User size={32} color="#d1d5db" />
-              <Text style={s.emptyText}>{t('availableBids.placeBid.noDriversFound')}</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 20 }}>
+              <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <User size={36} color="#94A3B8" strokeWidth={1.5} />
+              </View>
+              <Text style={{ fontSize: 18, color: '#1E293B', fontWeight: '700', marginBottom: 8 }}>{t('availableBids.placeBid.noDriversFound', 'No drivers found')}</Text>
+              <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 28, lineHeight: 22 }}>
+                {t('availableBids.placeBid.noDriversDesc', "You haven't added any drivers yet, or none match your search.")}
+              </Text>
+              
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setDriverSheetOpen(false);
+                  navigation.navigate('AddDriver');
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: BLUE,
+                  paddingVertical: 14,
+                  paddingHorizontal: 24,
+                  borderRadius: 14,
+                  width: '100%',
+                  shadowColor: BLUE,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: 4
+                }}
+              >
+                <Plus size={18} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>
+                  {t('driver.list.addDriver', 'Add Driver')}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             filteredDrivers.map((item) => (
@@ -479,9 +518,42 @@ export default function AssignVehicleDriverScreen() {
           {loadingVehicles ? (
             <ActivityIndicator color={BLUE} style={{ marginTop: 24 }} />
           ) : filteredVehicles.length === 0 ? (
-            <View style={s.emptyState}>
-              <Truck size={32} color="#d1d5db" />
-              <Text style={s.emptyText}>{t('availableBids.placeBid.noVehiclesFound')}</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 20 }}>
+              <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Truck size={36} color="#94A3B8" strokeWidth={1.5} />
+              </View>
+              <Text style={{ fontSize: 18, color: '#1E293B', fontWeight: '700', marginBottom: 8 }}>{t('availableBids.placeBid.noVehiclesFound', 'No vehicles found')}</Text>
+              <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 28, lineHeight: 22 }}>
+                {t('availableBids.placeBid.noVehiclesDesc', "You haven't added any vehicles yet, or none match your search.")}
+              </Text>
+              
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setVehicleSheetOpen(false);
+                  navigation.navigate('AddVehicle');
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: BLUE,
+                  paddingVertical: 14,
+                  paddingHorizontal: 24,
+                  borderRadius: 14,
+                  width: '100%',
+                  shadowColor: BLUE,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: 4
+                }}
+              >
+                <Plus size={18} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>
+                  {t('vehicle.list.addVehicle', 'Add Vehicle')}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             filteredVehicles.map((item) => (

@@ -6,7 +6,7 @@ import type { ParseKeys } from "i18next";
 
 import AppHeader from "../../../shared/components/AppHeader";
 import HtmlContent from "../../../shared/components/HtmlContent";
-import { Info, InfoType } from "../../../domain/entities/Info.entity";
+import { Info, InfoType } from "../../../domain/entities/info.entity";
 import { BRAND_NAME } from "../../../domain/constants/brand";
 import { SettingsStackParamList } from "../../../navigation/types";
 

@@ -11,7 +11,7 @@ import {
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { UserCircle, FileText } from "lucide-react-native";
+import { UserCircle, FileText, Edit2, Trash2 } from "lucide-react-native";
 import { DriverStackParamList } from "../../../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../../../shared/components/AppHeader";
@@ -20,9 +20,6 @@ import PreviewModal from "../components/PreviewModal";
 import { getDriverByIdsUseCase } from "../../../domain/usecases/driver.usecase";
 import { Driver } from "../types";
 import { deleteDriver } from "../../../data/services/driverService";
-
-import EditIcon from "../../../../assets/icons/edit3.svg";
-import DeleteIcon from "../../../../assets/icons/delete.svg";
 
 type Nav = NativeStackNavigationProp<
   DriverStackParamList,
@@ -109,89 +106,98 @@ export default function DriverProfileDetailsScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* AVATAR */}
-            <View className="items-center mt-6 mb-6">
+            <View className="items-center mt-8 mb-8">
               {driver?.avatar ? (
-                <Image
-                  source={{ uri: driver.avatar }}
-                  className="w-24 h-24 rounded-full bg-gray-100"
-                />
+                <View className="shadow-sm shadow-black/5 rounded-full bg-white p-1 border border-gray-100">
+                  <Image
+                    source={{ uri: driver.avatar }}
+                    className="w-28 h-28 rounded-full bg-gray-100"
+                  />
+                </View>
               ) : (
-                <UserCircle size={96} color="#C7C7CC" strokeWidth={1} />
+                <View className="shadow-sm shadow-black/5 rounded-full bg-white p-1 border border-gray-100">
+                  <View className="w-28 h-28 rounded-full bg-[#036BB4]/5 items-center justify-center">
+                    <UserCircle size={56} color="#036BB4" strokeWidth={1.2} />
+                  </View>
+                </View>
               )}
-              <Text className="mt-3 text-lg font-bold text-[#1A1C1E]">
+              <Text className="mt-4 text-2xl font-extrabold text-gray-900 tracking-tight">
                 {driver?.name || t("driver.details.fallbackName")}
+              </Text>
+              <Text className="mt-1 text-gray-500 font-medium text-base">
+                {driver?.phone || "—"}
               </Text>
             </View>
 
-            {/* INFO CARDS */}
-            <View className="px-4 gap-3">
-              <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.nameLabel")}</Text>
-                <Text className="text-[#1A1C1E] text-base font-semibold">
-                  {driver?.name || "—"}
-                </Text>
-              </View>
+            {/* INFO BLOCK */}
+            <View className="px-5">
+              <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5 ml-1">
+                {t("driver.details.contactInfo", "Information")}
+              </Text>
+              <View className="bg-white rounded-3xl border border-gray-100 shadow-sm shadow-black/5 overflow-hidden">
+                
+                <View className="px-5 py-4 border-b border-gray-50 flex-row justify-between items-center">
+                  <Text className="text-gray-500 font-medium">{t("driver.details.nameLabel")}</Text>
+                  <Text className="text-gray-900 font-semibold">{driver?.name || "—"}</Text>
+                </View>
 
-              <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.phoneLabel")}</Text>
-                <Text className="text-[#1A1C1E] text-base font-semibold">
-                  {driver?.phone || "—"}
-                </Text>
-              </View>
+                <View className="px-5 py-4 border-b border-gray-50 flex-row justify-between items-center">
+                  <Text className="text-gray-500 font-medium">{t("driver.details.phoneLabel")}</Text>
+                  <Text className="text-gray-900 font-semibold">{driver?.phone || "—"}</Text>
+                </View>
 
-              <View className="p-4 rounded-2xl border border-gray-200 bg-white">
-                <Text className="text-gray-400 text-sm mb-1">{t("driver.details.emailLabel")}</Text>
-                <Text className="text-[#1A1C1E] text-base font-semibold">
-                  {driver?.email || "—"}
-                </Text>
-              </View>
+                <View className="px-5 py-4 border-b border-gray-50 flex-row justify-between items-center">
+                  <Text className="text-gray-500 font-medium">{t("driver.details.emailLabel")}</Text>
+                  <Text className="text-gray-900 font-semibold">{driver?.email || "—"}</Text>
+                </View>
 
-              <TouchableOpacity
-                activeOpacity={licenseImage ? 0.7 : 1}
-                disabled={!licenseImage}
-                onPress={() => licenseImage && setShowLicense(true)}
-                className="p-4 rounded-2xl border border-gray-200 bg-white"
-              >
-                <Text className="text-gray-400 text-sm mb-2">
-                  {t("driver.details.drivingLicense")}
-                </Text>
-                {licenseImage ? (
-                  <View className="flex-row items-center gap-2">
-                    <FileText size={20} color="#036BB4" strokeWidth={1.8} />
-                    <Text className="text-[#036BB4] text-base font-semibold">
-                      {t("driver.details.viewDocument")}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text className="text-[#1A1C1E] text-base font-semibold">
-                    —
-                  </Text>
-                )}
-              </TouchableOpacity>
+                <View className="px-5 py-4 flex-row justify-between items-center">
+                  <Text className="text-gray-500 font-medium">{t("driver.details.drivingLicense")}</Text>
+                  
+                  <TouchableOpacity
+                    activeOpacity={licenseImage ? 0.7 : 1}
+                    disabled={!licenseImage}
+                    onPress={() => licenseImage && setShowLicense(true)}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    {licenseImage ? (
+                      <>
+                        <FileText size={16} color="#036BB4" strokeWidth={2.5} />
+                        <Text className="text-[#036BB4] font-bold">
+                          {t("driver.details.viewDocument")}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text className="text-gray-900 font-semibold">—</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+              </View>
             </View>
           </ScrollView>
 
           {/* ACTIONS */}
-          <View className="flex-row gap-3 px-4 pb-4 pt-2">
+          <View className="flex-row gap-3 px-5 pb-6 pt-2">
             <TouchableOpacity
               onPress={handleEdit}
-              className="flex-1 border border-[#036BB4] py-3 rounded-full flex-row justify-center items-center gap-2"
+              className="flex-1 bg-[#036BB4] py-4 rounded-2xl flex-row justify-center items-center gap-2 shadow-sm shadow-[#036BB4]/30"
             >
-              <EditIcon height={18} width={18} />
-              <Text className="font-semibold text-[#036BB4]">{t("common.edit")}</Text>
+              <Edit2 size={18} color="#FFF" />
+              <Text className="font-bold text-white text-base">{t("common.edit")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleDelete}
               disabled={deleting}
-              className="flex-1 border border-[#FF3B30] py-3 rounded-full flex-row justify-center items-center gap-2"
+              className="flex-1 bg-red-50 border border-red-100 py-4 rounded-2xl flex-row justify-center items-center gap-2"
             >
               {deleting ? (
-                <ActivityIndicator color="#FF3B30" />
+                <ActivityIndicator color="#ef4444" />
               ) : (
                 <>
-                  <DeleteIcon height={18} width={18} />
-                  <Text className="font-semibold text-[#FF3B30]">{t("driver.details.remove")}</Text>
+                  <Trash2 size={18} color="#ef4444" />
+                  <Text className="font-bold text-[#ef4444] text-base">{t("driver.details.remove")}</Text>
                 </>
               )}
             </TouchableOpacity>

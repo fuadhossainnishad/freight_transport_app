@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { GET_BIDS } from "../../domain/constants/api";
 import { axiosClient } from "../../shared/config/axios.config";
 
@@ -27,11 +28,11 @@ export const getBidById = async (bidId: string) => {
 export const createBid = async (payload: CreateBidPayload) => {
     try {
         const res = await axiosClient.post("/bid/", payload);
-        console.log("createBid:", res.data);
+        logger.info("createBid:", res.data);
 
         return res.data;
     } catch (error: any) {
-        console.log("createBid error:", error?.response?.data || error);
+        logger.info("createBid error:", error?.response?.data || error);
         throw error;
     }
 };

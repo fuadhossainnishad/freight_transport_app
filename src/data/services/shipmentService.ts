@@ -1,3 +1,4 @@
+import { logger } from '../../shared/utils/logger';
 import { CREATE_SHIPMENTS } from "../../domain/constants/api"
 import axiosClient from "../../shared/config/axios.config"
 
@@ -12,7 +13,7 @@ export const createShipment = async (formData: FormData) => {
             }
         }
     )
-    console.log("createShipment:", res.data)
+    logger.info("createShipment:", res.data)
     return res.data
 }
 
@@ -36,17 +37,17 @@ export const getShipperShipments = async (
 
 export const fetchShipmentDetails = async (id: string) => {
     const res = await axiosClient.get(`/shipment/${id}`);
-    console.log("fetchShipmentDetails:", res.data)
+    logger.info("fetchShipmentDetails:", res.data)
     return res.data;
 };
 
 export const fetchTransporterShipments = async (transporterId: string, page = 1, limit = 10) => {
     try {
         const res = await axiosClient.get(`/shipment/transporter/${transporterId}`, { params: { page, limit } });
-        console.log("fetchTransporterShipments:", res.data);
+        logger.info("fetchTransporterShipments:", res.data);
         return res.data;
     } catch (err) {
-        console.error("Error fetching shipments:", err);
+        logger.error("Error fetching shipments:", err);
         throw err;
     }
 };
@@ -54,10 +55,10 @@ export const fetchTransporterShipments = async (transporterId: string, page = 1,
 export const fetchShipments = async (role: string, id: string, page = 1, limit = 10) => {
     try {
         const res = await axiosClient.get(`/shipment/${role}/${id}`, { params: { page, limit } });
-        console.log("fetchShipments:", res.data);
+        logger.info("fetchShipments:", res.data);
         return res.data;
     } catch (err) {
-        console.error("Error fetching shipments:", err);
+        logger.error("Error fetching shipments:", err);
         throw err;
     }
 };
@@ -73,7 +74,7 @@ export const updateShipmentStatus = async (
     status: ShipmentStatus
 ) => {
     const res = await axiosClient.patch(`/shipment/${shipmentId}/status`, { status });
-    console.log("updateShipmentStatus:", res.data);
+    logger.info("updateShipmentStatus:", res.data);
     return res.data;
 };
 
@@ -93,13 +94,13 @@ export const completeShipmentWithProof = async (
             },
         }
     );
-    console.log("completeShipmentWithProof:", res.data);
+    logger.info("completeShipmentWithProof:", res.data);
     return res.data;
 };
 
 export const getShipmentBids = async (shipmentId: string) => {
     const res = await axiosClient.get(`/bid/${shipmentId}`);
-    console.log("getShipmentBids:", res.data.data);
+    logger.info("getShipmentBids:", res.data.data);
     return res.data?.data || [];
 };
 

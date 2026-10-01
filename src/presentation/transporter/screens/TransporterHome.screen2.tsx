@@ -29,6 +29,7 @@ export default function TransporterHomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { user: authUser } = useAuth();
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const transporterId = authUser?.transporter_id;
 
   useTransporterSocket();
@@ -39,7 +40,6 @@ export default function TransporterHomeScreen() {
 
   const activeShipments = shipments.data ?? [];
 
-  const [activeIndex, setActiveIndex] = useState(0);
   const [focusedShipment, setFocusedShipment] = useState<Shipment | null>(null);
 
   // undefined = not yet fetched, null = fetched but not found, Driver = loaded
@@ -58,7 +58,7 @@ export default function TransporterHomeScreen() {
     <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-gray-50">
       <HomeHeader
         onpressLogo={() => navigation.navigate("Home")}
-        onpressNotification={() => navigation.navigate("Home")}
+        onpressNotification={() => navigation.navigate('Notifications')}
       />
 
       <ScrollView
@@ -71,6 +71,8 @@ export default function TransporterHomeScreen() {
           status={stats.status}
           error={stats.error}
           onRetry={stats.refresh}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
         />
 
         {/* Active Shipments header */}
@@ -128,7 +130,6 @@ export default function TransporterHomeScreen() {
           <ShipmentsCarousel
             shipments={activeShipments}
             onShipmentFocus={handleShipmentFocus}
-            onActiveIndexChange={setActiveIndex}
           />
         )}
 

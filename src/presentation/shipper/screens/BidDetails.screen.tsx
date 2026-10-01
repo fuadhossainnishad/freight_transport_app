@@ -34,12 +34,12 @@ export default function BidDetails() {
             setBids(Array.isArray(bidsRes) ? bidsRes : (bidsRes?.data ?? []))
             if (shipmentRes) setShipment(shipmentRes?.data ?? shipmentRes)
         } catch (err) {
-            console.log("Bid details error:", err)
+            // console.log("Bid details error:", err)
         }
     }, [shipmentId, params.shipment])
 
     useEffect(() => {
-        fetchData().then(() => setLoading(false))
+        fetchData().finally(() => setLoading(false))
     }, [fetchData])
 
     const onRefresh = useCallback(async () => {
